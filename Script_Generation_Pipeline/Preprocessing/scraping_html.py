@@ -14,8 +14,7 @@ soup = BeautifulSoup(html, "html.parser")
 # remove external hyperlinks but keep their visible text
 for a in soup.find_all("a"):
     href = a.get("href", "")
-    if href.startswith(("http://", "https://", "//")):
-        a.replace_with(a.get_text())
+    a.replace_with(a.get_text())
 
 # remove external images (replace with alt text if present, otherwise remove)
 for img in soup.find_all("img"):
@@ -31,3 +30,8 @@ body = soup.find("body")
 body_html = str(body)
 body_md = md(body_html)
 print(body_md)
+
+# Save the markdown output to a file
+output_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/Script_Generation_Pipeline/Preprocessing/output.md"
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(body_md)

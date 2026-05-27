@@ -24,7 +24,7 @@ response = client.beta.messages.create(
     model="claude-sonnet-4-6",
     max_tokens=2048,
     betas=["files-api-2025-04-14"], # Use the beta version of the files API to access the uploaded file
-    system="You are a helpful assistant who summarizes the content of the provided PDF file.", # System prompt to guide the model's behavior
+    system="You are a helpful assistant who summarizes the content of the provided PDF files.", # System prompt to guide the model's behavior
     messages=[
         {
             "role": "user",

@@ -77,3 +77,56 @@ manim -pql limiting_reactant.py LimitingReactantScene
 - **Reusable answer-key & analytics hooks.** The multiple-choice options
   are already labelled A/B/C in code; a thin export step would emit them
   to a learning-record store alongside the video.
+
+---
+
+## Getting Started for Developers
+
+### 1. Start the local Postgres database
+
+```bash
+docker run --name prototype-db \
+  -e POSTGRES_PASSWORD=YourPasswordHere \
+  -e POSTGRES_DB=scenario_db \
+  -p 5432:5432 \
+  -d postgres
+```
+
+### 2. Configure environment variables
+
+```bash
+cp backend/.env.example backend/.env
+# Open backend/.env and replace YourPasswordHere with the password you used above.
+```
+
+### 3. Create and activate a Python virtual environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 4. Install dependencies
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+### 5. Build the database tables
+
+```bash
+cd backend
+python init_db.py
+```
+
+### 6. Seed test data
+
+```bash
+python seed_db.py
+```
+
+You should see output like:
+```
+Seed complete.
+Created scenario ID: <uuid>
+```

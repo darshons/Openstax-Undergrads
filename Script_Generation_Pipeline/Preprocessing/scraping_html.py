@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 import requests
 
-website = "https://openstax.org/apps/archive/20260407.195030/contents/06aba565-9432-40f6-97ee-b8a361f118a8@ee086d3:1db17970-a37e-48e8-b20c-941b52ce73ef.xhtml"
+website = "https://openstax.org/apps/archive/20260407.195030/contents/06aba565-9432-40f6-97ee-b8a361f118a8@ee086d3:be055ac9-f86d-41fd-926a-274645c57e1c.xhtml"
 
 response = requests.get(website)
 response.raise_for_status()  # Check if the request was successful

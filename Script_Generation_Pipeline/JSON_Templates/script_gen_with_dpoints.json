@@ -1,0 +1,126 @@
+{
+  "title": "",
+  "learning_goal": "",
+  "target_audience": "",
+  "total_duration_seconds": 0,
+  "visual_style": "",
+  "characters": [
+    {
+      "character_id": "",
+      "name": "",
+      "role": "",
+      "appearance": {
+        "skin_tone": "",
+        "hair": "",
+        "build": "",
+        "uniform": "",
+        "distinguishing_features": ""
+      },
+      "emotional_baseline": ""
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "duration_seconds": 0,
+      "setting": "",
+      "character_actions": "",
+      "camera": {
+        "angle": "",
+        "movement": "",
+        "lens_effect": ""
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "",
+            "line": ""
+          }
+        ],
+        "sound_effects": "",
+        "ambience": ""
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "duration_seconds": 0,
+      "setting": "",
+      "character_actions": "",
+      "camera": {
+        "angle": "",
+        "movement": "",
+        "lens_effect": ""
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "",
+            "line": ""
+          }
+        ],
+        "sound_effects": "",
+        "ambience": ""
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "choice"
+      }
+    },
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "duration_seconds": 0,
+      "setting": "",
+      "character_actions": "",
+      "camera": {
+        "angle": "",
+        "movement": "",
+        "lens_effect": ""
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "",
+            "line": ""
+          }
+        ],
+        "sound_effects": "",
+        "ambience": ""
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "choice"
+      }
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "",
+      "associated_introduction_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "",
+          "is_correct": false,
+          "misconception": "",
+          "routes_to_scene": 2
+        }
+      ]
+    }
+  ]
+}
+

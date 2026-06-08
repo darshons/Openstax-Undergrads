@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 import requests
 
-website = "https://openstax.org/apps/archive/20260407.195030/contents/06aba565-9432-40f6-97ee-b8a361f118a8@ee086d3:be055ac9-f86d-41fd-926a-274645c57e1c.xhtml"
+website = "https://openstax.org/apps/archive/20260407.195030/contents/06aba565-9432-40f6-97ee-b8a361f118a8@ee086d3:4ffb3e5b-9fb7-46e5-9928-20802d505e38.xhtml"
 
 response = requests.get(website)
 response.raise_for_status()  # Check if the request was successful
@@ -32,6 +32,6 @@ body_md = md(body_html)
 print(body_md)
 
 # Save the markdown output to a file
-output_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/Script_Generation_Pipeline/Preprocessing/output.md"
+output_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.4.md"
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(body_md)

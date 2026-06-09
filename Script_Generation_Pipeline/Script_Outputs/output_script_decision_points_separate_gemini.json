@@ -1,0 +1,390 @@
+{
+  "title": "Diagnosing Disruptions: Understanding Sleep Stages and RBD",
+  "learning_goal": "Learners will differentiate between REM and NREM sleep stages, understand how sleep disruption affects cognitive function, and recognize the symptoms and treatments for REM Sleep Behavior Disorder (RBD).",
+  "target_audience": "Psychology students and pre-med learners studying sleep disorders and physiological psychology.",
+  "core_concept": "REM Sleep Behavior Disorder (RBD) occurs when normal REM muscle paralysis fails, and is treated with clonazepam and safety modifications.",
+  "total_duration_seconds": 180,
+  "visual_style": "2D semi-flat limited-animation style. Characters feature dynamic but constrained movement, expressing emotion through subtle head turns, nods, gentle posture shifts, and facial expressions. Mouth movements suggest speech without detailed lip sync. No complex physics or photorealistic rendering.",
+  "characters": [
+    {
+      "character_id": "char_dr_aris",
+      "name": "Dr. Aris",
+      "role": "Psychiatrist",
+      "appearance": {
+        "skin_tone": "Light brown",
+        "hair": "Dark brown, styled in a neat, professional bun",
+        "build": "Average build, medium height",
+        "uniform": "White lab coat over a light blue collared blouse",
+        "distinguishing_features": "Wears silver wire-rimmed glasses"
+      },
+      "emotional_baseline": "Calm, professional, and empathetic"
+    },
+    {
+      "character_id": "char_mark",
+      "name": "Mark",
+      "role": "Patient",
+      "appearance": {
+        "skin_tone": "Pale",
+        "hair": "Messy blonde hair",
+        "build": "Medium build",
+        "uniform": "Casual green sweater and dark jeans",
+        "distinguishing_features": "Noticeable dark circles under his eyes indicating fatigue"
+      },
+      "emotional_baseline": "Tired, slightly anxious, but attentive"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "duration_seconds": 25,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark sits slightly hunched, rubbing the back of his neck. Dr. Aris leans forward slightly, hands steepled gently on her lap, listening actively.",
+      "camera": {
+        "angle": "Medium two-shot capturing both characters at a slight angle",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_mark",
+            "line": "Dr. Aris, I'm exhausted all day, and my wife says I've been yelling and kicking in my sleep. I'm worried I'm going crazy."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "I even wake up remembering these intense, frightening dreams where I'm fighting or running."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "You're not going crazy, Mark. Sleep is made up of distinct stages, and disruptions can severely affect your physical and mental well-being. We need to identify what's causing these nighttime episodes."
+          }
+        ],
+        "sound_effects": "Faint rustle of fabric as Mark rubs his neck.",
+        "ambience": "Quiet office room tone, faint hum of an air conditioner."
+      },
+      "routes_to": {
+        "type": "introduction",
+        "decision_point_id": 1
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "branch_type": "incorrect",
+      "duration_seconds": 20,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark looks confused, tilting his head. Dr. Aris touches her chin, realizing her diagnostic error.",
+      "misconception_demonstrated": "Confusing RBD with somnambulism (sleepwalking), which occurs in deep NREM sleep without vivid dream recall.",
+      "consequence_summary": "Mark points out that his vivid dreams don't align with sleepwalking, prompting Dr. Aris to reconsider the sleep stage involved.",
+      "camera": {
+        "angle": "Over-the-shoulder shot from Dr. Aris's perspective focusing on Mark",
+        "movement": "Slow push-in on Mark",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "This is likely somnambulism, or sleepwalking, which occurs during the deep slow-wave NREM stages of sleep."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "But I remember the disturbing dreams vividly when I wake up. I thought people who sleepwalk usually don't remember anything?"
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "That's a good point. Sleepwalking typically happens in NREM Stage 3 without dream recall. Your vivid memories suggest this is happening during REM sleep instead."
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "false_choice",
+        "decision_point_id": 1
+      }
+    },
+    {
+      "scene_id": 3,
+      "type": "outcome",
+      "branch_type": "correct",
+      "duration_seconds": 25,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark tilts his head, looking curious but relieved to have an answer. Dr. Aris gestures lightly with one hand to emphasize her explanation.",
+      "learning_outcome": "Correctly identifies REM Sleep Behavior Disorder (RBD) based on the failure of muscle paralysis during REM sleep and vivid dream recall.",
+      "camera": {
+        "angle": "Over-the-shoulder shot from Mark's perspective focusing on Dr. Aris",
+        "movement": "Static",
+        "lens_effect": "Slight depth of field blur on Mark's shoulder"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "This sounds like REM Sleep Behavior Disorder, or RBD. Normally, during REM sleep, your brain is highly active but your voluntary muscles are paralyzed."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "So if I'm kicking, that paralysis isn't happening? That makes sense because I do wake up remembering those intense dreams."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "Exactly. In RBD, that muscle paralysis fails during disturbing dreams. The physical episodes are disrupting your sleep cycle, causing your daytime fatigue."
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "true_choice",
+        "decision_point_id": 1
+      }
+    },
+    {
+      "scene_id": 4,
+      "type": "consequence",
+      "branch_type": "incorrect",
+      "duration_seconds": 20,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark looks skeptical, crossing his arms slightly. Dr. Aris nods slowly, recognizing the inconsistency.",
+      "misconception_demonstrated": "Confusing RBD with night terrors, which occur during NREM sleep and lack vivid dream recall.",
+      "consequence_summary": "Mark clarifies he doesn't just panic, but acts out specific dreams, helping Dr. Aris realize the episodes occur during REM sleep.",
+      "camera": {
+        "angle": "Medium two-shot",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "These are likely night terrors, a parasomnia that occurs during the NREM phase of sleep."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "I don't just wake up in a sudden panic, though. I am actually acting out the specific, vivid dreams I remember having."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "You're right to correct me. People with night terrors generally have no memories of the events. Since you recall your dreams, this is happening during REM sleep."
+          }
+        ],
+        "sound_effects": "Faint rustle as Mark crosses his arms.",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "false_choice",
+        "decision_point_id": 1
+      }
+    },
+    {
+      "scene_id": 5,
+      "type": "narrative",
+      "duration_seconds": 25,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark nods slowly, shifting his posture to sit up a bit straighter. Dr. Aris maintains gentle eye contact, her expression supportive.",
+      "camera": {
+        "angle": "Medium shot focused on Mark",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_mark",
+            "line": "I have noticed I've been struggling to maintain attention at work lately. It's really impacting my performance."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "That perfectly aligns with sleep deprivation. We'll schedule a sleep study to confirm the high brain activity of REM sleep accompanied by abnormal muscle tone."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "If the study confirms it's RBD, is there a way to fix it? I don't want to accidentally hurt my wife or keep feeling this exhausted."
+          }
+        ],
+        "sound_effects": "Subtle shift of leather as Mark sits up.",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "introduction",
+        "decision_point_id": 2
+      }
+    },
+    {
+      "scene_id": 6,
+      "type": "consequence",
+      "branch_type": "incorrect",
+      "duration_seconds": 20,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark looks confused and shakes his head. Dr. Aris checks her notes.",
+      "misconception_demonstrated": "Prescribing a CPAP device, which is used for Obstructive Sleep Apnea, not RBD.",
+      "consequence_summary": "Mark points out he doesn't have breathing issues or loud snoring, prompting Dr. Aris to pivot to treatments targeting neurological REM paralysis.",
+      "camera": {
+        "angle": "Close-up on Mark",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "You will need to use a continuous positive airway pressure, or CPAP, device to keep your airways open."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "A breathing mask? My wife never mentioned that I stop breathing or snore loudly. I'm just kicking and acting out my dreams."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "My apologies, you're right. CPAP is for sleep apnea. Because your issue is a lack of muscle paralysis during REM sleep, we need a different approach."
+          }
+        ],
+        "sound_effects": "Light rustle of paper.",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "false_choice",
+        "decision_point_id": 2
+      }
+    },
+    {
+      "scene_id": 7,
+      "type": "consequence",
+      "branch_type": "incorrect",
+      "duration_seconds": 20,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark sighs slightly, looking frustrated. Dr. Aris nods understandingly.",
+      "misconception_demonstrated": "Recommending CBT and stress management as the primary treatment, which is effective for insomnia but not for the neurological muscle paralysis failure in RBD.",
+      "consequence_summary": "Mark clarifies that anxiety isn't keeping him awake, leading Dr. Aris to realize a neurological intervention is required instead of behavioral therapy.",
+      "camera": {
+        "angle": "Medium two-shot",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "We should start cognitive-behavioral therapy focusing on stress management techniques to stop you from acting out."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "I'm not really stressed about falling asleep, though. I just want the kicking and dreaming to stop so I can actually rest."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "You make a fair point. Cognitive-behavioral therapy is highly effective for insomnia, but your symptoms require an approach that targets your REM sleep cycles directly."
+          }
+        ],
+        "sound_effects": "Soft sigh from Mark.",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "false_choice",
+        "decision_point_id": 2
+      }
+    },
+    {
+      "scene_id": 8,
+      "type": "outcome",
+      "branch_type": "correct",
+      "duration_seconds": 25,
+      "setting": "A softly lit, professional psychiatrist's office with a desk, two comfortable chairs, and a small bookshelf.",
+      "character_actions": "Mark smiles slightly, looking noticeably more relaxed. Dr. Aris gives a finalizing nod.",
+      "learning_outcome": "Correctly applies the standard treatment for RBD: Clonazepam (with or without melatonin) and environmental safety modifications.",
+      "camera": {
+        "angle": "Medium two-shot",
+        "movement": "Slow pull-out",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_dr_aris",
+            "line": "It is highly treatable. We often use an anti-anxiety medication called clonazepam, sometimes with melatonin, to suppress that physical activity during your REM cycles."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "That is a huge relief. I'll schedule the sleep study at the front desk right now."
+          },
+          {
+            "character_id": "char_dr_aris",
+            "line": "Excellent. In the meantime, we need to modify your sleeping environment to make it safer. I recommend moving any sharp furniture away from the bed."
+          },
+          {
+            "character_id": "char_mark",
+            "line": "I'll move the nightstands out of the room tonight. Thank you, Dr. Aris."
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet office room tone."
+      },
+      "routes_to": {
+        "type": "true_choice",
+        "decision_point_id": 2
+      }
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "Based on Mark's symptoms and sleep stages, what should Dr. Aris diagnose?",
+      "learning_objective_assessed": "Recognize the symptoms of parasomnias and differentiate between REM and NREM sleep disruptions.",
+      "entry_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "This sounds like REM Sleep Behavior Disorder (RBD), where the normal muscle paralysis during REM sleep fails.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "This is likely somnambulism, or sleepwalking, which occurs during the deep slow-wave NREM stages of sleep.",
+          "is_correct": false,
+          "misconception": "Confusing RBD with sleepwalking, which typically happens in NREM stage 3 and lacks vivid dream recall.",
+          "routes_to_scene": 2
+        },
+        {
+          "choice_id": "C",
+          "text": "These are night terrors, a parasomnia that occurs during the NREM phase of sleep.",
+          "is_correct": false,
+          "misconception": "Confusing RBD with night terrors, which occur in NREM sleep and do not involve acting out remembered dreams.",
+          "routes_to_scene": 4
+        }
+      ]
+    },
+    {
+      "decision_point_id": 2,
+      "question_text": "What is the most appropriate treatment plan for Mark's condition?",
+      "learning_objective_assessed": "Describe the treatments for specific sleep disorders like REM Sleep Behavior Disorder.",
+      "entry_scene_id": 5,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Prescribe clonazepam to suppress physical activity during REM and recommend modifying the bedroom for safety.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 8
+        },
+        {
+          "choice_id": "B",
+          "text": "Prescribe a continuous positive airway pressure (CPAP) device to keep his airways open during sleep.",
+          "is_correct": false,
+          "misconception": "Applying a treatment for sleep apnea (CPAP) to a parasomnia (RBD).",
+          "routes_to_scene": 6
+        },
+        {
+          "choice_id": "C",
+          "text": "Recommend cognitive-behavioral therapy focusing on stress management to stop him from acting out.",
+          "is_correct": false,
+          "misconception": "Applying a treatment for insomnia (CBT) to a parasomnia that requires neurological medication and safety modifications.",
+          "routes_to_scene": 7
+        }
+      ]
+    }
+  ]
+}

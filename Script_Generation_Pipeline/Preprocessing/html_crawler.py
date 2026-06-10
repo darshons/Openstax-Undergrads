@@ -17,7 +17,9 @@ crawl("University Physics Volume 1", unit_num=1, chapter_num=2)
 crawl("University Physics Volume 1", unit_num=1, chapter_num=2, page_num="2.1")
 crawl("University Physics Volume 1", unit_name="Optics", chapter_name="The Nature of Light")
 =========================
-Requirements: pip install requests beautifulsoup4 lxml [used to extract image and text]
+Requirements: 
+pip install requests beautifulsoup4 lxml
+pip install markdownify
 =========================
 Possible future changes:
 1. Current crawler only takes care of "book-content" inside a chapter. In order to include content like book review
@@ -35,6 +37,7 @@ import time
 import requests
 from markdownify import markdownify as md
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 # =========================
 # CONFIGURATION
@@ -525,7 +528,26 @@ if __name__ == "__main__":
 
     # Merge all pages into one Markdown file
     merged = "\n\n---\n\n".join(p["markdown"] for p in result["pages"])
-    md_path = "crawler_output.md"
+
+    # Build a more descriptive name
+    def _slugify(s: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+ 
+    parts = [_slugify(BOOK_TITLE)]
+    if   UNIT_NUM  is not None: parts.append(f"unit-{UNIT_NUM}")
+    elif UNIT_NAME is not None: parts.append(f"unit-{_slugify(UNIT_NAME)}")
+    if   CHAPTER_NUM  is not None: parts.append(f"ch-{CHAPTER_NUM}")
+    elif CHAPTER_NAME is not None: parts.append(f"ch-{_slugify(CHAPTER_NAME)}")
+    if   PAGE_NUM  is not None: parts.append(f"p-{PAGE_NUM}")
+    elif PAGE_NAME is not None: parts.append(f"p-{_slugify(PAGE_NAME)}")
+ 
+    # Make relative position in the project folder
+    PROJECT_DIR = Path(__file__).resolve().parent
+    output_dir = PROJECT_DIR / "TextbookContext"
+    output_dir.mkdir(exist_ok=True)
+
+    md_path = output_dir / f"{'_'.join(parts)}.md"
+
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(merged)
 

@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OpenStax · Scenario Script Studio</title>
+<meta name="viewport" content="width=1440" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+  :root{
+    --os-navy:#002569;
+    --os-navy-ink:#0b1a3d;
+    --os-orange:#f36f21;
+    --os-orange-tint:#fde7d8;
+    --os-green:#9ccb3b;
+    --os-yellow:#f4c61f;
+    --os-gray:#5e6a71;
+    --os-line:#e6e8ec;
+    --os-line-strong:#cdd2d9;
+    --os-bg:#ffffff;
+    --os-bg-2:#fafbfc;
+    --os-bg-3:#f3f5f8;
+    --os-ink:#1d2330;
+    --os-ink-2:#4a525f;
+    --os-ink-3:#7a828f;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.03);
+    --shadow-md:0 4px 14px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+    --shadow-lg:0 18px 48px -16px rgba(15,23,42,.18), 0 6px 16px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--os-bg-2);color:var(--os-ink);font-family:"Lato",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;overflow:hidden}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input,textarea{font-family:inherit;color:inherit}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+  /* ─── App shell ─── */
+  .app{display:grid;grid-template-rows:56px 1fr;height:100vh}
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;background:#fff;border-bottom:1px solid var(--os-line);z-index:5}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{display:flex;flex-direction:column;gap:3px}
+  .brand-mark span{display:block;height:3px;border-radius:1px}
+  .brand-mark span:nth-child(1){width:22px;background:var(--os-green);margin-left:6px}
+  .brand-mark span:nth-child(2){width:28px;background:var(--os-orange)}
+  .brand-mark span:nth-child(3){width:24px;background:var(--os-gray);margin-left:3px}
+  .brand-mark span:nth-child(4){width:20px;background:var(--os-yellow);margin-left:8px}
+  .brand-mark span:nth-child(5){width:26px;background:var(--os-navy);margin-left:1px}
+  .brand-name{font-weight:900;font-size:17px;color:var(--os-navy);letter-spacing:-.01em}
+  .brand-name em{font-style:normal;font-weight:300;color:var(--os-navy)}
+  .brand-divider{width:1px;height:22px;background:var(--os-line)}
+  .brand-product{font-size:13px;color:var(--os-ink-2);font-weight:500;letter-spacing:.01em}
+  .brand-product b{color:var(--os-ink);font-weight:700}
+
+  .topbar-right{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--os-ink-2)}
+  .crumb{display:flex;align-items:center;gap:8px}
+  .crumb-dot{width:6px;height:6px;border-radius:50%;background:var(--os-green);box-shadow:0 0 0 3px rgba(156,203,59,.22)}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#002569 0%, #1a4dbf 100%);
+    color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
+
+  /* ─── Main split ─── */
+  .main{display:grid;grid-template-columns:340px 1fr;min-height:0}
+  .sidebar{background:#fff;border-right:1px solid var(--os-line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+
+  /* ─── Sidebar ─── */
+  .sb-head{padding:18px 18px 12px}
+  .sb-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--os-ink-3);margin:0 0 8px}
+  .sb-h1{font-size:17px;font-weight:700;color:var(--os-ink);margin:0 0 10px;line-height:1.25}
+  .sb-search{position:relative;margin-bottom:8px}
+  .sb-search input{width:100%;padding:9px 10px 9px 32px;border:1px solid var(--os-line);
+    border-radius:8px;background:var(--os-bg-2);font-size:13px;outline:none;transition:.15s}
+  .sb-search input:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+  .sb-search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--os-ink-3)}
+
+  .sb-filters{display:flex;gap:6px;padding:0 18px 12px;flex-wrap:wrap}
+  .sb-chip{font-size:11px;padding:4px 9px;border-radius:999px;background:var(--os-bg-3);
+    color:var(--os-ink-2);font-weight:600;letter-spacing:.01em;cursor:default;
+    border:1px solid transparent;transition:.15s}
+  .sb-chip:hover{background:#eef1f5}
+  .sb-chip.on{background:#fff;border-color:var(--os-navy);color:var(--os-navy)}
+
+  .sb-list{flex:1;overflow-y:auto;padding:4px 8px 12px;min-height:0}
+  .sb-list::-webkit-scrollbar{width:8px}
+  .sb-list::-webkit-scrollbar-thumb{background:var(--os-line-strong);border-radius:4px}
+
+  .book{margin:2px 0;border-radius:8px;background:transparent}
+  .book-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:default}
+  .book-row:hover{background:var(--os-bg-3)}
+  .book-row.open{background:var(--os-bg-3)}
+  .book-spine{width:3px;align-self:stretch;border-radius:2px;flex-shrink:0}
+  .book-meta{flex:1;min-width:0}
+  .book-title{font-size:13px;font-weight:700;color:var(--os-ink);line-height:1.25;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .book-sub{font-size:11px;color:var(--os-ink-3);margin-top:1px}
+  .book-caret{color:var(--os-ink-3);transition:.18s}
+  .book-row.open .book-caret{transform:rotate(90deg);color:var(--os-navy)}
+  .book-count{font-size:10px;font-weight:700;color:var(--os-ink-3);
+    background:#fff;border:1px solid var(--os-line);border-radius:999px;padding:1px 7px;
+    min-width:22px;text-align:center}
+  .book-count.has{color:#fff;background:var(--os-orange);border-color:var(--os-orange)}
+
+  .chapters{padding:2px 0 6px 14px;display:flex;flex-direction:column;gap:1px}
+  .chap{padding-left:10px;border-left:1px dashed var(--os-line-strong)}
+  .chap-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:default}
+  .chap-row:hover{background:#fff}
+  .chap-num{font-size:10px;font-weight:700;color:var(--os-ink-3);
+    background:#fff;border:1px solid var(--os-line);border-radius:4px;padding:2px 5px;
+    min-width:22px;text-align:center;font-family:"JetBrains Mono",monospace}
+  .chap-name{flex:1;font-size:12.5px;color:var(--os-ink);line-height:1.3}
+  .chap-caret{color:var(--os-ink-3);font-size:10px;transition:.15s}
+  .chap-row.open .chap-caret{transform:rotate(90deg)}
+
+  .sections{padding:2px 0 6px 12px;display:flex;flex-direction:column}
+  .sec-row{display:flex;align-items:flex-start;gap:9px;padding:5px 8px;border-radius:6px;cursor:default;line-height:1.35}
+  .sec-row:hover{background:#fff}
+  .sec-row.on{background:#fff7ef}
+  .sec-check{flex-shrink:0;margin-top:2px;width:14px;height:14px;border-radius:3px;
+    border:1.5px solid var(--os-line-strong);background:#fff;display:flex;
+    align-items:center;justify-content:center;transition:.12s}
+  .sec-row.on .sec-check{background:var(--os-orange);border-color:var(--os-orange)}
+  .sec-row.on .sec-check svg{display:block}
+  .sec-check svg{display:none}
+  .sec-num{font-size:10.5px;color:var(--os-ink-3);font-family:"JetBrains Mono",monospace;flex-shrink:0;margin-top:1px}
+  .sec-name{font-size:12.5px;color:var(--os-ink-2);flex:1}
+  .sec-row.on .sec-name{color:var(--os-ink);font-weight:600}
+
+  /* ─── Sidebar footer (generate panel) ─── */
+  .sb-foot{border-top:1px solid var(--os-line);padding:14px 18px 16px;background:#fff;flex-shrink:0}
+  .ctx-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;max-height:78px;overflow-y:auto}
+  .ctx-pill{font-size:10.5px;padding:3px 7px 3px 8px;border-radius:999px;
+    background:var(--os-orange-tint);color:#a04412;font-weight:600;
+    display:inline-flex;align-items:center;gap:5px;line-height:1.3}
+  .ctx-pill button{font-size:13px;line-height:1;color:#a04412;opacity:.55;padding:0;display:flex;align-items:center}
+  .ctx-pill button:hover{opacity:1}
+  .ctx-empty{font-size:12px;color:var(--os-ink-3);font-style:italic;padding:14px 0;text-align:center;
+    border:1px dashed var(--os-line-strong);border-radius:8px;margin-bottom:12px}
+
+  .ctx-tag{font-size:11px;color:var(--os-ink-3);margin-bottom:6px;font-weight:600;
+    letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between}
+  .ctx-tag span:last-child{color:var(--os-orange);font-weight:700;font-variant-numeric:tabular-nums}
+
+  .gen-row{display:flex;flex-direction:column;gap:8px}
+  .gen-label{font-size:11px;color:var(--os-ink-2);font-weight:600;display:flex;justify-content:space-between;align-items:baseline}
+  .gen-label em{font-style:normal;color:var(--os-ink-3);font-weight:400}
+  .gen-input{width:100%;padding:8px 10px;border:1px solid var(--os-line);border-radius:8px;
+    background:var(--os-bg-2);font-size:12.5px;outline:none;resize:none;min-height:60px;line-height:1.4}
+  .gen-input:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;
+    transition:.15s;letter-spacing:.005em;white-space:nowrap}
+  .btn-primary{background:var(--os-orange);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{background:#d95e16;box-shadow:var(--shadow-md);transform:translateY(-1px)}
+  .btn-primary:disabled{background:#e6e8ec;color:var(--os-ink-3);cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-ghost{background:transparent;color:var(--os-ink-2);border:1px solid var(--os-line)}
+  .btn-ghost:hover{background:var(--os-bg-3);color:var(--os-ink)}
+  .btn-navy{background:var(--os-navy);color:#fff}
+  .btn-navy:hover{background:#001a4d;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .btn-full{width:100%}
+  .btn-sm{padding:6px 10px;font-size:12px;font-weight:600;border-radius:6px}
+  .btn .spin{width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;
+    border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ─── Stage / Canvas ─── */
+  .stage-bar{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 24px;background:#fff;border-bottom:1px solid var(--os-line);z-index:2}
+  .stage-bar-l{display:flex;align-items:center;gap:14px}
+  .stage-title{font-size:14px;font-weight:700;color:var(--os-ink);margin:0}
+  .stage-title em{font-style:normal;color:var(--os-ink-3);font-weight:400;margin-left:6px}
+  .stage-status{font-size:11.5px;color:var(--os-ink-2);display:flex;align-items:center;gap:6px;
+    padding:3px 9px;background:var(--os-bg-3);border-radius:999px;font-weight:600}
+  .stage-status .dot{width:6px;height:6px;border-radius:50%;background:var(--os-ink-3)}
+  .stage-status.ready{background:#eef7df;color:#4d6e1d}
+  .stage-status.ready .dot{background:var(--os-green);box-shadow:0 0 0 3px rgba(156,203,59,.2)}
+  .stage-status.busy{background:#fde7d8;color:#a04412}
+  .stage-status.busy .dot{background:var(--os-orange);animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .stage-bar-r{display:flex;align-items:center;gap:8px}
+  .zoom-ctl{display:flex;align-items:center;background:var(--os-bg-3);border-radius:8px;padding:2px;gap:1px}
+  .zoom-ctl button{width:26px;height:26px;border-radius:6px;color:var(--os-ink-2);font-size:14px;font-weight:700}
+  .zoom-ctl button:hover{background:#fff}
+  .zoom-ctl .zv{font-size:11px;font-weight:600;color:var(--os-ink-2);padding:0 6px;min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+
+  .canvas{flex:1;min-height:0;position:relative;overflow:auto;
+    background:
+      radial-gradient(circle, #d8dde5 1px, transparent 1px) 0 0 / 22px 22px,
+      var(--os-bg-2)}
+  .canvas-inner{padding:36px 48px 200px;min-width:1100px;transform-origin:top left;transition:transform .2s}
+
+  /* Empty state */
+  .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .empty-card{background:#fff;border:1px dashed var(--os-line-strong);border-radius:14px;
+    padding:32px 36px;max-width:480px;text-align:center;pointer-events:auto;box-shadow:var(--shadow-sm)}
+  .empty-illust{margin:0 auto 18px;width:88px;height:60px;position:relative}
+  .empty-illust div{position:absolute;border-radius:6px;background:#fff;border:1.5px solid var(--os-line-strong)}
+  .empty-illust div:nth-child(1){top:8px;left:0;width:42px;height:30px;transform:rotate(-3deg)}
+  .empty-illust div:nth-child(2){top:0;left:22px;width:42px;height:34px;background:#fff7ef;border-color:#f5c79b}
+  .empty-illust div:nth-child(3){top:14px;left:46px;width:42px;height:30px;transform:rotate(2deg)}
+  .empty h2{font-size:17px;color:var(--os-ink);margin:0 0 6px;font-weight:700}
+  .empty p{font-size:13px;color:var(--os-ink-2);margin:0;line-height:1.55}
+
+  /* Storyboard rail */
+  .rail-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+  .rail-h1{font-size:22px;font-weight:900;color:var(--os-ink);margin:0;letter-spacing:-.015em}
+  .rail-h1 em{font-style:normal;font-weight:400;color:var(--os-ink-3);font-size:14px;margin-left:8px;letter-spacing:0}
+  .rail-meta{display:flex;gap:18px;font-size:12px;color:var(--os-ink-2)}
+  .rail-meta b{color:var(--os-ink);font-weight:700}
+
+  .ribbon{display:flex;gap:24px;align-items:stretch;padding-bottom:24px}
+
+  .scene{
+    flex-shrink:0;width:320px;background:#fff;border:1px solid var(--os-line);
+    border-radius:12px;box-shadow:var(--shadow-md);position:relative;
+    transition:.18s;display:flex;flex-direction:column;cursor:default}
+  .scene:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);border-color:var(--os-line-strong)}
+  .scene.selected{border-color:var(--os-orange);box-shadow:0 0 0 3px rgba(243,111,33,.18), var(--shadow-lg);transform:translateY(-2px)}
+  .scene.editing{border-color:var(--os-navy);box-shadow:0 0 0 3px rgba(0,37,105,.14), var(--shadow-lg);transform:translateY(-2px)}
+  .scene.editing:hover{transform:translateY(-2px)}
+
+  /* inline-edit fields */
+  .edit-field{width:100%;border:1px solid var(--os-line);background:var(--os-bg-2);
+    border-radius:6px;padding:6px 8px;font-family:inherit;font-size:inherit;line-height:inherit;
+    color:inherit;outline:none;resize:none;transition:.12s}
+  .edit-field:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+  .edit-title{font-size:15px;font-weight:700;color:var(--os-ink);line-height:1.3;padding:7px 9px}
+  .edit-tag-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .edit-tag-row select,.edit-tag-row input{padding:4px 7px;font-size:10.5px;border-radius:5px;
+    border:1px solid var(--os-line);background:#fff;font-family:inherit;color:var(--os-ink);outline:none;font-weight:700;
+    letter-spacing:.04em;text-transform:uppercase}
+  .edit-tag-row input{width:96px;font-family:"JetBrains Mono",monospace;text-transform:none;letter-spacing:0;font-weight:500}
+  .edit-actions{display:flex;gap:6px}
+  .edit-banner{display:flex;align-items:center;gap:7px;padding:8px 14px;
+    background:#eef3ff;color:var(--os-navy);border-bottom:1px solid #d9e2f7;
+    font-size:11px;font-weight:700;letter-spacing:.03em}
+  .edit-banner .dot{width:6px;height:6px;border-radius:50%;background:var(--os-navy)}
+  .scene.flagged::after{content:"";position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--os-orange);border:2px solid #fff;box-shadow:var(--shadow-sm)}
+  .scene.regenerating{opacity:.55;pointer-events:none}
+  .scene-regen-veil{position:absolute;inset:0;background:rgba(255,255,255,.65);backdrop-filter:blur(1.5px);
+    border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;z-index:3;
+    color:var(--os-orange);font-size:12px;font-weight:700}
+  .scene-regen-veil .spin{width:18px;height:18px;border:2.5px solid var(--os-orange);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+
+  /* Inline revise popover on a selected scene */
+  .revise-pop{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);
+    width:340px;background:#fff;border:1px solid var(--os-line);border-radius:12px;
+    box-shadow:var(--shadow-lg);padding:14px;z-index:5}
+  .revise-pop::before{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%) rotate(45deg);
+    width:12px;height:12px;background:#fff;border-left:1px solid var(--os-line);border-top:1px solid var(--os-line)}
+  .revise-pop h4{margin:0 0 4px;font-size:13px;font-weight:700;color:var(--os-ink)}
+  .revise-pop p.hint{margin:0 0 10px;font-size:11.5px;color:var(--os-ink-3);line-height:1.45}
+  .revise-pop textarea{width:100%;padding:8px 10px;border:1px solid var(--os-line);border-radius:7px;
+    background:var(--os-bg-2);font-size:12.5px;outline:none;resize:none;min-height:60px;line-height:1.45;font-family:inherit}
+  .revise-pop textarea:focus{border-color:var(--os-orange);background:#fff;box-shadow:0 0 0 3px rgba(243,111,33,.1)}
+  .revise-pop .qs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 12px}
+  .revise-pop .qs button{font-size:11px;padding:4px 8px;border-radius:999px;background:var(--os-bg-3);
+    color:var(--os-ink-2);font-weight:600;border:1px solid transparent}
+  .revise-pop .qs button:hover{background:#fff;border-color:var(--os-line-strong);color:var(--os-ink)}
+  .revise-pop .actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+  .scene-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;border-bottom:1px solid var(--os-line);
+    background:linear-gradient(180deg,#fff 0%, #fafbfc 100%);border-radius:12px 12px 0 0}
+  .scene-num{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+    font-family:"JetBrains Mono",monospace}
+  .scene-num b{color:var(--os-orange)}
+  .scene-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 7px;border-radius:4px;background:#eef7df;color:#4d6e1d}
+  .scene-tag.hook{background:#fde7d8;color:#a04412}
+  .scene-tag.concept{background:#dbe6ff;color:#1a3a8c}
+  .scene-tag.demo{background:#eef7df;color:#4d6e1d}
+  .scene-tag.problem{background:#fff4d1;color:#8a6b00}
+  .scene-tag.recap{background:#e8e9ed;color:#3d4452}
+
+  .scene-body{padding:14px;flex:1;display:flex;flex-direction:column;gap:10px}
+  .scene-title{font-size:15px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
+
+  .scene-block{font-size:12.5px;line-height:1.5}
+  .scene-block-lbl{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--os-ink-3);margin-bottom:4px;display:flex;align-items:center;gap:5px}
+  .scene-block-lbl::before{content:"";width:10px;height:1px;background:var(--os-line-strong)}
+  .scene-block.narr p{margin:0;color:var(--os-ink);font-style:italic;font-size:13px;line-height:1.55}
+  .scene-block.visual p{margin:0;color:var(--os-ink-2);font-size:12px;line-height:1.5}
+  .scene-block.onscreen p{margin:0;color:var(--os-ink-2);font-size:12px;line-height:1.5}
+  .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--os-navy)}
+
+  .scene-foot{display:flex;align-items:center;justify-content:space-between;
+    padding:8px 14px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
+  .scene-foot-l{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--os-ink-3)}
+  .scene-foot-l b{color:var(--os-ink-2);font-weight:600;font-variant-numeric:tabular-nums}
+  .scene-foot-r{display:flex;gap:2px}
+  .icon-btn{width:24px;height:24px;border-radius:5px;color:var(--os-ink-3);
+    display:flex;align-items:center;justify-content:center}
+  .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
+
+  /* Connector arrow between scenes */
+  .connector{display:flex;align-items:center;flex-shrink:0;color:var(--os-line-strong);position:relative}
+  .connector::before{content:"";position:absolute;left:-2px;top:50%;width:6px;height:6px;
+    border-radius:50%;background:var(--os-line-strong);transform:translateY(-50%)}
+  .connector svg{display:block}
+
+  /* Citation marker on scene */
+  .citation{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .cite{font-size:9.5px;font-family:"JetBrains Mono",monospace;padding:1.5px 5px;
+    border-radius:3px;background:var(--os-bg-3);color:var(--os-ink-2);border:1px solid var(--os-line)}
+
+  /* ─── Bottom action bar ─── */
+  .actionbar{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);
+    background:#fff;border:1px solid var(--os-line);border-radius:14px;
+    box-shadow:var(--shadow-lg);padding:10px 14px;display:flex;align-items:center;gap:16px;z-index:4}
+  .ab-stat{display:flex;align-items:center;gap:10px;padding-right:14px;border-right:1px solid var(--os-line)}
+  .ab-stat-k{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--os-ink-3)}
+  .ab-stat-v{font-size:14px;font-weight:700;color:var(--os-ink);font-variant-numeric:tabular-nums}
+  .ab-actions{display:flex;gap:8px;align-items:center}
+
+  /* ─── Generating overlay (script) ─── */
+  .gen-overlay{position:absolute;inset:0;background:rgba(255,255,255,.7);
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;z-index:6}
+  .gen-card{background:#fff;border:1px solid var(--os-line);border-radius:14px;
+    box-shadow:var(--shadow-lg);padding:28px 32px;width:420px;text-align:center}
+  .gen-card h3{font-size:16px;margin:0 0 4px;color:var(--os-ink);font-weight:700}
+  .gen-card p{font-size:12.5px;color:var(--os-ink-2);margin:0 0 18px}
+  .gen-steps{text-align:left;display:flex;flex-direction:column;gap:9px;margin-bottom:6px}
+  .gen-step{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--os-ink-3)}
+  .gen-step.done{color:var(--os-ink)}
+  .gen-step.active{color:var(--os-orange);font-weight:600}
+  .gen-step-i{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--os-line-strong);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .gen-step.done .gen-step-i{background:var(--os-green);border-color:var(--os-green)}
+  .gen-step.active .gen-step-i{border-color:var(--os-orange);position:relative}
+  .gen-step.active .gen-step-i::after{content:"";position:absolute;inset:1px;border-radius:50%;
+    border:1.5px solid var(--os-orange);border-right-color:transparent;animation:spin .8s linear infinite}
+  .gen-step.done .gen-step-i svg{display:block;color:#fff}
+  .gen-step-i svg{display:none}
+
+  /* ─── Video modal ─── */
+  .modal-bg{position:fixed;inset:0;background:rgba(11,26,61,.32);backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000}
+  .modal{background:#fff;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.25);
+    width:640px;max-width:92vw;padding:0;overflow:hidden}
+  .modal-hd{padding:22px 26px 14px;border-bottom:1px solid var(--os-line)}
+  .modal-hd h3{margin:0 0 4px;font-size:18px;font-weight:700;color:var(--os-ink)}
+  .modal-hd p{margin:0;font-size:13px;color:var(--os-ink-2);line-height:1.5}
+  .modal-body{padding:20px 26px}
+  .modal-foot{padding:14px 26px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--os-line);background:var(--os-bg-2)}
+
+  .vid-preview{aspect-ratio:16/9;border-radius:10px;background:
+    linear-gradient(135deg,#0b1a3d 0%, #002569 60%, #1a4dbf 100%);
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .vid-preview::before,.vid-preview::after{content:"";position:absolute;border-radius:50%;filter:blur(40px);opacity:.5}
+  .vid-preview::before{width:200px;height:200px;background:var(--os-orange);top:-40px;left:-40px}
+  .vid-preview::after{width:160px;height:160px;background:var(--os-green);bottom:-30px;right:-20px}
+  .vid-play{position:relative;z-index:2;width:64px;height:64px;border-radius:50%;
+    background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;color:var(--os-navy)}
+  .vid-meta{position:absolute;bottom:14px;left:16px;color:#fff;font-size:12px;font-weight:600;letter-spacing:.02em;z-index:2}
+  .vid-meta b{display:block;font-size:14px;margin-bottom:2px}
+
+  .opt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .opt{padding:12px;border:1px solid var(--os-line);border-radius:9px;cursor:default;background:#fff;transition:.15s}
+  .opt:hover{border-color:var(--os-line-strong);background:var(--os-bg-2)}
+  .opt.on{border-color:var(--os-navy);background:#f4f7ff;box-shadow:0 0 0 3px rgba(0,37,105,.06)}
+  .opt-l{font-size:11px;font-weight:700;color:var(--os-ink-3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+  .opt-v{font-size:13px;font-weight:700;color:var(--os-ink)}
+  .opt-d{font-size:11px;color:var(--os-ink-3);margin-top:3px}
+</style>
+
+<script type="application/json" id="TWEAK_DEFAULTS">{"accent":"orange","showCitations":true,"density":"comfy","sceneStyle":"narrated"}</script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+/* eslint-disable */
+const {useState, useEffect, useRef, useMemo, Fragment} = React;
+
+/* ─── Mocked OpenStax catalog ─── */
+const CATALOG = [
+  {
+    id:"biology2e", title:"Biology 2e", sub:"Clark · Douglas · Choi", color:"#9ccb3b",
+    chapters:[
+      {n:"01", name:"The Study of Life",
+       secs:[{n:"1.1",t:"The Science of Biology"},{n:"1.2",t:"Themes and Concepts of Biology"}]},
+      {n:"02", name:"The Chemical Foundation of Life",
+       secs:[{n:"2.1",t:"Atoms, Isotopes, Ions, and Molecules"},{n:"2.2",t:"Water"},{n:"2.3",t:"Carbon"}]},
+      {n:"05", name:"Structure and Function of Plasma Membranes",
+       secs:[{n:"5.1",t:"Components and Structure"},{n:"5.2",t:"Passive Transport"},{n:"5.3",t:"Active Transport"},{n:"5.4",t:"Bulk Transport"}]},
+      {n:"09", name:"Cellular Respiration",
+       secs:[{n:"9.1",t:"Energy in Living Systems"},{n:"9.2",t:"Glycolysis"},{n:"9.3",t:"Citric Acid Cycle"},{n:"9.4",t:"Oxidative Phosphorylation"}]},
+    ]
+  },
+  {
+    id:"chem2e", title:"Chemistry 2e", sub:"Flowers · Theopold · Langley", color:"#f36f21",
+    chapters:[
+      {n:"03", name:"Composition of Substances",
+       secs:[{n:"3.1",t:"Formula Mass and the Mole"},{n:"3.2",t:"Determining Empirical and Molecular Formulas"}]},
+      {n:"04", name:"Stoichiometry of Chemical Reactions",
+       secs:[{n:"4.1",t:"Writing and Balancing Chemical Equations"},{n:"4.2",t:"Classifying Chemical Reactions"},{n:"4.3",t:"Reaction Stoichiometry"}]},
+    ]
+  },
+  {
+    id:"physics", title:"University Physics Vol. 1", sub:"Ling · Sanny · Moebs", color:"#002569",
+    chapters:[
+      {n:"02", name:"Vectors",
+       secs:[{n:"2.1",t:"Scalars and Vectors"},{n:"2.2",t:"Coordinate Systems"},{n:"2.3",t:"Algebra of Vectors"}]},
+      {n:"06", name:"Applications of Newton's Laws",
+       secs:[{n:"6.1",t:"Solving Problems with Newton's Laws"},{n:"6.2",t:"Friction"},{n:"6.3",t:"Centripetal Force"}]},
+    ]
+  },
+  {
+    id:"micro", title:"Principles of Microeconomics 3e", sub:"Greenlaw · Shapiro", color:"#f4c61f",
+    chapters:[
+      {n:"03", name:"Demand and Supply",
+       secs:[{n:"3.1",t:"Demand, Supply, and Equilibrium in Markets"},{n:"3.2",t:"Shifts in Demand and Supply"},{n:"3.3",t:"Price Ceilings and Floors"}]},
+    ]
+  },
+  {
+    id:"psych2e", title:"Psychology 2e", sub:"Spielman · Jenkins · Lovett", color:"#5e6a71",
+    chapters:[
+      {n:"06", name:"Learning",
+       secs:[{n:"6.1",t:"What is Learning?"},{n:"6.2",t:"Classical Conditioning"},{n:"6.3",t:"Operant Conditioning"}]},
+    ]
+  },
+];
+
+/* ─── Mock generated script (storyboard) ─── */
+const MOCK_SCRIPT = [
+  {
+    n:1, tag:"HOOK", duration:"0:00–0:18",
+    title:"Why does a sliced apple turn brown?",
+    narration:"You've seen it a hundred times — slice an apple, leave it on the counter, and within minutes it starts to brown. What's actually happening at the molecular level? Today we're going to follow a single oxygen molecule into the cell.",
+    visual:"Close-up time-lapse of an apple slice oxidizing. Cuts to a stylized zoom into one cell, then deeper into the mitochondrion.",
+    onscreen:"Title card: ‘A Tour Inside the Mitochondrion’",
+    cites:["Bio 2e §9.1","Bio 2e §9.4"]
+  },
+  {
+    n:2, tag:"CONCEPT", duration:"0:18–1:05",
+    title:"Energy currency: ATP and electron carriers",
+    narration:"Cells don't burn glucose all at once — they sip energy from it in tiny steps and store that energy in ATP. The key players are NAD⁺ and FAD, the molecular taxis that ferry electrons from one place to another.",
+    visual:"Side-by-side animation: a flame burning sugar (uncontrolled) vs a clean staircase of small enzymatic steps (controlled).",
+    onscreen:"Key terms: ATP, NAD⁺ → NADH, FAD → FADH₂",
+    cites:["Bio 2e §9.1"]
+  },
+  {
+    n:3, tag:"DEMO", duration:"1:05–2:10",
+    title:"Glycolysis — splitting glucose in the cytoplasm",
+    narration:"In the cytoplasm, a six-carbon glucose molecule gets phosphorylated, rearranged, and finally split in half. The net result: two molecules of pyruvate, two ATP, and two NADH — all before we've even entered the mitochondrion.",
+    visual:"2D molecular diagram: glucose marches through 10 enzymatic steps. Each step lights up as it's described. Counter in the corner tallies ATP and NADH.",
+    onscreen:"Net yield (per glucose): 2 ATP · 2 NADH · 2 pyruvate",
+    cites:["Bio 2e §9.2"]
+  },
+  {
+    n:4, tag:"DEMO", duration:"2:10–3:25",
+    title:"The Citric Acid Cycle",
+    narration:"Pyruvate enters the mitochondrial matrix, sheds a carbon as CO₂, and joins coenzyme A. From there, the cycle turns — generating more NADH, FADH₂, and a little ATP — but the real prize is the loaded electron carriers heading to the inner membrane.",
+    visual:"Camera follows acetyl-CoA into the cycle. The cycle rotates once; tags appear at each output: CO₂, NADH, FADH₂, ATP.",
+    onscreen:"Per turn: 3 NADH · 1 FADH₂ · 1 ATP · 2 CO₂",
+    cites:["Bio 2e §9.3"]
+  },
+  {
+    n:5, tag:"DEMO", duration:"3:25–4:40",
+    title:"Oxidative phosphorylation — where the magic happens",
+    narration:"The electron transport chain is a series of protein pumps embedded in the inner membrane. Electrons cascade from one to the next, releasing energy that's used to shove protons across the membrane. The resulting gradient powers ATP synthase — a literal molecular turbine.",
+    visual:"3D rendering of the inner mitochondrial membrane. Electrons flow through complexes I–IV; protons pile up in the intermembrane space; ATP synthase spins.",
+    onscreen:"~26–28 ATP per glucose · O₂ is the final electron acceptor",
+    cites:["Bio 2e §9.4"]
+  },
+  {
+    n:6, tag:"PROBLEM", duration:"4:40–5:30",
+    title:"Check your understanding",
+    narration:"So — back to the apple. Why does it turn brown? And what would happen to a cell if we suddenly removed all the oxygen? Pause the video and think about it. We'll work through both in the next scene.",
+    visual:"Split screen: apple on left, schematic of a cell on right. A question mark hovers between them.",
+    onscreen:"Q1: What is the role of O₂ in cellular respiration?\nQ2: What happens if O₂ is absent?",
+    cites:["Bio 2e §9.4"]
+  },
+  {
+    n:7, tag:"RECAP", duration:"5:30–6:00",
+    title:"Putting it all together",
+    narration:"One glucose molecule. Three stages. Roughly 30 ATP. Oxygen is the gatekeeper — without it, the whole chain backs up and cells have to fall back on fermentation. Next lesson, we'll see exactly how that fallback works.",
+    visual:"Full pathway map zooms out: glycolysis → citric acid cycle → ETC. Arrows show inputs and outputs. End on the apple, now fully oxidized.",
+    onscreen:"Up next: Fermentation & anaerobic metabolism",
+    cites:["Bio 2e §9.1","Bio 2e §9.2","Bio 2e §9.3","Bio 2e §9.4"]
+  },
+];
+
+const TAGS = ["HOOK","CONCEPT","DEMO","PROBLEM","RECAP"];
+
+/* ─── Icons ─── */
+const I = {
+  search:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>,
+  caret:<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  caret2:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  check:<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  sparkle:<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7L12 2zM19 14l.85 2.65L22.5 17.5l-2.65.85L19 21l-.85-2.65L15.5 17.5l2.65-.85L19 14z"/></svg>,
+  play:<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
+  film:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>,
+  edit:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  copy:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+  more:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>,
+  reorder:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>,
+  arrow:<svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 5h15M12 1l4 4-4 4"/></svg>,
+};
+
+/* ─── Sidebar tree ─── */
+function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
+  const [openBooks, setOpenBooks] = useState({biology2e:true});
+  const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
+
+  const subjects = ["All","Biology","Chemistry","Physics","Economics","Psychology"];
+  const matches = (s) => !search || s.toLowerCase().includes(search.toLowerCase());
+
+  return (
+    <aside className="sidebar">
+      <div className="sb-head">
+        <h2 className="sb-title">Source library</h2>
+        <h3 className="sb-h1">Pick chapters &amp; sections to ground the script</h3>
+        <label className="sb-search">
+          {I.search}
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search books, chapters, sections…" />
+        </label>
+      </div>
+      <div className="sb-filters">
+        {subjects.map(s => (
+          <button key={s} className={`sb-chip ${filter===s?"on":""}`} onClick={()=>setFilter(s)}>{s}</button>
+        ))}
+      </div>
+
+      <div className="sb-list">
+        {CATALOG.map(book => {
+          const open = openBooks[book.id];
+          const selCount = book.chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
+          return (
+            <div key={book.id} className="book">
+              <div className={`book-row ${open?"open":""}`} onClick={()=>setOpenBooks(o => ({...o,[book.id]:!o[book.id]}))}>
+                <div className="book-spine" style={{background:book.color}}/>
+                <div className="book-meta">
+                  <div className="book-title">{book.title}</div>
+                  <div className="book-sub">{book.sub}</div>
+                </div>
+                <div className={`book-count ${selCount>0?"has":""}`}>{selCount>0?selCount:book.chapters.length}</div>
+                <div className="book-caret">{I.caret}</div>
+              </div>
+
+              {open && (
+                <div className="chapters">
+                  {book.chapters.map(c => {
+                    const key = `${book.id}:${c.n}`;
+                    const chapOpen = openChaps[key];
+                    const chapSel = c.secs.filter(s => selected.has(`${key}:${s.n}`)).length;
+                    return (
+                      <div key={c.n} className="chap">
+                        <div className={`chap-row ${chapOpen?"open":""}`} onClick={()=>setOpenChaps(o => ({...o,[key]:!o[key]}))}>
+                          <span className="chap-num">CH {c.n}</span>
+                          <span className="chap-name">{c.name}</span>
+                          {chapSel>0 && <span className="book-count has" style={{fontSize:9,padding:"1px 5px"}}>{chapSel}</span>}
+                          <span className="chap-caret">{I.caret}</span>
+                        </div>
+                        {chapOpen && (
+                          <div className="sections">
+                            {c.secs.filter(s => matches(s.t)).map(s => {
+                              const id = `${key}:${s.n}`;
+                              const on = selected.has(id);
+                              return (
+                                <div key={s.n} className={`sec-row ${on?"on":""}`} onClick={()=>toggleSec(id)}>
+                                  <span className="sec-check">{I.check}</span>
+                                  <span className="sec-num">§{s.n}</span>
+                                  <span className="sec-name">{s.t}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+/* ─── Sidebar footer · just context pills + generate ─── */
+function GeneratePanel({selected, removeSec, onGenerate, onRevise, busy, hasScript}){
+  const pillsArr = Array.from(selected);
+  const canRun = selected.size>0 && !busy;
+  return (
+    <div className="sb-foot">
+      <div className="ctx-tag">
+        <span>Context · {selected.size} section{selected.size===1?"":"s"}</span>
+        {selected.size>0 && <span>{Math.min(99, selected.size*4)}k tokens</span>}
+      </div>
+
+      {pillsArr.length===0 ? (
+        <div className="ctx-empty">Select sections from the library above</div>
+      ) : (
+        <div className="ctx-pills">
+          {pillsArr.slice(0,12).map(id => {
+            const [b,c,s] = id.split(":");
+            return (
+              <span key={id} className="ctx-pill">
+                §{s}
+                <button onClick={()=>removeSec(id)} aria-label="Remove">×</button>
+              </span>
+            );
+          })}
+          {pillsArr.length>12 && <span className="ctx-pill" style={{background:"#f3f5f8",color:"#5e6a71"}}>+{pillsArr.length-12}</span>}
+        </div>
+      )}
+
+      <button className="btn btn-primary btn-full" disabled={!canRun} onClick={onGenerate} style={{marginTop:4}}>
+        {busy ? <><span className="spin"/>Generating…</> : <>{I.sparkle} {hasScript?"Generate new script":"Generate script"}</>}
+      </button>
+      {hasScript && !busy && (
+        <button className="btn btn-ghost btn-full" onClick={onRevise} style={{marginTop:8}}>
+          {I.edit} Revise current script
+        </button>
+      )}
+      {hasScript && (
+        <p style={{fontSize:11,color:"var(--os-ink-3)",margin:"10px 0 0",lineHeight:1.5,textAlign:"center"}}>
+          Tip — click any scene to revise with AI, or hit its pencil icon to edit it manually.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ─── Scene card ─── */
+function SceneCard({s, showCitations, density, isSelected, isEditing, isRegenerating,
+                    onSelect, onDeselect, onRevise, onStartEdit, onSaveEdit, onCancelEdit, onDuplicate}){
+  const padding = density==="compact" ? 10 : density==="comfy" ? 14 : 12;
+  const [note, setNote] = useState("");
+  const [draft, setDraft] = useState(s);
+  const quick = ["Too long", "Simplify language", "Wrong concept", "Bad analogy", "Add an example", "Stronger hook"];
+
+  useEffect(() => { if (isEditing) setDraft(s); }, [isEditing, s]);
+  const updField = (k, v) => setDraft(d => ({...d, [k]: v}));
+
+  if (isEditing) {
+    return (
+      <div style={{position:"relative"}}>
+        <article className="scene editing" style={{width: density==="compact"?280:320}}
+          onClick={e=>e.stopPropagation()}>
+          <div className="edit-banner">
+            <span className="dot"/>
+            EDITING SCENE {String(s.n).padStart(2,"0")} · MANUAL
+          </div>
+          <div className="scene-hd" style={{padding:"8px 10px"}}>
+            <div className="edit-tag-row">
+              <span className="scene-num">SC <b>{String(s.n).padStart(2,"0")}</b></span>
+              <select value={draft.tag} onChange={e=>updField("tag", e.target.value)}>
+                {TAGS.map(tg => <option key={tg} value={tg}>{tg}</option>)}
+              </select>
+              <input value={draft.duration} onChange={e=>updField("duration", e.target.value)}
+                placeholder="0:00–0:00"/>
+            </div>
+          </div>
+          <div className="scene-body" style={{padding,gap:9}}>
+            <input className="edit-field edit-title" value={draft.title}
+              onChange={e=>updField("title", e.target.value)} placeholder="Scene title"/>
+
+            <div className="scene-block narr">
+              <div className="scene-block-lbl">Narration</div>
+              <textarea className="edit-field" value={draft.narration}
+                onChange={e=>updField("narration", e.target.value)}
+                style={{minHeight:84,fontStyle:"italic",fontSize:13}}/>
+            </div>
+
+            <div className="scene-block visual">
+              <div className="scene-block-lbl">Visual</div>
+              <textarea className="edit-field" value={draft.visual}
+                onChange={e=>updField("visual", e.target.value)}
+                style={{minHeight:64,fontSize:12}}/>
+            </div>
+
+            <div className="scene-block onscreen">
+              <div className="scene-block-lbl">On-screen</div>
+              <textarea className="edit-field" value={draft.onscreen}
+                onChange={e=>updField("onscreen", e.target.value)}
+                style={{minHeight:54,fontSize:12}}/>
+            </div>
+
+            {showCitations && (
+              <div>
+                <div className="scene-block-lbl" style={{marginBottom:4}}>Citations</div>
+                <div className="citation" style={{margin:0}}>
+                  {draft.cites.map((c,i) => (
+                    <span key={i} className="cite" style={{display:"inline-flex",alignItems:"center",gap:4}}>
+                      {c}
+                      <button onClick={()=>updField("cites", draft.cites.filter((_,j)=>j!==i))}
+                        style={{padding:0,color:"var(--os-ink-3)",fontSize:11,lineHeight:1,display:"flex"}}>×</button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="scene-foot" style={{justifyContent:"flex-end"}}>
+            <div className="edit-actions">
+              <button className="btn btn-ghost btn-sm" onClick={onCancelEdit}>Cancel</button>
+              <button className="btn btn-navy btn-sm" onClick={()=>onSaveEdit(draft)}>Save changes</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{position:"relative"}}>
+      <article className={`scene ${isSelected?"selected":""} ${isRegenerating?"regenerating":""}`}
+        style={{width: density==="compact"?280:320}}
+        onClick={(e)=>{ if(!isRegenerating) onSelect(); }}>
+        {isRegenerating && (
+          <div className="scene-regen-veil">
+            <span className="spin"/>
+            <span>Regenerating scene…</span>
+          </div>
+        )}
+        <div className="scene-hd">
+          <span className="scene-num">SCENE <b>{String(s.n).padStart(2,"0")}</b> · {s.duration}</span>
+          <span className={`scene-tag ${s.tag.toLowerCase()}`}>{s.tag}</span>
+        </div>
+        <div className="scene-body" style={{padding,gap:density==="compact"?7:10}}>
+          <h3 className="scene-title">{s.title}</h3>
+
+          <div className="scene-block narr">
+            <div className="scene-block-lbl">Narration</div>
+            <p>"{s.narration}"</p>
+          </div>
+
+          <div className="scene-block visual">
+            <div className="scene-block-lbl">Visual</div>
+            <p>{s.visual}</p>
+          </div>
+
+          <div className="scene-block onscreen">
+            <div className="scene-block-lbl">On-screen</div>
+            <p>{s.onscreen.split("\n").map((line,i) => <Fragment key={i}>{i>0&&<br/>}{line}</Fragment>)}</p>
+          </div>
+
+          {showCitations && s.cites.length>0 && (
+            <div className="citation">
+              {s.cites.map(c => <span key={c} className="cite">{c}</span>)}
+            </div>
+          )}
+        </div>
+        <div className="scene-foot">
+          <div className="scene-foot-l">
+            <span><b>{s.narration.split(" ").length}</b> words</span>
+            <span>·</span>
+            <span>{s.cites.length} source{s.cites.length===1?"":"s"}</span>
+          </div>
+          <div className="scene-foot-r">
+            <button className="icon-btn" title="Edit manually"
+              onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
+            <button className="icon-btn" title="Duplicate"
+              onClick={(e)=>{e.stopPropagation(); onDuplicate();}}>{I.copy}</button>
+            <button className="icon-btn" title="More" onClick={(e)=>e.stopPropagation()}>{I.more}</button>
+          </div>
+        </div>
+      </article>
+
+      {isSelected && !isRegenerating && (
+        <div className="revise-pop" onClick={e=>e.stopPropagation()}>
+          <h4>Revise scene {String(s.n).padStart(2,"0")}</h4>
+          <p className="hint">Two ways to fix this scene — let AI rewrite it from feedback, or edit the text yourself.</p>
+          <textarea value={note} onChange={e=>setNote(e.target.value)}
+            placeholder="What should AI change? e.g. The hook is too dry — start with a question students actually wonder about." />
+          <div className="qs">
+            {quick.map(q => (
+              <button key={q} onClick={()=>setNote(n => n ? `${n}. ${q}` : q)}>{q}</button>
+            ))}
+          </div>
+          <div className="actions">
+            <button className="btn btn-ghost btn-sm" onClick={()=>{ onDeselect(); onStartEdit(); }}>
+              {I.edit} Edit manually
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={()=>onRevise(note)}>
+              {I.sparkle} Regenerate with AI
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Generating overlay ─── */
+function GenOverlay({step}){
+  const steps = [
+    "Reading selected sections",
+    "Extracting key concepts",
+    "Drafting scene-by-scene script",
+    "Adding citations and on-screen text",
+  ];
+  return (
+    <div className="gen-overlay">
+      <div className="gen-card">
+        <h3>Generating script…</h3>
+        <p>Grounding scenes in the chapters you selected</p>
+        <div className="gen-steps">
+          {steps.map((s,i)=>(
+            <div key={i} className={`gen-step ${i<step?"done":i===step?"active":""}`}>
+              <span className="gen-step-i">{I.check}</span>
+              <span>{s}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Video modal ─── */
+function VideoModal({onClose, sceneCount}){
+  const [style, setStyle] = useState("animated");
+  const [voice, setVoice] = useState("neutral");
+  const [length, setLength] = useState("standard");
+  const [phase, setPhase] = useState("setup"); // setup | rendering
+
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-hd">
+          <h3>Generate scenario video</h3>
+          <p>We'll render a {sceneCount}-scene video demonstration from the approved script. Estimated render time: ~4 minutes.</p>
+        </div>
+        <div className="modal-body">
+          <div className="vid-preview">
+            <button className="vid-play">{I.play}</button>
+            <div className="vid-meta">
+              <b>A Tour Inside the Mitochondrion</b>
+              <span>6:00 · 1080p · {sceneCount} scenes</span>
+            </div>
+          </div>
+          <div className="opt-grid">
+            {[
+              ["Visual style", [["animated","2D animation","SVG illustrations"],["whiteboard","Whiteboard","Hand-drawn feel"],["liveaction","Stock footage","B-roll library"]], style, setStyle],
+              ["Voice", [["neutral","Neutral US","Female, mid-tone"],["warm","Warm","Male, conversational"],["academic","Academic","British, formal"]], voice, setVoice],
+              ["Length", [["short","Short","~3 min"],["standard","Standard","~6 min"],["long","Long","~10 min"]], length, setLength],
+            ].map(([lbl,opts,val,setter]) => (
+              <div key={lbl} style={{gridColumn:"span 3"}}>
+                <div style={{fontSize:11,fontWeight:700,color:"var(--os-ink-3)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:6}}>{lbl}</div>
+                <div className="opt-grid" style={{marginTop:0}}>
+                  {opts.map(([k,t,d]) => (
+                    <div key={k} className={`opt ${val===k?"on":""}`} onClick={()=>setter(k)}>
+                      <div className="opt-v">{t}</div>
+                      <div className="opt-d">{d}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={()=>{ window.location.href = "Scenario Player.html"; }}>
+            {I.film} Render &amp; preview
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Revise-whole-script modal ─── */
+function ReviseModal({onClose, onRevise, sceneCount}){
+  const [note, setNote] = useState("");
+  const presets = [
+    "Make the language more accessible to non-majors",
+    "Tighten the runtime — cut anything not essential",
+    "Add more concrete real-world examples",
+    "Less narration, more visuals",
+    "Use a different hook — the apple one feels overused",
+  ];
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" style={{width:560}} onClick={e=>e.stopPropagation()}>
+        <div className="modal-hd">
+          <h3>Revise the whole script</h3>
+          <p>Apply a single direction to all {sceneCount} scenes. The structure stays — only the writing changes.</p>
+        </div>
+        <div className="modal-body">
+          <div style={{fontSize:11,fontWeight:700,color:"var(--os-ink-3)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:8}}>Your direction</div>
+          <textarea className="gen-input" style={{minHeight:90}} value={note} onChange={e=>setNote(e.target.value)}
+            placeholder="What should the next pass do differently?"/>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--os-ink-3)",letterSpacing:".06em",textTransform:"uppercase",margin:"16px 0 8px"}}>Quick suggestions</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {presets.map(p => (
+              <button key={p} onClick={()=>setNote(n => n ? `${n}\n• ${p}` : `• ${p}`)}
+                style={{textAlign:"left",padding:"9px 12px",border:"1px solid var(--os-line)",borderRadius:8,
+                  background:"var(--os-bg-2)",fontSize:12.5,color:"var(--os-ink-2)",fontWeight:500}}>
+                + {p}
+              </button>
+            ))}
+          </div>
+          <div style={{fontSize:11.5,color:"var(--os-ink-3)",lineHeight:1.5,marginTop:14,padding:"10px 12px",
+            background:"var(--os-bg-3)",borderRadius:8}}>
+            <b style={{color:"var(--os-ink-2)"}}>Tip</b> — to fix a single scene only, close this and click that scene's card on the canvas instead.
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!note.trim()} onClick={()=>onRevise(note)}>
+            {I.sparkle} Revise all scenes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── App ─── */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showCitations": false,
+  "density": "comfy",
+  "accent": "green"
+}/*EDITMODE-END*/;
+
+function App(){
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [selected, setSelected] = useState(new Set(["biology2e:09:9.1","biology2e:09:9.2","biology2e:09:9.3","biology2e:09:9.4"]));
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const [script, setScript] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [genStep, setGenStep] = useState(0);
+  const [zoom, setZoom] = useState(100);
+  const [showVideo, setShowVideo] = useState(false);
+  const [activeSceneIdx, setActiveSceneIdx] = useState(null);    // which card has the revise popover
+  const [editingIdx, setEditingIdx] = useState(null);            // which card is in manual edit mode
+  const [regeneratingIdx, setRegeneratingIdx] = useState(null);  // which card is mid-regen
+  const [reviseOpen, setReviseOpen] = useState(false);           // global revise modal
+
+  const toggleSec = (id) => {
+    setSelected(s => {
+      const n = new Set(s);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+  const removeSec = (id) => setSelected(s => { const n = new Set(s); n.delete(id); return n; });
+
+  const runGenerate = () => {
+    setBusy(true);
+    setGenStep(0);
+    setScript(null);
+    setActiveSceneIdx(null);
+    let i = 0;
+    const tick = () => {
+      i++;
+      setGenStep(i);
+      if (i < 4) setTimeout(tick, 650);
+      else setTimeout(() => { setBusy(false); setScript(MOCK_SCRIPT); }, 500);
+    };
+    setTimeout(tick, 500);
+  };
+
+  // Regenerate a single scene in place
+  const regenerateScene = (idx, note) => {
+    setActiveSceneIdx(null);
+    setRegeneratingIdx(idx);
+    setTimeout(() => {
+      setScript(curr => curr.map((s, i) => i === idx ? {
+        ...s,
+        title: s.title.replace(/—/g, "—") + " • v2",
+        narration: note
+          ? `[Revised on note: “${note.slice(0,60)}${note.length>60?"…":""}”] ${s.narration}`
+          : `[Revised] ${s.narration}`,
+      } : s));
+      setRegeneratingIdx(null);
+    }, 1600);
+  };
+
+  // Manual edit: save user-edited draft back to the script
+  const saveSceneEdit = (idx, draft) => {
+    setScript(curr => curr.map((s,i) => i===idx ? {...draft} : s));
+    setEditingIdx(null);
+  };
+  const duplicateScene = (idx) => {
+    setScript(curr => {
+      const copy = {...curr[idx]};
+      const out = [...curr.slice(0,idx+1), copy, ...curr.slice(idx+1)];
+      return out.map((s,i) => ({...s, n: i+1}));
+    });
+  };
+
+  // Global revise: keep structure, soften everything
+  const reviseAll = (note) => {
+    setReviseOpen(false);
+    setBusy(true);
+    setGenStep(0);
+    let i = 0;
+    const tick = () => {
+      i++; setGenStep(i);
+      if (i < 4) setTimeout(tick, 500);
+      else setTimeout(() => {
+        setBusy(false);
+        setScript(curr => (curr || MOCK_SCRIPT).map(s => ({
+          ...s,
+          narration: note ? `[Revised: ${note.slice(0,40)}…] ${s.narration}` : s.narration,
+        })));
+      }, 400);
+    };
+    setTimeout(tick, 300);
+  };
+
+  // Apply accent dynamically
+  useEffect(() => {
+    const root = document.documentElement;
+    if (t.accent === "navy"){
+      root.style.setProperty("--os-orange", "#002569");
+      root.style.setProperty("--os-orange-tint", "#dbe6ff");
+    } else if (t.accent === "green"){
+      root.style.setProperty("--os-orange", "#7da82e");
+      root.style.setProperty("--os-orange-tint", "#eef7df");
+    } else {
+      root.style.setProperty("--os-orange", "#f36f21");
+      root.style.setProperty("--os-orange-tint", "#fde7d8");
+    }
+  }, [t.accent]);
+
+  const totalWords = script ? script.reduce((a,s) => a + s.narration.split(" ").length, 0) : 0;
+  const totalDuration = "~6:00";
+
+  return (
+    <div className="app">
+      <header className="topbar">
+        <div className="brand">
+          <div className="brand-mark" aria-hidden>
+            <span/><span/><span/><span/><span/>
+          </div>
+          <div>
+            <div className="brand-name">open<em>stax</em></div>
+          </div>
+          <div className="brand-divider"/>
+          <div className="brand-product"><b>Scenario Studio</b> · Internal</div>
+        </div>
+        <div className="topbar-right">
+          <div className="crumb">
+            <span className="crumb-dot"/>
+            <span>Project · <b style={{color:"var(--os-ink)",fontWeight:600}}>Cellular Respiration explainer</b></span>
+          </div>
+          <button className="btn btn-ghost btn-sm">Saved 2 min ago</button>
+          <div className="avatar">MR</div>
+        </div>
+      </header>
+
+      <div className="main">
+        <div style={{display:"flex",flexDirection:"column",minHeight:0,borderRight:"1px solid var(--os-line)",background:"#fff"}}>
+          <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
+          <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate} onRevise={()=>setReviseOpen(true)}
+            busy={busy} hasScript={!!script}/>
+        </div>
+
+        <div className="stage">
+          <div className="stage-bar">
+            <div className="stage-bar-l">
+              <h2 className="stage-title">Storyboard canvas <em>{script ? `${script.length} scenes · ${totalDuration}` : "no script yet"}</em></h2>
+              <div className={`stage-status ${busy?"busy":script?"ready":""}`}>
+                <span className="dot"/>
+                {busy ? "Generating" : script ? "Draft ready" : "Idle"}
+              </div>
+            </div>
+            <div className="stage-bar-r">
+              <div className="zoom-ctl">
+                <button onClick={()=>setZoom(z=>Math.max(50,z-10))}>−</button>
+                <span className="zv">{zoom}%</span>
+                <button onClick={()=>setZoom(z=>Math.min(150,z+10))}>+</button>
+              </div>
+              <button className="btn btn-ghost btn-sm">Export script</button>
+            </div>
+          </div>
+
+          <div className="canvas">
+            <div className="canvas-inner" style={{transform:`scale(${zoom/100})`}}>
+              {script ? (
+                <>
+                  <div className="rail-head">
+                    <h1 className="rail-h1">A Tour Inside the Mitochondrion <em>working title</em></h1>
+                    <div className="rail-meta">
+                      <span><b>{script.length}</b> scenes</span>
+                      <span><b>{totalWords}</b> words</span>
+                      <span><b>{totalDuration}</b> est. runtime</span>
+                      <span>Grounded in <b>{selected.size}</b> sections</span>
+                    </div>
+                  </div>
+                  <div className="ribbon" onClick={(e)=>{ if(e.target.classList.contains("ribbon")) setActiveSceneIdx(null); }}>
+                    {script.map((s,i) => (
+                      <Fragment key={`${s.n}-${i}`}>
+                        <SceneCard s={s} showCitations={t.showCitations} density={t.density}
+                          isSelected={activeSceneIdx===i}
+                          isEditing={editingIdx===i}
+                          isRegenerating={regeneratingIdx===i}
+                          onSelect={()=>{ if(editingIdx===null) setActiveSceneIdx(i); }}
+                          onDeselect={()=>setActiveSceneIdx(null)}
+                          onRevise={(note)=>regenerateScene(i, note)}
+                          onStartEdit={()=>{ setActiveSceneIdx(null); setEditingIdx(i); }}
+                          onCancelEdit={()=>setEditingIdx(null)}
+                          onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
+                          onDuplicate={()=>duplicateScene(i)}
+                        />
+                        {i < script.length-1 && (
+                          <div className="connector">{I.arrow}</div>
+                        )}
+                      </Fragment>
+                    ))}
+                    <div className="connector" style={{color:"var(--os-line-strong)"}}>{I.arrow}</div>
+                    <button onClick={runGenerate} style={{
+                      flexShrink:0,width:200,minHeight:220,borderRadius:12,border:"2px dashed var(--os-line-strong)",
+                      background:"transparent",color:"var(--os-ink-3)",fontSize:12.5,fontWeight:600,
+                      display:"flex",flexDirection:"column",gap:8,alignItems:"center",justifyContent:"center",cursor:"default"}}>
+                      <span style={{fontSize:24,fontWeight:300}}>+</span>
+                      Add scene
+                    </button>
+                  </div>
+                </>
+              ) : !busy && (
+                <div className="empty">
+                  <div className="empty-card">
+                    <div className="empty-illust">
+                      <div/><div/><div/>
+                    </div>
+                    <h2>Your script will appear here as a storyboard</h2>
+                    <p>Pick chapters &amp; sections in the library on the left, then hit <b style={{color:"var(--os-orange)"}}>Generate script</b>. Each scene becomes a card — click any one to revise just that scene with feedback.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {busy && <GenOverlay step={genStep}/>}
+          </div>
+
+          {script && !busy && (
+            <div className="actionbar">
+              <div className="ab-stat">
+                <div>
+                  <div className="ab-stat-k">Scenes</div>
+                  <div className="ab-stat-v">{script.length}</div>
+                </div>
+                <div>
+                  <div className="ab-stat-k">Runtime</div>
+                  <div className="ab-stat-v">{totalDuration}</div>
+                </div>
+                <div>
+                  <div className="ab-stat-k">Sources</div>
+                  <div className="ab-stat-v">{selected.size}</div>
+                </div>
+              </div>
+              <div className="ab-actions">
+                <button className="btn btn-ghost" onClick={()=>setReviseOpen(true)}>{I.edit} Revise script</button>
+                <button className="btn btn-navy" onClick={()=>setShowVideo(true)}>
+                  {I.film} Generate scenario video
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {showVideo && <VideoModal onClose={()=>setShowVideo(false)} sceneCount={script?.length || 7}/>}
+      {reviseOpen && <ReviseModal onClose={()=>setReviseOpen(false)} onRevise={reviseAll} sceneCount={script?.length || 7}/>}
+
+      <TweaksPanel>
+        <TweakSection label="Canvas density"/>
+        <TweakRadio label="Card density" value={t.density} options={["compact","comfy"]}
+          onChange={v=>setTweak("density", v)}/>
+        <TweakToggle label="Show citations" value={t.showCitations}
+          onChange={v=>setTweak("showCitations", v)}/>
+        <TweakSection label="Accent"/>
+        <TweakRadio label="Accent color" value={t.accent} options={["orange","navy","green"]}
+          onChange={v=>setTweak("accent", v)}/>
+        <TweakSection label="Demo controls"/>
+        <TweakButton label={script ? "Reset to empty state" : "Load sample script"}
+          onClick={()=> script ? setScript(null) : setScript(MOCK_SCRIPT)}/>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

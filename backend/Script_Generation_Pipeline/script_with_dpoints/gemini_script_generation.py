@@ -3,14 +3,16 @@ from google.genai import types
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import json
+import time
 
 def setup_gemini_client():
-    env_path = Path(__file__).resolve().parents[2] / ".env"
+    env_path = Path(__file__).resolve().parents[2] / "backend.env"
     load_dotenv(env_path)
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     return client
 
-def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
+def generate_script_with_decision_points(markdown_file_path, user_query) -> tuple[dict, list[str]]:
     client = setup_gemini_client()
 
     system_prompt = """
@@ -65,10 +67,7 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
         max_output_tokens=TOKEN_LIMIT,
     )
 
-    md_file_name = "textbook_content"
-
-    uploaded_md_file = client.files.upload(file=markdown_file_path, config=types.UploadFileConfig(display_name=md_file_name, mime_type="text/markdown"))
-
+    uploaded_md_file = client.files.upload(file=markdown_file_path, config=types.UploadFileConfig(display_name="textbook_content", mime_type="text/markdown"))
 
     # JSON File Template[
     PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -85,9 +84,24 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
         contents=[user_query, uploaded_md_file, uploaded_json],
         config=config
     )   
-        
-    client.files.delete(name=uploaded_md_file.name)
-
-    client.files.delete(name=uploaded_json.name)
     
-    return response.text
+    output_json = json.loads(response.text)
+    
+    return output_json, [uploaded_md_file.name, uploaded_json.name]
+
+def delete_uploaded_file(file_name):
+    client = setup_gemini_client()
+    
+    for attempt in range(3):
+        try:
+            client.files.delete(file_name)
+            print(f"Successfully deleted {file_name}")
+            return
+        except Exception as e:
+            if attempt == 2:
+                print(f"Failed to delete {file_name}: {e}")
+            else:
+                time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying
+
+    
+    

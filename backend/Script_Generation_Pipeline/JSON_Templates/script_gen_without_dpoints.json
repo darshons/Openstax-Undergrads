@@ -23,6 +23,7 @@
     {
       "scene_id": 1,
       "type": "narrative",
+      "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
@@ -45,6 +46,7 @@
     {
       "scene_id": 2,
       "type": "outcome",
+      "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",

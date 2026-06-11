@@ -2,14 +2,16 @@ from anthropic import Anthropic
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import json
+import time
 
 def setup_anthropic_client():
-    env_path = Path(__file__).resolve().parents[2] / ".env"
+    env_path = Path(__file__).resolve().parents[2] / "backend.env"
     load_dotenv(env_path)
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
 
-def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
+def generate_script_with_decision_points(markdown_file_path, user_query) -> tuple[dict, list]:
 
     client = setup_anthropic_client()
 
@@ -58,13 +60,9 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
     MODEL = "claude-sonnet-4-6"
 
     TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens
-
-    md_file_name = "textbook_content"
     
-    uploaded_md = client.beta.files.upload(file=(md_file_name, open(markdown_file_path, "rb"), "text/plain"))
-    
-    uploaded_md_file_id = uploaded_md.id
-    
+    uploaded_md = client.beta.files.upload(file=("textbook_content", open(markdown_file_path, "rb"), "text/plain"))
+        
     # JSON File Template
     PROJECT_DIR = Path(__file__).resolve().parents[1]
     
@@ -76,7 +74,7 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
     user_query = user_query.strip()
 
     content = [
-        {"type": "document", "source": {"type": "file", "file_id": uploaded_md_file_id}, "title": "Textbook Chapter"}
+        {"type": "document", "source": {"type": "file", "file_id": uploaded_md.id}, "title": "Textbook Chapter"}
     ]
 
     content.append({"type": "document", "source": {"type": "file", "file_id": uploaded_json.id}, "title": "JSON Script Template"})
@@ -96,11 +94,20 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> str:
     output_json = response.content[0].text
     output_json = output_json.strip('```json').strip('```')
     output_json = output_json.strip() 
-     
-    client.beta.files.delete(uploaded_md_file_id)
-        
-    client.beta.files.delete(uploaded_json.id)
     
-    return output_json
+    output_json = json.loads(output_json)
     
+    return output_json, [uploaded_md.id, uploaded_json.id]
     
+def delete_uploaded_file(file_id):
+    client = setup_anthropic_client()
+    
+    for attempt in range(3):
+        try:
+            client.beta.files.delete(file_id)
+            return
+        except Exception as e:
+            if attempt == 2:
+                print(f"Failed to delete {file_id}: {e}")
+            else:
+                time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying

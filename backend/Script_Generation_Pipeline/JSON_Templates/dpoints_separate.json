@@ -26,6 +26,7 @@
     {
       "scene_id": 1,
       "type": "narrative",
+      "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
@@ -53,6 +54,7 @@
     {
       "scene_id": 2,
       "type": "consequence",
+      "scene_summary": "",
       "branch_type": "incorrect",
       "duration_seconds": 0,
       "setting": "",
@@ -83,6 +85,7 @@
     {
       "scene_id": 3,
       "type": "outcome",
+      "scene_summary": "",
       "branch_type": "correct",
       "duration_seconds": 0,
       "setting": "",
@@ -112,6 +115,7 @@
     {
       "scene_id": 4,
       "type": "consequence",
+      "scene_summary": "",
       "branch_type": "incorrect",
       "duration_seconds": 0,
       "setting": "",
@@ -142,6 +146,7 @@
     {
       "scene_id": 5,
       "type": "narrative",
+      "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
@@ -169,6 +174,7 @@
      {
       "scene_id": 6,
       "type": "consequence",
+      "scene_summary": "",
       "branch_type": "incorrect",
       "duration_seconds": 0,
       "setting": "",
@@ -199,6 +205,7 @@
      {
       "scene_id": 7,
       "type": "consequence",
+      "scene_summary": "",
       "branch_type": "incorrect",
       "duration_seconds": 0,
       "setting": "",
@@ -229,6 +236,7 @@
     {
       "scene_id": 8,
       "type": "outcome",
+      "scene_summary": "",
       "branch_type": "correct",
       "duration_seconds": 0,
       "setting": "",

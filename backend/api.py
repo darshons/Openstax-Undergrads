@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
-from Script_Generation_Pipeline.script_with_dpoints import anthropic_script_generation, gemini_script_generation
+import Script_Generation_Pipeline.script_with_dpoints.anthropic_script_generation as anthropic_script_generation
+import Script_Generation_Pipeline.script_with_dpoints.gemini_script_generation as gemini_script_generation 
 from pydantic import BaseModel
 from pathlib import Path
 import re
@@ -54,7 +55,10 @@ def generate_initial_script(scene_information: SceneInformation) -> dict:
         initial_script = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
     elif scene_information.model_choice == "gemini":
         initial_script = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
-        
+    
+    if not initial_script:
+        print("failed")
+    print(initial_script[:500])
     return {"message": "Initial script generation completed", "script": initial_script}
 
 # This endpoint will be called by the frontend once the user has finished modifying the initial script and is ready to generate the image frames
@@ -62,3 +66,4 @@ def generate_initial_script(scene_information: SceneInformation) -> dict:
 def generate_final_script(user_inputs: dict) -> dict:
     print("Received user inputs:", user_inputs)
     return {"message": "Final script generation request received"}
+

@@ -869,7 +869,13 @@ function VideoModal({onClose, sceneCount}){
         </div>
         <div className="modal-foot">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={()=>{ window.location.href = "Scenario Player.html"; }}>
+          <button className="btn btn-primary" onClick={()=>{
+            // TODO(integration): hand the approved script + render options to the
+            // scenario-player / video-render service. The player is a separate module.
+            // e.g. window.location.href = `/player?job=${jobId}`;
+            alert("Render queued.\n\nWire this button to your video-render backend — see README › Integration points.");
+            onClose();
+          }}>
             {I.film} Render &amp; preview
           </button>
         </div>

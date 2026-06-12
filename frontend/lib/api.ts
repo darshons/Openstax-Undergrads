@@ -55,9 +55,11 @@ export interface ScenarioDetail extends ScenarioResponse {
 
 export interface GenerateRequest {
   textbook: string;
-  chapters: string[];
-  units: string;
+  unit_num: number;
+  chapter_num?: number;
+  page_num?: string;
   description: string;
+  model: "anthropic" | "gemini";
 }
 
 export interface GenerateResponse {

@@ -4,144 +4,100 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateScenario } from "@/lib/api";
 
-const TEXTBOOKS = ["Clinical Nursing", "Anatomy & Physiology"] as const;
+const TEXTBOOKS = [
+  "Nursing Fundamentals",
+  "Clinical Nursing Skills",
+  "Anatomy and Physiology 2e",
+  "University Physics Volume 1",
+] as const;
 type Textbook = (typeof TEXTBOOKS)[number];
-
-const TEXTBOOK_UNITS: Record<Textbook, string[]> = {
-  "Clinical Nursing": [
-    "Unit I — Foundations of Practice",
-    "Unit II — Health Assessment",
-    "Unit III — Clinical Interventions",
-    "Unit IV — Specialty Care",
-  ],
-  "Anatomy & Physiology": [
-    "Unit I — Cells & Tissues",
-    "Unit II — Support & Movement",
-    "Unit III — Regulation & Integration",
-    "Unit IV — Fluid & Homeostasis",
-  ],
-};
-
-const CHAPTERS_BY_UNIT: Record<string, string[]> = {
-  "Unit I — Foundations of Practice": [
-    "Ch 1 — Patient Assessment",
-    "Ch 2 — Medication Administration",
-  ],
-  "Unit II — Health Assessment": [
-    "Ch 3 — Respiratory Care",
-    "Ch 4 — Cardiac Monitoring",
-  ],
-  "Unit III — Clinical Interventions": [
-    "Ch 5 — Wound Management",
-    "Ch 6 — IV Therapy",
-  ],
-  "Unit IV — Specialty Care": [
-    "Ch 7 — Pediatric Nursing",
-    "Ch 8 — Critical Care",
-  ],
-  "Unit I — Cells & Tissues": [
-    "Ch 1 — Cell Biology",
-    "Ch 2 — Tissue Types",
-  ],
-  "Unit II — Support & Movement": [
-    "Ch 3 — Skeletal System",
-    "Ch 4 — Muscular System",
-  ],
-  "Unit III — Regulation & Integration": [
-    "Ch 5 — Nervous System",
-    "Ch 6 — Endocrine System",
-  ],
-  "Unit IV — Fluid & Homeostasis": [
-    "Ch 7 — Cardiovascular System",
-    "Ch 8 — Renal System",
-  ],
-};
-
-const MAX_CHAPTERS = 3;
 
 function SectionLabel({
   title,
   required,
-  count,
-  cap,
 }: {
   title: string;
   required?: boolean;
-  count?: number;
-  cap?: number;
 }) {
   return (
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-[#1a1a1a]">{title}</span>
-        {required ? (
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#b85e0e] bg-[#fff3e8] border border-[#fcd9b8] rounded-full px-2 py-0.5">
-            Required
-          </span>
-        ) : (
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6b6560] bg-[#f3f1ee] border border-[#e0ddd9] rounded-full px-2 py-0.5">
-            Optional
-          </span>
-        )}
-      </div>
-      {cap !== undefined && count !== undefined && (
-        <span className={`text-xs font-medium tabular-nums ${count >= cap ? "text-[#F47C20]" : "text-[#9b9590]"}`}>
-          {count}/{cap} selected
+    <div className="flex items-center gap-2 mb-3">
+      <span className="text-sm font-semibold text-[#1a1a1a]">{title}</span>
+      {required ? (
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#b85e0e] bg-[#fff3e8] border border-[#fcd9b8] rounded-full px-2 py-0.5">
+          Required
+        </span>
+      ) : (
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6b6560] bg-[#f3f1ee] border border-[#e0ddd9] rounded-full px-2 py-0.5">
+          Optional
         </span>
       )}
     </div>
   );
 }
 
+function NumberInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  min = 1,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  min?: number;
+}) {
+  return (
+    <div className="flex items-center gap-2 w-36">
+      <button
+        type="button"
+        onClick={() => {
+          const n = parseInt(value) || 0;
+          if (n > min) onChange(String(n - 1));
+        }}
+        className="flex-shrink-0 w-8 h-8 rounded-lg border border-[#d8d5d0] bg-white text-[#4a4540] text-lg font-medium hover:border-[#F47C20] hover:text-[#F47C20] transition-colors flex items-center justify-center"
+      >
+        −
+      </button>
+      <input
+        id={id}
+        type="number"
+        min={min}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-16 text-center rounded-lg border border-[#d8d5d0] bg-[#fafaf9] px-2 py-1.5 text-sm text-[#1a1a1a] placeholder-[#b0aba6] focus:outline-none focus:ring-2 focus:ring-[#F47C20] focus:border-[#F47C20] focus:bg-white transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+      <button
+        type="button"
+        onClick={() => {
+          const n = parseInt(value) || 0;
+          onChange(String(n + 1));
+        }}
+        className="flex-shrink-0 w-8 h-8 rounded-lg border border-[#d8d5d0] bg-white text-[#4a4540] text-lg font-medium hover:border-[#F47C20] hover:text-[#F47C20] transition-colors flex items-center justify-center"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export default function GenerationSetup() {
   const router = useRouter();
-  const [textbook, setTextbook] = useState<Textbook>("Clinical Nursing");
-  const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
-  const [useAllUnits, setUseAllUnits] = useState(true);
-  const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
-  const [pageNumbers, setPageNumbers] = useState("");
+  const [textbook, setTextbook] = useState<Textbook>("Nursing Fundamentals");
+  const [unitNum, setUnitNum] = useState("1");
+  const [chapterNum, setChapterNum] = useState("");
+  const [pageNum, setPageNum] = useState("");
+  const [aiModel, setAiModel] = useState<"anthropic" | "gemini">("anthropic");
   const [description, setDescription] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const availableChapters = useAllUnits
-    ? TEXTBOOK_UNITS[textbook].flatMap((u) => CHAPTERS_BY_UNIT[u] ?? [])
-    : selectedUnits.flatMap((u) => CHAPTERS_BY_UNIT[u] ?? []);
-
-  function toggleUnit(unit: string) {
-    setSelectedUnits((prev) => {
-      const next = prev.includes(unit) ? prev.filter((u) => u !== unit) : [...prev, unit];
-      // drop chapters that no longer belong to selected units
-      const validChapters = next.flatMap((u) => CHAPTERS_BY_UNIT[u] ?? []);
-      setSelectedChapters((ch) => ch.filter((c) => validChapters.includes(c)));
-      return next;
-    });
-  }
-
-  function toggleChapter(chapter: string) {
-    setSelectedChapters((prev) => {
-      if (prev.includes(chapter)) return prev.filter((c) => c !== chapter);
-      if (prev.length >= MAX_CHAPTERS) return prev;
-      return [...prev, chapter];
-    });
-  }
-
-  function handleTextbookChange(tb: Textbook) {
-    setTextbook(tb);
-    setSelectedUnits([]);
-    setUseAllUnits(true);
-    setSelectedChapters([]);
-  }
-
-  const unitValue = useAllUnits
-    ? "All Units"
-    : selectedUnits.length > 0
-    ? selectedUnits.join(", ")
-    : "All Units";
-
   const canSubmit =
     description.trim().length > 0 &&
-    (useAllUnits || selectedUnits.length > 0) &&
+    unitNum.trim().length > 0 &&
+    parseInt(unitNum) >= 1 &&
     !generating;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -153,9 +109,11 @@ export default function GenerationSetup() {
     try {
       const { scenario_id } = await generateScenario({
         textbook,
-        chapters: selectedChapters,
-        units: unitValue,
+        unit_num: parseInt(unitNum),
+        chapter_num: chapterNum ? parseInt(chapterNum) : undefined,
+        page_num: pageNum.trim() || undefined,
         description: description.trim(),
+        model: aiModel,
       });
       router.push(`/scenarios/${scenario_id}`);
     } catch (e) {
@@ -187,7 +145,7 @@ export default function GenerationSetup() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* 1. Textbook — required */}
+          {/* 1. Textbook */}
           <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
             <SectionLabel title="Textbook" required />
             <div className="flex flex-wrap gap-2.5">
@@ -195,7 +153,7 @@ export default function GenerationSetup() {
                 <button
                   key={tb}
                   type="button"
-                  onClick={() => handleTextbookChange(tb)}
+                  onClick={() => setTextbook(tb)}
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium border transition-all ${
                     textbook === tb
                       ? "bg-[#F47C20] border-[#F47C20] text-white shadow-sm"
@@ -208,129 +166,87 @@ export default function GenerationSetup() {
             </div>
           </div>
 
-          {/* 2. Units — required */}
+          {/* 2. Unit — required */}
           <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
-            <SectionLabel title="Units" required />
-
-            {/* All Units toggle */}
-            <div className="flex gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => { setUseAllUnits(true); setSelectedUnits([]); }}
-                className={`rounded-lg px-3.5 py-2 text-sm border transition-all ${
-                  useAllUnits
-                    ? "bg-[#F47C20] border-[#F47C20] text-white font-medium"
-                    : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
-                }`}
-              >
-                All Units
-              </button>
-              <button
-                type="button"
-                onClick={() => setUseAllUnits(false)}
-                className={`rounded-lg px-3.5 py-2 text-sm border transition-all ${
-                  !useAllUnits
-                    ? "bg-[#F47C20] border-[#F47C20] text-white font-medium"
-                    : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
-                }`}
-              >
-                Specific Units
-              </button>
-            </div>
-
-            {/* Specific unit chips */}
-            {!useAllUnits && (
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-[#f0ede9]">
-                {TEXTBOOK_UNITS[textbook].map((unit) => {
-                  const active = selectedUnits.includes(unit);
-                  return (
-                    <button
-                      key={unit}
-                      type="button"
-                      onClick={() => toggleUnit(unit)}
-                      className={`rounded-lg px-3.5 py-2 text-sm border transition-all ${
-                        active
-                          ? "bg-[#fff3e8] border-[#F47C20] text-[#b85e0e] font-medium"
-                          : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
-                      }`}
-                    >
-                      {active && <span className="mr-1.5 text-[#F47C20]">✓</span>}
-                      {unit}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {!useAllUnits && selectedUnits.length === 0 && (
-              <p className="mt-2 text-xs text-[#b85e0e] flex items-center gap-1.5">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M6 4v2.5M6 8h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-                Select at least one unit to continue.
-              </p>
-            )}
-          </div>
-
-          {/* 3. Chapters — optional */}
-          <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
-            <SectionLabel
-              title="Chapters"
-              count={selectedChapters.length}
-              cap={MAX_CHAPTERS}
+            <SectionLabel title="Unit Number" required />
+            <NumberInput
+              id="unit_num"
+              value={unitNum}
+              onChange={setUnitNum}
+              placeholder="1"
             />
-            <div className="flex flex-wrap gap-2">
-              {availableChapters.map((chapter) => {
-                const checked = selectedChapters.includes(chapter);
-                const atCap = !checked && selectedChapters.length >= MAX_CHAPTERS;
-                return (
-                  <button
-                    key={chapter}
-                    type="button"
-                    disabled={atCap}
-                    onClick={() => toggleChapter(chapter)}
-                    className={`rounded-lg px-3.5 py-2 text-sm border transition-all ${
-                      checked
-                        ? "bg-[#fff3e8] border-[#F47C20] text-[#b85e0e] font-medium"
-                        : atCap
-                        ? "bg-[#fafaf9] border-[#e8e6e3] text-[#c0bcb8] cursor-not-allowed"
-                        : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
-                    }`}
-                  >
-                    {checked && <span className="mr-1.5 text-[#F47C20]">✓</span>}
-                    {chapter}
-                  </button>
-                );
-              })}
-            </div>
-            {selectedChapters.length === MAX_CHAPTERS && (
-              <p className="mt-3 text-xs text-[#b85e0e] flex items-center gap-1.5">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M6 4v2.5M6 8h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-                Cap reached — deselect a chapter to swap.
-              </p>
+          </div>
+
+          {/* 3. Chapter — optional */}
+          <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
+            <SectionLabel title="Chapter Number" />
+            <NumberInput
+              id="chapter_num"
+              value={chapterNum}
+              onChange={setChapterNum}
+              placeholder="—"
+            />
+            {chapterNum && (
+              <button
+                type="button"
+                onClick={() => { setChapterNum(""); setPageNum(""); }}
+                className="mt-2.5 text-xs text-[#9b9590] hover:text-[#F47C20] transition-colors"
+              >
+                Clear
+              </button>
             )}
           </div>
 
-          {/* 4. Page Numbers — optional */}
-          <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
-            <SectionLabel title="Page Numbers" />
+          {/* 4. Page — optional, only meaningful with a chapter */}
+          <div className={`bg-white rounded-2xl border shadow-sm p-6 transition-opacity ${
+            chapterNum ? "border-[#e8e6e3] opacity-100" : "border-[#f0ede9] opacity-50 pointer-events-none"
+          }`}>
+            <SectionLabel title="Page / Section Number" />
             <input
               type="text"
-              value={pageNumbers}
-              onChange={(e) => setPageNumbers(e.target.value)}
-              placeholder="e.g. 42–56, 78–90, 110"
-              className="w-full rounded-xl border border-[#d8d5d0] bg-[#fafaf9] px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-[#b0aba6] focus:outline-none focus:ring-2 focus:ring-[#F47C20] focus:border-[#F47C20] focus:bg-white transition-colors"
+              value={pageNum}
+              onChange={(e) => setPageNum(e.target.value)}
+              placeholder="e.g. 2.1"
+              disabled={!chapterNum}
+              className="w-36 rounded-xl border border-[#d8d5d0] bg-[#fafaf9] px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-[#b0aba6] focus:outline-none focus:ring-2 focus:ring-[#F47C20] focus:border-[#F47C20] focus:bg-white transition-colors"
             />
             <p className="mt-2 text-xs text-[#9b9590]">
-              Narrow the content to specific page ranges within the selected material.
+              Narrow to a specific section within the chapter (e.g. <span className="font-mono">2.1</span>).
             </p>
           </div>
 
-          {/* 5. Description */}
+          {/* 5. AI Model */}
+          <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
+            <SectionLabel title="AI Model" required />
+            <div className="flex flex-wrap gap-2.5">
+              {(
+                [
+                  { id: "anthropic" as const, label: "Anthropic Claude", sub: "claude-sonnet-4-6" },
+                  { id: "gemini" as const, label: "Google Gemini", sub: "gemini-2.0-flash" },
+                ] as const
+              ).map(({ id, label, sub }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setAiModel(id)}
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all text-left ${
+                    aiModel === id
+                      ? "bg-[#F47C20] border-[#F47C20] text-white shadow-sm"
+                      : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
+                  }`}
+                >
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold leading-tight">{label}</span>
+                    <span className={`text-[11px] font-mono mt-0.5 ${aiModel === id ? "text-orange-100" : "text-[#9b9590]"}`}>
+                      {sub}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 6. Description */}
           <div className="bg-white rounded-2xl border border-[#e8e6e3] shadow-sm p-6">
             <div className="flex items-center gap-2 mb-1.5">
               <label htmlFor="description" className="text-sm font-semibold text-[#1a1a1a]">

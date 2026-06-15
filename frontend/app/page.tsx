@@ -107,15 +107,16 @@ export default function GenerationSetup() {
     setGenerating(true);
     setError(null);
     try {
-      const { scenario_id } = await generateScenario({
-        textbook,
+      const result = await generateScenario({
+        book_title: textbook,
         unit_num: parseInt(unitNum),
         chapter_num: chapterNum ? parseInt(chapterNum) : undefined,
-        page_num: pageNum.trim() || undefined,
-        description: description.trim(),
-        model: aiModel,
+        page_num: pageNum ? parseFloat(pageNum) : undefined,
+        user_query: description.trim(),
+        model_choice: aiModel,
       });
-      router.push(`/scenarios/${scenario_id}`);
+      sessionStorage.setItem("generated_script", JSON.stringify(result.script));
+      router.push("/scenarios/result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generation failed. Please try again.");
       setGenerating(false);

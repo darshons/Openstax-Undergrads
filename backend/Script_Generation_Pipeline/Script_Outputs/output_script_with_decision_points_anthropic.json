@@ -1,0 +1,364 @@
+{
+  "title": "Sleep Disorder Assessment: A Clinical Consultation",
+  "learning_goal": "Learners will be able to identify key sleep stages and their characteristics, recognize symptoms of common sleep disorders, and recommend appropriate evidence-based management strategies.",
+  "target_audience": "Healthcare and psychology students, early-career clinicians, and allied health professionals studying sleep medicine.",
+  "total_duration_seconds": 265,
+  "visual_style": "2D semi-flat limited animation. Clean, muted clinical color palette — soft grays, warm whites, and pale blues. Characters are rendered with clear outlines, subtle shading, and expressive but economical movement. Emotions conveyed through head tilts, eyebrow shifts, hand gestures, and posture changes. Mouth movement suggests speech without precise phoneme-matching. No complex physics simulations or photorealistic rendering. All scenes take place in the same setting unless otherwise noted.",
+  "characters": [
+    {
+      "character_id": "dr_osei",
+      "name": "Dr. Ama Osei",
+      "role": "Psychiatrist / Supervising Clinician",
+      "appearance": {
+        "skin_tone": "Deep brown",
+        "hair": "Black, natural coils pulled back into a low bun",
+        "build": "Medium height, lean build",
+        "uniform": "White lab coat over a dark teal collared shirt, small stud earrings",
+        "distinguishing_features": "Wire-rimmed rectangular glasses, calm and attentive expression"
+      },
+      "emotional_baseline": "Warm, measured, and professionally engaged"
+    },
+    {
+      "character_id": "marcus",
+      "name": "Marcus",
+      "role": "Patient",
+      "appearance": {
+        "skin_tone": "Light olive",
+        "hair": "Dark brown, short and slightly disheveled",
+        "build": "Average height, slightly slouched posture suggesting fatigue",
+        "uniform": "Casual — gray zip-up hoodie over a white t-shirt, dark jeans",
+        "distinguishing_features": "Visible dark circles under eyes, tends to rub his eyes or press fingers to his temples when tired"
+      },
+      "emotional_baseline": "Tired, mildly anxious, cooperative"
+    },
+    {
+      "character_id": "resident",
+      "name": "Dr. Jin Park",
+      "role": "Psychiatry Resident (Learner Surrogate)",
+      "appearance": {
+        "skin_tone": "Light tan",
+        "hair": "Black, straight, short on the sides and slightly longer on top",
+        "build": "Tall, slim build",
+        "uniform": "White lab coat over a light blue button-down shirt, no tie",
+        "distinguishing_features": "Carries a small notebook, tends to glance between patient and supervisor"
+      },
+      "emotional_baseline": "Attentive, earnest, occasionally uncertain"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "duration_seconds": 28,
+      "setting": "A quiet outpatient psychiatry consultation room. A desk with a computer sits to one side. Two cushioned chairs face a third chair across a small table. Neutral beige walls, soft overhead lighting, a potted plant in the corner. Morning light filters through frosted glass. Dr. Osei and Dr. Park sit across from Marcus.",
+      "character_actions": "Marcus sits with hunched shoulders, rubbing his eyes. Dr. Osei leans slightly forward, attentive. Dr. Park has his notebook open on his knee, pen in hand, watching Marcus carefully.",
+      "camera": {
+        "angle": "Medium shot, slightly low angle on Marcus to emphasize his fatigue; cuts to two-shot of Dr. Osei and Dr. Park",
+        "movement": "Slow push-in on Marcus as he speaks, then cut to reaction shot of Dr. Park",
+        "lens_effect": "Slight warm softening to suggest clinical interior lighting"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "marcus",
+            "line": "I've been exhausted for months. I go to bed fine, but I keep waking up in the middle of the night — sometimes yelling, sometimes kicking. My partner says I look like I'm fighting something in my sleep."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "And do you remember any of these episodes when you wake up? Any dreams you can recall?"
+          },
+          {
+            "character_id": "marcus",
+            "line": "Sometimes, yeah. Vivid ones — like I'm actually in the dream. But when it's over, I don't feel rested at all."
+          }
+        ],
+        "sound_effects": "Faint ambient hum of building ventilation, soft rustle of notebook pages",
+        "ambience": "Quiet clinical office, low background noise"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "duration_seconds": 18,
+      "setting": "Same consultation room. Dr. Park has just spoken. Dr. Osei pauses, sets down her pen, and turns toward him with a measured expression.",
+      "character_actions": "Dr. Osei tilts her head slightly and raises one eyebrow. Dr. Park stills, pen hovering over his notebook. Marcus looks between them, confused.",
+      "camera": {
+        "angle": "Medium close-up on Dr. Osei, then cut to Dr. Park's uncertain expression",
+        "movement": "Static, then slow push-in on Dr. Osei",
+        "lens_effect": "Neutral"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Night terrors typically occur during NREM sleep — not REM — and people who experience them usually have no memory of the episode at all. But Marcus just told us he remembers vivid dreams during these events."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "That detail matters. We should reconsider which sleep stage is actually involved here."
+          }
+        ],
+        "sound_effects": "Soft pen tap on notebook",
+        "ambience": "Quiet office"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "duration_seconds": 18,
+      "setting": "Same consultation room. Dr. Park has just spoken. Dr. Osei nods approvingly and makes a note.",
+      "character_actions": "Dr. Osei nods slowly, writing in her chart. Dr. Park sits up slightly straighter. Marcus looks at Dr. Osei with cautious attention.",
+      "camera": {
+        "angle": "Medium shot of all three characters, then cut to close-up of Dr. Osei nodding",
+        "movement": "Gentle slow zoom-out to establish group dynamic",
+        "lens_effect": "Neutral warm"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "That's right. The physical activity during sleep combined with vivid dream recall points us toward REM sleep. In healthy individuals, REM involves muscle paralysis — but when that paralysis fails, we see exactly what Marcus is describing."
+          },
+          {
+            "character_id": "marcus",
+            "line": "So something is going wrong specifically during that stage of sleep?"
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "Exactly — and that gives us a much more specific direction for evaluation."
+          }
+        ],
+        "sound_effects": "Soft pen writing on paper",
+        "ambience": "Quiet office"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "true_choice"
+      }
+    },
+    {
+      "scene_id": 4,
+      "type": "consequence",
+      "duration_seconds": 18,
+      "setting": "Same consultation room. Dr. Park has just spoken. Dr. Osei pauses, then gently shakes her head.",
+      "character_actions": "Dr. Osei places her pen on the desk and folds her hands. Dr. Park shifts slightly in his seat. Marcus looks mildly unsettled.",
+      "camera": {
+        "angle": "Over-the-shoulder shot from behind Marcus toward Dr. Osei and Dr. Park",
+        "movement": "Static",
+        "lens_effect": "Neutral"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Stage 2 sleep is characterized by sleep spindles and K-complexes, and it's actually a fairly light transitional stage. The physical behaviors Marcus describes — kicking, yelling, vivid dreams — don't align with Stage 2 activity."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "Think about which stage is associated with dreaming and where we'd expect disruption of muscle tone to matter most."
+          }
+        ],
+        "sound_effects": "Faint ambient ventilation hum",
+        "ambience": "Quiet office"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 5,
+      "type": "narrative",
+      "duration_seconds": 25,
+      "setting": "Same consultation room, a few minutes later. Dr. Osei has written notes. Marcus has a cup of water in his hand. The mood is collaborative.",
+      "character_actions": "Dr. Osei reviews her notepad. Dr. Park glances at his own notes. Marcus takes a sip of water and sets the cup on the table.",
+      "camera": {
+        "angle": "Wide shot to show all three, then cut to medium shot of Marcus",
+        "movement": "Slow pan left from Marcus to Dr. Osei and Dr. Park",
+        "lens_effect": "Neutral warm"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Based on what you've described, Marcus, we're going to refer you for a sleep study to confirm the diagnosis. In the meantime, let's talk about what we can do to help you manage this."
+          },
+          {
+            "character_id": "marcus",
+            "line": "My friend told me I should just try taking melatonin every night — like a large dose before bed. Would that fix it?"
+          },
+          {
+            "character_id": "dr_park",
+            "line": "Actually, for this specific condition, melatonin can be part of the picture — but it's not the primary treatment on its own."
+          }
+        ],
+        "sound_effects": "Soft sound of water cup being placed on table",
+        "ambience": "Quiet office, faint ambient hum"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 6,
+      "type": "consequence",
+      "duration_seconds": 18,
+      "setting": "Same consultation room. Dr. Park has just suggested a recommendation. Dr. Osei looks at him steadily.",
+      "character_actions": "Dr. Osei sets her pen down, clasps her hands. Dr. Park pauses, rereading his notes. Marcus looks at Dr. Osei expectantly.",
+      "camera": {
+        "angle": "Medium two-shot of Dr. Osei and Dr. Park",
+        "movement": "Static",
+        "lens_effect": "Neutral"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Adjusting sleep habits and schedule can help with some disorders, but RBD isn't primarily a behavioral issue — the muscle paralysis mechanism itself is failing during REM sleep."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "For this condition, we need to think about pharmacological options that directly address safety and arousal during sleep."
+          }
+        ],
+        "sound_effects": "Faint sound of pen tapping",
+        "ambience": "Quiet office"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 7,
+      "type": "consequence",
+      "duration_seconds": 18,
+      "setting": "Same consultation room. Dr. Park has just made a suggestion. Marcus looks briefly hopeful, but Dr. Osei's expression is careful.",
+      "character_actions": "Dr. Osei turns slightly toward Dr. Park, raising one hand in a gentle correcting gesture. Marcus tilts his head, uncertain.",
+      "camera": {
+        "angle": "Close-up on Dr. Osei, then cut to Marcus's puzzled expression",
+        "movement": "Slight push-in on Dr. Osei",
+        "lens_effect": "Neutral"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Stimulant medications are used to treat narcolepsy — a different condition where the patient can't resist falling asleep. Marcus's problem is almost the opposite: he's too active during sleep."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "We should think about what the established first-line treatment is for a disorder specifically involving failed muscle paralysis during REM sleep."
+          }
+        ],
+        "sound_effects": "Soft ambient hum",
+        "ambience": "Quiet office"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 8,
+      "type": "resolution",
+      "duration_seconds": 20,
+      "setting": "Same consultation room. Dr. Park has just recommended the correct approach. Dr. Osei nods and turns toward Marcus to explain.",
+      "character_actions": "Dr. Osei turns toward Marcus with a reassuring expression, gesturing gently with one hand. Marcus sits up slightly, looking more engaged and less anxious. Dr. Park makes a note.",
+      "camera": {
+        "angle": "Medium two-shot of Dr. Osei and Marcus, then cut to Dr. Park writing",
+        "movement": "Slow zoom-in on Marcus as Dr. Osei explains",
+        "lens_effect": "Neutral warm"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "dr_osei",
+            "line": "Correct. Clonazepam is the most commonly used medication for REM sleep behavior disorder, and it can be combined with melatonin. We'll also make sure your sleep environment is as safe as possible while we monitor your response to treatment."
+          },
+          {
+            "character_id": "marcus",
+            "line": "So this is a real condition — it has a name and a treatment. That's actually a relief to hear."
+          },
+          {
+            "character_id": "dr_osei",
+            "line": "It is, and getting the right diagnosis is the most important first step. We'll follow up after the sleep study with a full plan."
+          }
+        ],
+        "sound_effects": "Soft sound of notebook closing, faint chair movement",
+        "ambience": "Quiet office, slightly warmer ambient tone to suggest resolution"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "true_choice"
+      }
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "Based on Marcus's symptoms — physical behaviors during sleep, vivid dream recall, and waking without feeling refreshed — which sleep stage is most likely disrupted, and why does it matter clinically?",
+      "associated_introduction_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "REM sleep, because REM normally involves muscle paralysis, and Marcus's active physical behaviors during vivid dreaming suggest this paralysis mechanism is failing.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "NREM Stage 3 (slow-wave) sleep, because that is when parasomnias like night terrors and sleepwalking occur, and Marcus's disruptive behaviors fit that pattern.",
+          "is_correct": false,
+          "misconception": "Confuses REM sleep behavior disorder with NREM parasomnias such as night terrors and sleepwalking, ignoring Marcus's explicit recall of vivid dreams which is a hallmark of REM-stage disruption.",
+          "routes_to_scene": 2
+        },
+        {
+          "choice_id": "C",
+          "text": "NREM Stage 2 sleep, because sleep spindles and K-complexes in that stage regulate arousal responses and their disruption could cause physical outbursts.",
+          "is_correct": false,
+          "misconception": "Misapplies the function of Stage 2 sleep features (sleep spindles and K-complexes) as a cause of physical behavioral outbursts, confusing the arousal-bridging role of K-complexes with the muscle-paralysis mechanism of REM sleep.",
+          "routes_to_scene": 4
+        }
+      ]
+    },
+    {
+      "decision_point_id": 2,
+      "question_text": "Given the likely diagnosis of REM Sleep Behavior Disorder (RBD), which management approach does Dr. Park recommend to Dr. Osei?",
+      "associated_introduction_scene_id": 5,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Prescribe clonazepam as the primary pharmacological treatment, possibly combined with melatonin, and modify the sleep environment to reduce injury risk.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 8
+        },
+        {
+          "choice_id": "B",
+          "text": "Focus on behavioral interventions — improving sleep hygiene and establishing a consistent sleep schedule — since these address the root cause of most sleep disorders.",
+          "is_correct": false,
+          "misconception": "Overgeneralizes the value of behavioral sleep hygiene interventions to a neurological disorder (RBD) where the failure of REM muscle paralysis requires targeted pharmacological treatment, not primarily a schedule or habit correction.",
+          "routes_to_scene": 6
+        },
+        {
+          "choice_id": "C",
+          "text": "Prescribe a psychomotor stimulant to promote increased neural activity and reduce excessive sleepiness during the day, which should improve nighttime sleep quality.",
+          "is_correct": false,
+          "misconception": "Confuses the pharmacological treatment for narcolepsy (psychomotor stimulants for excessive daytime sleepiness) with the treatment for RBD, which involves reducing unwanted motor activity during sleep rather than increasing alertness.",
+          "routes_to_scene": 7
+        }
+      ]
+    }
+  ]
+}

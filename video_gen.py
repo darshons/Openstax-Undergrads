@@ -102,7 +102,11 @@ def build_veo_prompt(scene: dict, characters: list, visual_style: str) -> str:
     #on-screen text if present
     if scene.get("on_screen_text"):
         prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
-
+    prompt += """\n\nCharacter reference images are provided. Maya is the nurse in blue scrubs. Carl is the patient in the hospital gown. Maintain exact character appearance from the first frame to the last. 
+    Maya always wears light blue scrubs. Carl always wears a light green hospital gown. 
+    No changes to their clothing, hair, skin tone, or facial features at any point. Do not introduce any additional characters into frame.
+    
+    Maya speaks first. Carl responds. Never swap their roles or voices."""
     prompt += "\n\nDo not include any text overlays, captions, subtitles, or on-screen text in the video."
     
     return prompt.strip()
@@ -164,7 +168,7 @@ def log_generation(
     save_log(entries)
     return entry
 
-"""def burn_captions(
+def burn_captions(
     video_path: str,
     dialogue: list,
     characters: list,
@@ -248,7 +252,7 @@ def log_generation(
     video.close()
     final.close()
     return output_path
-"""
+
 
 #VIDEO GENERATION
 
@@ -260,6 +264,7 @@ def generate_video(
     resolution: str = DEFAULT_RESOLUTION,
     aspect_ratio: str = DEFAULT_ASPECT,
     prompt_override: str = None,
+    reference_images: list = None,
     poll_interval: int = 10,
 ) -> dict:
     """
@@ -302,6 +307,23 @@ def generate_video(
     try:
         # Submit generation request
         print("Submitting to Veo API...")
+        # Build reference images config if provided
+        ref_image_configs = []
+        if reference_images:
+            from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
+            for img_path in reference_images:
+                with open(img_path, "rb") as f:
+                    image_bytes = f.read()
+                ref_image_configs.append(
+                    VideoGenerationReferenceImage(
+                        image=GenaImage(
+                            image_bytes=image_bytes,
+                            mime_type="image/png",
+                        ),
+                        reference_type="asset",
+                    )
+                )
+
         operation = client.models.generate_videos(
             model=model_api_name,
             prompt=final_prompt,
@@ -309,6 +331,7 @@ def generate_video(
                 aspect_ratio=aspect_ratio,
                 resolution=resolution,
                 number_of_videos=1,
+                reference_images=ref_image_configs if ref_image_configs else None,
             ),
         )
 
@@ -407,10 +430,17 @@ def parse_args():
         help="Skip auto-built prompt and use this string instead.",
     )
     parser.add_argument(
+        "--reference-images",
+        nargs="+",
+        default=None,
+        help="Paths to up to 3 reference images for character consistency.",
+    )
+    parser.add_argument(
         "--preview-prompt",
         action="store_true",
         help="Print the generated Veo prompt without generating a video.",
     )
+
     parser.add_argument(
         "--add-captions",
         action="store_true",
@@ -470,9 +500,11 @@ def main():
                 resolution=args.resolution,
                 aspect_ratio=args.aspect_ratio,
                 prompt_override=args.prompt_override,
+                reference_images=args.reference_images,
             )
             results.append(result)
 
+            
             # Burn captions if requested and generation succeeded
             if args.add_captions and result["success"]:
                 burn_captions(

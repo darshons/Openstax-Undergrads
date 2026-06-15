@@ -41,7 +41,7 @@
       "character_actions": "Maya enters from the left side of frame carrying a small tablet. She approaches Carl's bedside, makes eye contact, and gives a brief professional smile. Carl is sitting up in bed looking at his hands in his lap. He glances up when Maya enters. As Maya speaks, Carl gives short verbal answers but keeps his arms folded across his chest and his gaze drifts toward the window. His jaw is slightly tense. After his last line, he gives a short nod but his posture stays closed and he does not look at Maya.",
       "camera": {
         "angle": "Starts at medium wide shot showing both characters. Cuts to medium shot on Carl for his responses. Returns to medium two-shot for the moment of decision.",
-        "movement": "Slow, static cuts only. No camera movement during dialogue.",
+        "movement": "Static medium two-shot. Both characters fully visible throughout. No cuts, no zooms, no camera movement.",
         "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls."
       },
       "audio": {

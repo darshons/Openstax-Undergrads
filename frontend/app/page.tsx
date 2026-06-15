@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateScenario } from "@/lib/api";
 
-const TEXTBOOKS = [
-  "Nursing Fundamentals",
-  "Clinical Nursing Skills",
-  "Anatomy and Physiology 2e",
-  "University Physics Volume 1",
-] as const;
-type Textbook = (typeof TEXTBOOKS)[number];
+const TEXTBOOKS: { label: string; slug: string }[] = [
+  { label: "Fundamentals of Nursing",    slug: "fundamentals-nursing" },
+  { label: "Clinical Nursing Skills",    slug: "clinical-nursing-skills" },
+  { label: "Medical-Surgical Nursing",   slug: "medical-surgical-nursing" },
+  { label: "Anatomy and Physiology 2e",  slug: "anatomy-and-physiology-2e" },
+  { label: "University Physics Vol. 1",  slug: "university-physics-volume-1" },
+];
 
 function SectionLabel({
   title,
@@ -85,7 +85,7 @@ function NumberInput({
 
 export default function GenerationSetup() {
   const router = useRouter();
-  const [textbook, setTextbook] = useState<Textbook>("Nursing Fundamentals");
+  const [textbook, setTextbook] = useState(TEXTBOOKS[0]);
   const [unitNum, setUnitNum] = useState("1");
   const [chapterNum, setChapterNum] = useState("");
   const [pageNum, setPageNum] = useState("");
@@ -108,10 +108,10 @@ export default function GenerationSetup() {
     setError(null);
     try {
       const result = await generateScenario({
-        book_title: textbook,
+        book_title: textbook.slug,
         unit_num: parseInt(unitNum),
         chapter_num: chapterNum ? parseInt(chapterNum) : undefined,
-        page_num: pageNum ? parseFloat(pageNum) : undefined,
+        page_num: pageNum.trim() || undefined,
         user_query: description.trim(),
         model_choice: aiModel,
       });
@@ -152,16 +152,16 @@ export default function GenerationSetup() {
             <div className="flex flex-wrap gap-2.5">
               {TEXTBOOKS.map((tb) => (
                 <button
-                  key={tb}
+                  key={tb.slug}
                   type="button"
                   onClick={() => setTextbook(tb)}
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium border transition-all ${
-                    textbook === tb
+                    textbook.slug === tb.slug
                       ? "bg-[#F47C20] border-[#F47C20] text-white shadow-sm"
                       : "bg-white border-[#d8d5d0] text-[#4a4540] hover:border-[#F47C20] hover:text-[#F47C20]"
                   }`}
                 >
-                  {tb}
+                  {tb.label}
                 </button>
               ))}
             </div>

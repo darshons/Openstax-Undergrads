@@ -11,7 +11,7 @@ class SceneInformation(BaseModel):
     book_title: str
     unit_num: int
     chapter_num: int | None
-    page_num: float | None
+    page_num: str | None
     user_query: str
     model_choice: str    
     
@@ -58,13 +58,13 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     initial_script = None
 
     if scene_information.model_choice == "anthropic":
-        initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query, background_tasks)
+        initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
         
         for file_id in file_ids:
             background_tasks.add_task(anthropic_script_generation.delete_uploaded_file, file_id)
         
     elif scene_information.model_choice == "gemini":
-        initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query, background_tasks)
+        initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
         
         for file_name in file_ids:
             background_tasks.add_task(gemini_script_generation.delete_uploaded_file, file_name)

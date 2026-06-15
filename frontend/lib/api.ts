@@ -57,7 +57,7 @@ export interface GenerateRequest {
   book_title: string;
   unit_num: number;
   chapter_num?: number;
-  page_num?: number;
+  page_num?: string;
   user_query: string;
   model_choice: "anthropic" | "gemini";
 }

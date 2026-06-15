@@ -59,8 +59,9 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
 
     MODEL = "claude-sonnet-4-6"
 
-    TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens
-    
+    model_info = client.models.retrieve(MODEL)
+    TOKEN_LIMIT = model_info.max_tokens or 8096
+
     uploaded_md = client.beta.files.upload(file=("textbook_content", open(markdown_file_path, "rb"), "text/plain"))
         
     # JSON File Template
@@ -91,11 +92,11 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     ) as stream:
         response = stream.get_final_message()
     
-    output_json = response.content[0].text
-    output_json = output_json.strip('```json').strip('```')
-    output_json = output_json.strip() 
-    
-    output_json = json.loads(output_json)
+    raw = response.content[0].text
+    # Extract JSON robustly regardless of code fence formatting
+    start = raw.find('{')
+    end = raw.rfind('}') + 1
+    output_json = json.loads(raw[start:end])
     
     return output_json, [uploaded_md.id, uploaded_json.id]
     

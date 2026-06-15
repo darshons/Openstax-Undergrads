@@ -54,16 +54,16 @@ export interface ScenarioDetail extends ScenarioResponse {
 }
 
 export interface GenerateRequest {
-  textbook: string;
+  book_title: string;
   unit_num: number;
   chapter_num?: number;
-  page_num?: string;
-  description: string;
-  model: "anthropic" | "gemini";
+  page_num?: number;
+  user_query: string;
+  model_choice: "anthropic" | "gemini";
 }
 
 export interface GenerateResponse {
-  scenario_id: string;
+  message: string;
   script: Script;
 }
 
@@ -88,7 +88,7 @@ export function getScenario(id: string): Promise<ScenarioDetail> {
 }
 
 export function generateScenario(req: GenerateRequest): Promise<GenerateResponse> {
-  return apiFetch<GenerateResponse>("/scenarios/generate", {
+  return apiFetch<GenerateResponse>("/initial_script", {
     method: "POST",
     body: JSON.stringify(req),
   });

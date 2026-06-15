@@ -1,0 +1,355 @@
+{
+  "title": "Diagnosing Disruptions: Understanding REM Sleep Behavior Disorder",
+  "learning_goal": "Identify the symptoms of REM Sleep Behavior Disorder (RBD), differentiate it from other sleep stages and disorders, and select appropriate management strategies.",
+  "target_audience": "Psychology and pre-med students learning about sleep disorders and the biological functions of sleep stages.",
+  "total_duration_seconds": 150,
+  "visual_style": "2D semi-flat limited-animation style. Characters have dynamic but constrained movement, using subtle head turns, nods, and hand gestures. No complex physics or photorealistic rendering. Mouth movements suggest speech without matching every phoneme.",
+  "characters": [
+    {
+      "character_id": "char_thorne",
+      "name": "Dr. Aris Thorne",
+      "role": "Psychiatrist",
+      "appearance": {
+        "skin_tone": "Medium brown",
+        "hair": "Short, neat black hair",
+        "build": "Average build",
+        "uniform": "White button-down shirt, professional gray vest, wire-rimmed glasses",
+        "distinguishing_features": "Often adjusts his glasses when thinking"
+      },
+      "emotional_baseline": "Calm, professional, and empathetic"
+    },
+    {
+      "character_id": "char_julian",
+      "name": "Julian Vance",
+      "role": "Patient",
+      "appearance": {
+        "skin_tone": "Light olive",
+        "hair": "Messy, wavy brown hair",
+        "build": "Slightly stocky build",
+        "uniform": "Casual dark green crewneck sweater and dark jeans",
+        "distinguishing_features": "Dark circles under his eyes indicating fatigue"
+      },
+      "emotional_baseline": "Anxious, tired, and concerned"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "duration_seconds": 25,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Julian sits tensely, leaning forward and gesturing with his hands. Dr. Thorne sits opposite him, nodding and holding a notepad.",
+      "camera": {
+        "angle": "Medium two-shot capturing both characters",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_julian",
+            "line": "Dr. Thorne, my partner is terrified. Lately, I've been yelling and punching the air while I sleep."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "The weirdest part is, I usually wake up right in the middle of it, and I can vividly remember fighting someone in a dream."
+          },
+          {
+            "character_id": "char_thorne",
+            "line": "That sounds very distressing, Julian. Based on the fact that you are acting out vivid dreams, we can pinpoint which stage of sleep is being disrupted."
+          }
+        ],
+        "sound_effects": "Subtle rustle of clothing as Julian leans forward.",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "duration_seconds": 20,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne gestures calmly. Julian furrows his brow, shaking his head slightly.",
+      "camera": {
+        "angle": "Over-the-shoulder shot from Dr. Thorne to Julian",
+        "movement": "Slight push in",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "This is likely happening during Stage 3 NREM, your deepest sleep stage, which is when sleepwalking and night terrors usually occur."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "But I thought people with night terrors don't remember them? I vividly remember my nightmares when I wake up kicking."
+          },
+          {
+            "character_id": "char_thorne",
+            "line": "You make a good point. Since you clearly remember the dream content, we need to look at the stage where vivid dreaming actually occurs."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "duration_seconds": 18,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne nods confidently. Julian relaxes his shoulders, looking relieved to have an answer.",
+      "camera": {
+        "angle": "Medium close-up on Julian, then cutting to a two-shot",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "It sounds like REM Sleep Behavior Disorder. Normally, your voluntary muscles are paralyzed during REM sleep when you dream, but that paralysis isn't happening for you."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "That makes perfect sense. I'm literally acting out the dream because my muscles aren't turned off like they should be."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "true_choice"
+      }
+    },
+    {
+      "scene_id": 4,
+      "type": "consequence",
+      "duration_seconds": 20,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne holds up a finger to explain. Julian tilts his head, looking doubtful.",
+      "camera": {
+        "angle": "Medium shot on Julian",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "You are probably experiencing K-complexes during Stage 2 NREM sleep, causing your body to react violently to noises in your environment."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "But I'm not reacting to noises in the bedroom. I'm acting out a continuous, intense storyline that's happening entirely in my head."
+          },
+          {
+            "character_id": "char_thorne",
+            "line": "That's an important distinction. Since you are acting out an internal dream storyline, we should focus on the sleep stage where that occurs."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 5,
+      "type": "narrative",
+      "duration_seconds": 22,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne looks seriously at Julian. Julian rubs the back of his neck anxiously.",
+      "camera": {
+        "angle": "Medium two-shot",
+        "movement": "Slow pan from Dr. Thorne to Julian",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "Since the muscle paralysis of REM sleep isn't functioning properly, you're at risk of injuring yourself or your partner. We need to address this immediately."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "I really don't want to hurt anyone. What can we do to stop me from physically acting out these dreams?"
+          }
+        ],
+        "sound_effects": "Fabric rustling as Julian rubs his neck.",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 6,
+      "type": "consequence",
+      "duration_seconds": 20,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne points to his notes. Julian crosses his arms, looking confused.",
+      "camera": {
+        "angle": "Medium shot over Dr. Thorne's shoulder",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "We need to set you up with a CPAP machine to keep your airway open and prevent these physical arousals during the night."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "A breathing mask? I don't snore or stop breathing. I punch the wall because I think I'm in a boxing match."
+          },
+          {
+            "character_id": "char_thorne",
+            "line": "You're right, a CPAP is primarily for sleep apnea. We need a treatment specifically targeted at your REM sleep symptoms."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 7,
+      "type": "consequence",
+      "duration_seconds": 20,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne gestures openly. Julian leans back, raising an eyebrow.",
+      "camera": {
+        "angle": "Medium shot of Julian",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "I'm going to prescribe a psychomotor stimulant like an amphetamine to increase your neural activity and stabilize your sleep."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "Stimulants? I don't have trouble staying awake during the day. My problem is attacking my nightstand at three in the morning."
+          },
+          {
+            "character_id": "char_thorne",
+            "line": "Good catch. Stimulants are used for narcolepsy, not to suppress nighttime motor activity. Let's reconsider the right path."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 8,
+      "type": "resolution",
+      "duration_seconds": 18,
+      "setting": "A quiet, professional psychiatrist's office with two comfortable armchairs, a small side table, and a bookshelf.",
+      "character_actions": "Dr. Thorne smiles reassuringly. Julian nods enthusiastically, looking much more at ease.",
+      "camera": {
+        "angle": "Medium two-shot",
+        "movement": "Slight pull out",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "char_thorne",
+            "line": "We should look into prescribing Clonazepam, often paired with melatonin, and immediately modify your bedroom to make it a safer environment."
+          },
+          {
+            "character_id": "char_julian",
+            "line": "I can move the nightstands away and pad the edges today. I'm so relieved there's a specific medication to help calm this down."
+          }
+        ],
+        "sound_effects": "Light rustle as Julian shifts comfortably in his chair.",
+        "ambience": "Low hum of an office air conditioner."
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "true_choice"
+      }
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "How should Dr. Thorne explain the sleep stage involved in Julian's symptoms?",
+      "associated_introduction_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Explain that muscle paralysis is failing during REM sleep, causing him to act out vivid dreams.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "Suggest he is experiencing night terrors during deep Stage 3 NREM sleep.",
+          "is_correct": false,
+          "misconception": "Confusing RBD with NREM Stage 3 night terrors, which do not typically involve memory of vivid dream content.",
+          "routes_to_scene": 2
+        },
+        {
+          "choice_id": "C",
+          "text": "State that K-complexes during Stage 2 NREM are causing violent reactions to his environment.",
+          "is_correct": false,
+          "misconception": "Misattributing complex dream reenactments to K-complexes, which are brief responses to environmental stimuli in Stage 2 sleep.",
+          "routes_to_scene": 4
+        }
+      ]
+    },
+    {
+      "decision_point_id": 2,
+      "question_text": "What treatment plan should Dr. Thorne recommend for REM Sleep Behavior Disorder?",
+      "associated_introduction_scene_id": 5,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Prescribe Clonazepam and melatonin, and modify the sleep environment for safety.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 8
+        },
+        {
+          "choice_id": "B",
+          "text": "Set up a Continuous Positive Airway Pressure (CPAP) machine to prevent nighttime arousals.",
+          "is_correct": false,
+          "misconception": "Applying the standard treatment for Obstructive Sleep Apnea (CPAP) to a motor-related parasomnia (RBD).",
+          "routes_to_scene": 6
+        },
+        {
+          "choice_id": "C",
+          "text": "Prescribe a psychomotor stimulant like amphetamines to stabilize sleep cycles.",
+          "is_correct": false,
+          "misconception": "Recommending stimulants, which are used to treat daytime sleepiness in Narcolepsy, rather than calming nighttime motor activity.",
+          "routes_to_scene": 7
+        }
+      ]
+    }
+  ]
+}

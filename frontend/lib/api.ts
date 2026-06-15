@@ -94,12 +94,9 @@ export function generateScenario(req: GenerateRequest): Promise<GenerateResponse
   });
 }
 
-export function saveScript(
-  scenarioId: string,
-  script: Script
-): Promise<{ scenario_id: string }> {
-  return apiFetch(`/scenarios/${scenarioId}/script`, {
-    method: "PUT",
+export function submitModifiedScript(script: unknown): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/modified_script", {
+    method: "POST",
     body: JSON.stringify({ script }),
   });
 }

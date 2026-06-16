@@ -1,0 +1,71 @@
+{
+  "title": "",
+  "learning_goal": "",
+  "target_audience": "",
+  "total_duration_seconds": 0,
+  "visual_style": "",
+  "characters": [
+    {
+      "character_id": "",
+      "name": "",
+      "role": "",
+      "appearance": {
+        "skin_tone": "",
+        "hair": "",
+        "build": "",
+        "uniform": "",
+        "distinguishing_features": ""
+      },
+      "emotional_baseline": ""
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "scene_summary": "",
+      "duration_seconds": 0,
+      "setting": "",
+      "character_actions": "",
+      "camera": {
+        "angle": "",
+        "movement": "",
+        "lens_effect": ""
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "",
+            "line": ""
+          }
+        ],
+        "sound_effects": "",
+        "ambience": ""
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "outcome",
+      "scene_summary": "",
+      "duration_seconds": 0,
+      "setting": "",
+      "character_actions": "",
+      "camera": {
+        "angle": "",
+        "movement": "",
+        "lens_effect": ""
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "",
+            "line": ""
+          }
+        ],
+        "sound_effects": "",
+        "ambience": ""
+      }
+   }
+  ]
+}
+

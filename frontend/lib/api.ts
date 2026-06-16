@@ -1,4 +1,11 @@
-const API_BASE = "http://localhost:8000/api";
+// In production the backend is deployed as a sibling Vercel service mounted at
+// the "/_/backend" route prefix (see the root vercel.json). Locally it runs on
+// uvicorn at :8000. Override with NEXT_PUBLIC_API_BASE when needed.
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ??
+  (process.env.NODE_ENV === "production"
+    ? "/_/backend/api"
+    : "http://localhost:8000/api");
 
 export interface ScenarioResponse {
   id: string;
@@ -99,6 +106,17 @@ export function submitModifiedScript(script: unknown): Promise<{ message: string
     method: "POST",
     body: JSON.stringify({ script }),
   });
+}
+
+// Persist the user's edited script for a scenario. The current backend
+// `/modified_script` endpoint accepts the script payload; the scenarioId is
+// accepted here for forward compatibility with a per-scenario save route.
+export function saveScript(
+  scenarioId: string,
+  script: Script
+): Promise<{ message: string }> {
+  void scenarioId;
+  return submitModifiedScript(script);
 }
 
 export function updateNode(

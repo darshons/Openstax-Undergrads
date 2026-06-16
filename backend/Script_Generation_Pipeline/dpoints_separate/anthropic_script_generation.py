@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
+## comment
+
 env_path = Path(__file__).resolve().parents[2] / "backend.env"
 load_dotenv(env_path)
 

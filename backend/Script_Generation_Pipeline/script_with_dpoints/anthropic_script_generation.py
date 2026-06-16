@@ -99,15 +99,16 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     
     return output_json, [uploaded_md.id, uploaded_json.id]
     
-def delete_uploaded_file(file_id):
+def delete_uploaded_files(file_ids: list):
     client = setup_anthropic_client()
     
-    for attempt in range(3):
-        try:
-            client.beta.files.delete(file_id)
-            return
-        except Exception as e:
-            if attempt == 2:
-                print(f"Failed to delete {file_id}: {e}")
-            else:
-                time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying
+    for file_id in file_ids:
+        for attempt in range(3):
+            try:
+                client.beta.files.delete(file_id)
+                break
+            except Exception as e:
+                if attempt == 2:
+                    print(f"Failed to delete {file_id}: {e}")
+                else:
+                    time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying

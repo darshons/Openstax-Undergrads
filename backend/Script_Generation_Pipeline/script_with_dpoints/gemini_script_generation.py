@@ -89,19 +89,20 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     
     return output_json, [uploaded_md_file.name, uploaded_json.name]
 
-def delete_uploaded_file(file_name):
+def delete_uploaded_files(file_names: list):
     client = setup_gemini_client()
     
-    for attempt in range(3):
-        try:
-            client.files.delete(file_name)
-            print(f"Successfully deleted {file_name}")
-            return
-        except Exception as e:
-            if attempt == 2:
-                print(f"Failed to delete {file_name}: {e}")
-            else:
-                time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying
+    for file_name in file_names:    
+        for attempt in range(3):
+            try:
+                client.files.delete(file_name)
+                print(f"Successfully deleted {file_name}")
+                break
+            except Exception as e:
+                if attempt == 2:
+                    print(f"Failed to delete {file_name}: {e}")
+                else:
+                    time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying
 
-    
+        
     

@@ -57,16 +57,16 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     initial_script = None
 
     if scene_information.model_choice == "anthropic":
-        initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query, background_tasks)
+        initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
         
-        for file_id in file_ids:
-            background_tasks.add_task(anthropic_script_generation.delete_uploaded_file, file_id)
+        background_tasks.add_task(anthropic_script_generation.delete_uploaded_files, file_ids)
         
     elif scene_information.model_choice == "gemini":
-        initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query, background_tasks)
+        initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
         
-        for file_name in file_ids:
-            background_tasks.add_task(gemini_script_generation.delete_uploaded_file, file_name)
+        background_tasks.add_task(gemini_script_generation.delete_uploaded_files, file_ids)
+        
+    background_tasks.add_task(md_path.unlink) # delete the merged markdown file after processing
     
     return {"message": "Initial script generation completed", "script": initial_script}
 

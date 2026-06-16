@@ -544,7 +544,7 @@ if __name__ == "__main__":
     # Make relative position in the project folder
     PROJECT_DIR = Path(__file__).resolve().parent
     output_dir = PROJECT_DIR / "TextbookContext"
-    output_dir.mkdir(exist_ok=True)
+    # output_dir.mkdir(exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"
 

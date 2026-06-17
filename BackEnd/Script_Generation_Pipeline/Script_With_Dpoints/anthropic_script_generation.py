@@ -16,6 +16,7 @@ def setup_async_anthropic_client():
     env_path = Path(__file__).resolve().parents[2] / "backend.env"
     load_dotenv(env_path)
     client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    return client
 
 def generate_script_with_decision_points(markdown_file_path, user_query) -> tuple[dict, list]:
 

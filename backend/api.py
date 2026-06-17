@@ -4,7 +4,9 @@ import Script_Generation_Pipeline.script_with_dpoints.anthropic_script_generatio
 import Script_Generation_Pipeline.script_with_dpoints.gemini_script_generation as gemini_script_generation
 from pydantic import BaseModel
 from pathlib import Path
+import os
 import re
+import tempfile
 from typing import Any
 
 class SceneInformation(BaseModel):
@@ -44,9 +46,13 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     if scene_information.chapter_num is not None: parts.append(f"ch-{scene_information.chapter_num}")
     if scene_information.page_num is not None: parts.append(f"p-{scene_information.page_num}")
  
-    # Make absolute position in the project folder
-    PROJECT_DIR = Path(__file__).resolve().parent
-    output_dir = PROJECT_DIR / "Script_Generation_Pipeline" / "Textbook_Context"
+    # Write the merged textbook markdown to a writable directory. On Vercel (and
+    # other serverless hosts) the deployment filesystem is read-only except for
+    # the system temp dir, so default there; allow an override via env var.
+    output_dir = Path(
+        os.getenv("TEXTBOOK_CONTEXT_DIR")
+        or (Path(tempfile.gettempdir()) / "Textbook_Context")
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"

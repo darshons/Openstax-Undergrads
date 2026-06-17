@@ -1,15 +1,21 @@
-from anthropic import Anthropic
+from anthropic import Anthropic, AsyncAnthropic
 import os
 from dotenv import load_dotenv
 from pathlib import Path
 import json
-import time
+import asyncio
+
 
 def setup_anthropic_client():
     env_path = Path(__file__).resolve().parents[2] / "backend.env"
     load_dotenv(env_path)
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
+
+def setup_async_anthropic_client():
+    env_path = Path(__file__).resolve().parents[2] / "backend.env"
+    load_dotenv(env_path)
+    client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 def generate_script_with_decision_points(markdown_file_path, user_query) -> tuple[dict, list]:
 
@@ -99,16 +105,18 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     
     return output_json, [uploaded_md.id, uploaded_json.id]
     
-def delete_uploaded_files(file_ids: list):
-    client = setup_anthropic_client()
+async def delete_uploaded_files(file_ids: list):
+    client = setup_async_anthropic_client()
+    await asyncio.gather(*(delete_uploaded_file(client, file_id) for file_id in file_ids))
     
-    for file_id in file_ids:
-        for attempt in range(3):
-            try:
-                client.beta.files.delete(file_id)
-                break
-            except Exception as e:
-                if attempt == 2:
-                    print(f"Failed to delete {file_id}: {e}")
-                else:
-                    time.sleep(2 ** attempt) # sleep for 1, 2, then 4 seconds before retrying
+
+async def delete_uploaded_file(client, file_id: str):
+    for attempt in range(3):
+        try:
+            await client.beta.files.delete(file_id)
+            break
+        except Exception as e:
+            if attempt == 2:
+                print(f"Failed to delete {file_id}: {e}")
+            else:
+                await asyncio.sleep(2 ** attempt)  # non-blocking # sleep for 1, 2, then 4 seconds before retrying

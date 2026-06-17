@@ -1,7 +1,0 @@
-fastapi[standard]
-anthropic
-google-genai
-markdownify
-requests
-beautifulsoup4
-lxml    

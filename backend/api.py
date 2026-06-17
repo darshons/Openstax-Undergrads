@@ -12,10 +12,10 @@ from typing import Any
 class SceneInformation(BaseModel):
     book_title: str
     unit_num: int
-    chapter_num: int | None
-    page_num: str | None
+    chapter_num: int | None = None
+    page_num: str | None = None
     user_query: str
-    model_choice: str    
+    model_choice: str
     
 class ModifiedScript(BaseModel):
     script: dict[str, Any]

@@ -61,7 +61,7 @@ def generate_characters(json_script) -> tuple[list[Path], list[str], list[Path]]
     • Maintain the specified visual style throughout the asset.
     • No text should appear in the image other than the character's name (included once in the top left corner of the image). Do not include captions, labels, or extraneous text.
     • The background should be a simple, neutral solid color (e.g., white, beige, or light gray) that does not distract from the character. Avoid complex backgrounds, patterns, scenery, as well as any borders, frames, grids, or dividing lines; the character should appear cleanly presented without visual boundaries.
-    • Show the character from exactly five views within a single image to provide a complete reference set: 1 front view, 2 side views (45 degrees), 1 back view, and 1 dedicated close-up of the face to clearly capture facial features and identity. Do not add additional views, poses, or expressions beyond these specified angles.
+    • Show the character from exactly five views within a single image to provide a complete reference set: 1 front view, 1 back view, 1 side view, 1 angled view (45 degrees), and 1 dedicated close-up of the face to clearly capture facial features and identity. Do not add additional views, poses, or expressions beyond these specified angles.
     • Ensure that there is no overlapping, cropping, or visual obstruction of the character in any of the views. The character should be fully visible and clearly distinguishable in each view.
     
     Your output should create a clear, production-ready character reference asset that can be used consistently throughout the simulation.

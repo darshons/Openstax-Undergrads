@@ -66,7 +66,7 @@ def generate_initial_script(scene_information: SceneInformation, background_task
         
         background_tasks.add_task(gemini_script_generation.delete_uploaded_files, file_ids)
         
-    background_tasks.add_task(md_path.unlink) # delete the merged markdown file after processing
+    background_tasks.add_task(delete_md_file, md_path) # delete the merged markdown file after processing
     
     return {"message": "Initial script generation completed", "script": initial_script}
 
@@ -75,3 +75,8 @@ def generate_initial_script(scene_information: SceneInformation, background_task
 def generate_final_script(modified_script: ModifiedScript) -> dict:
     print("Received modified script:", modified_script.script)
     return {"message": "Final script generation request received"}
+
+
+def delete_md_file(file_path: Path):
+    file_path.unlink()
+    print(f"Successfully deleted {file_path}")

@@ -115,6 +115,7 @@ async def delete_uploaded_file(client, file_id: str):
     for attempt in range(3):
         try:
             await client.beta.files.delete(file_id)
+            print(f"Successfully deleted {file_id}")
             break
         except Exception as e:
             if attempt == 2:

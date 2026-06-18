@@ -30,5 +30,4 @@ def process_character_json(json_script: str) -> dict:
          
         characters_file_mapping[character["character_id"]] = temp_file.name
     
-    # return temp_file_path
     return characters_file_mapping

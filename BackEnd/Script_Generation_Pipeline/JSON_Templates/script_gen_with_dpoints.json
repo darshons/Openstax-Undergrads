@@ -27,6 +27,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -54,6 +60,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -81,6 +93,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -108,6 +126,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -135,6 +159,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -162,6 +192,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -189,6 +225,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -216,6 +258,12 @@
       "duration_seconds": 0,
       "setting": "",
       "character_actions": "",
+      "lighting": {
+          "source": "",
+          "quality": "",
+          "color": "",
+          "mood": ""
+        },
       "camera": {
         "angle": "",
         "movement": "",

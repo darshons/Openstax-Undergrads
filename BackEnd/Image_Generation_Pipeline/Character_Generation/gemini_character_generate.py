@@ -6,7 +6,6 @@ from PIL import Image
 from io import BytesIO
 from pathlib import Path
 import os
-import json
 
 def generate_characters(json_script) -> tuple[list[Path], list[str], list[Path]]:
     client = setup_gemini_client()
@@ -61,7 +60,10 @@ def generate_characters(json_script) -> tuple[list[Path], list[str], list[Path]]
     • Maintain the specified visual style throughout the asset.
     • No text should appear in the image other than the character's name (included once in the top left corner of the image). Do not include captions, labels, or extraneous text.
     • The background should be a simple, neutral solid color (e.g., white, beige, or light gray) that does not distract from the character. Avoid complex backgrounds, patterns, scenery, as well as any borders, frames, grids, or dividing lines; the character should appear cleanly presented without visual boundaries.
-    • Show the character from exactly five views within a single image to provide a complete reference set: 1 front view, 1 back view, 1 side view, 1 angled view (45 degrees), and 1 dedicated close-up of the face to clearly capture facial features and identity. Do not add additional views, poses, or expressions beyond these specified angles.
+    • Show the character from exactly five views within a single image to provide a complete reference set: 1 full-body front view, 1 full-body back view, 1 full-body side view, 1 full-body angled view (45 degrees), and 1 dedicated close-up of the face to clearly capture facial features and identity. 
+    • The front, back, side, and angled views must show the entire character from head to toe (i.e., the entire body of the character should be fully visible in each of those views).
+    • For the side view, ensure that the upper half of the character (head, torso, arms) and the lower half (legs, feet) are fully aligned and facing the exact same direction. Do not depict any twisting, rotation, or independent orientation between the upper and lower body; the entire character should read as a single, consistent side profile.
+    • The face close-up is the only view that may be cropped and should focus exclusively on the head and face. Do not add any additional views, poses, crops, expressions, or framing variations beyond these specified angles.
     • Ensure that there is no overlapping, cropping, or visual obstruction of the character in any of the views. The character should be fully visible and clearly distinguishable in each view.
     
     Your output should create a clear, production-ready character reference asset that can be used consistently throughout the simulation.
@@ -74,19 +76,17 @@ def generate_characters(json_script) -> tuple[list[Path], list[str], list[Path]]
         response_modalities=["IMAGE"],    
     )
     
-    characters_file_mapping = process_character_json(json_script)
+    characters_json_file_mapping = process_character_json(json_script)
         
     PROJECT_DIR = Path(__file__).resolve().parents[1]
     
     dir_path = PROJECT_DIR / "Character_Image_Output"
     
-    uploaded_json_file_names = []
+    uploaded_file_names = []
     
-    json_file_paths = []
+    character_image_file_mapping = {}
     
-    character_image_paths = []
-    
-    for character_id, character_json_path in characters_file_mapping.items():
+    for character_id, character_json_path in characters_json_file_mapping.items():
     
         uploaded_json = client.files.upload(file=character_json_path, config=types.UploadFileConfig(display_name=f"character_description_{character_id}", mime_type="application/json"))
         
@@ -103,32 +103,31 @@ def generate_characters(json_script) -> tuple[list[Path], list[str], list[Path]]
                 image = Image.open(BytesIO(part.inline_data.data))
                 image.save(dir_path / f"{character_id}_reference_image.png")
                 
-        uploaded_json_file_names.append(uploaded_json.name)
+        uploaded_file_names.append(uploaded_json.name)
         
-        json_file_paths.append(character_json_path)
+        character_image_file_mapping[character_id] = str(dir_path / f"{character_id}_reference_image.png")
         
-        character_image_paths.append(dir_path / f"{character_id}_reference_image.png")
-        
-    return character_image_paths, uploaded_json_file_names, json_file_paths
+    return character_image_file_mapping, uploaded_file_names, list(characters_json_file_mapping.values())
 
-def delete_json_files(file_paths):
+def delete_local_files(file_paths):
     for file_path in file_paths:
         os.remove(file_path)
         
-def delete_uploaded_json_files(client, file_names):
+def delete_uploaded_files(client, file_names):
     for file in file_names:
         client.files.delete(name=file)
 
 if __name__ == "__main__":
-    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_without_decision_points_gemini.json"
+    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini.json"
 
-    
     with open(json_file_path, "r") as f:
         json_script = f.read()
         
-    character_image_paths, uploaded_json_file_names, json_file_paths = generate_characters(json_script)
+    character_image_file_mapping, uploaded_file_names, character_json_file_paths = generate_characters(json_script)
     
-    delete_json_files(json_file_paths)
+    delete_local_files(character_json_file_paths)
     
-    delete_uploaded_json_files(setup_gemini_client(), uploaded_json_file_names)
+    delete_uploaded_files(setup_gemini_client(), uploaded_file_names)
+    
+    print(character_image_file_mapping)
     

@@ -132,22 +132,3 @@ if __name__ == "__main__":
     
     delete_uploaded_json_files(setup_gemini_client(), uploaded_json_file_names)
     
-    
-    
-#     from dotenv import load_dotenv
-# from pathlib import Path
-# from google import genai
-# import os
-
-
-# env_path = Path(__file__).resolve().parents[2] / "backend.env"
-# load_dotenv(env_path)
-# client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-
-# # List all uploaded files
-# for file in client.files.list():
-#     print(f"Display Name: {file.display_name}")
-#     print(f"  File ID: {file.name}") # Will look like 'files/abc123xyz...'
-#     print(f"  Mime Type:    {file.mime_type}")
-#     print(f"  URI:          {file.uri}")
-#     # client.files.delete(name=file.name)

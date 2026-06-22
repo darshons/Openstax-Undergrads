@@ -1,0 +1,42 @@
+[
+  {
+    "theorem": "Physics: An Introduction",
+    "description": "Learning objectives: Explain the difference between a principle and a law.; Explain the difference between a model and a theory.. The physical universe is enormously complex in its detail. Every day, each of us observes a great variety of objects and phenomena. Over the centuries, the curiosity of the human race has led us collectively to explore and catalog a tremendous wealth of information. From the flight of birds to the colors of flowers, from lightning to gravity, from quarks to clusters of galaxies, from the flow of time to the mystery of the creation of the universe, we have asked questions and assembled huge arrays of facts. In the face of all these details, we have discovered that a surprisingly small and unified set of physical laws can explain what we observe. As humans, we make generalizations and seek order. We have found that nature is remarkably cooperative—it exhibits the underlying order and simplicity we so value. It is the underlying order of nature that makes science in general, and physics in particular, so enjoyable to study. For example, what do a bag of chips and a car battery have in common? Both contain energy that can be converted to other forms. The…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m42092",
+    "chapter": "Introduction: The Nature of Science and Physics"
+  },
+  {
+    "theorem": "Physical Quantities and Units",
+    "description": "Learning objectives: Perform unit conversions both in the SI and English units.; Explain the most common prefixes in the SI units and be able to write them in scientific notation.. The range of objects and phenomena studied in physics is immense. From the incredibly short lifetime of a nucleus to the age of the Earth, from the tiny sizes of sub-nuclear particles to the vast distance to the edges of the known universe, from the force exerted by a jumping flea to the force between Earth and the Sun, there are enough factors of 10 to challenge the imagination of even the most experienced scientist. Giving numerical values for physical quantities and equations for physical principles allows us to understand nature much more deeply than does qualitative description alone. To comprehend these vast ranges, we must also have accepted units in which to express them. And we shall find that (even in the potentially mundane discussion of meters, kilograms, and seconds) a profound simplicity of nature appears—most physical quantities can be expressed as combinations of only four fundamental physical quantities: length, mass, time, and electric current. We define a physical quantity either by…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m42091",
+    "chapter": "Introduction: The Nature of Science and Physics"
+  },
+  {
+    "theorem": "Accuracy, Precision, and Significant Figures",
+    "description": "Learning objectives: Determine the appropriate number of significant figures in both addition and subtraction, as well as multiplication and division calculations.; Calculate the percent uncertainty of a measurement.. Science is based on observation and experiment—that is, on measurements. Accuracy is how close a measurement is to the correct value for that measurement. For example, let us say that you are measuring the length of standard computer paper. The packaging in which you purchased the paper states that it is 11.0 inches long. You measure the length of the paper three times and obtain the following measurements: 11.1 in., 11.2 in., and 10.9 in. These measurements are quite accurate because they are very close to the correct value of 11.0 inches. In contrast, if you had obtained a measurement of 12 inches, your measurement would not be very accurate. The precision of a measurement system refers to how close the agreement is between repeated measurements (which are repeated under the same conditions). Consider the example of the paper measurements. The precision of the measurements refers to the spread of the measured values. One way to analyze the precision of the…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m42120",
+    "chapter": "Introduction: The Nature of Science and Physics"
+  },
+  {
+    "theorem": "Approximation",
+    "description": "Learning objectives: Make reasonable approximations based on given data.. On many occasions, physicists, other scientists, and engineers need to make approximations or “guesstimates” for a particular quantity. What is the distance to a certain destination? What is the approximate density of a given item? About how large a current will there be in a circuit? Many approximate numbers are based on formulae in which the input quantities are known only to a limited accuracy. As you develop problem-solving skills (that can be applied to a variety of fields through a study of physics), you will also develop skills at approximating. You will develop these skills through thinking more quantitatively, and by being willing to take risks. As with any endeavor, experience helps, as well as familiarity with units. These approximations allow us to rule out certain scenarios or unrealistic numbers. Approximations also allow us to challenge others and guide us in our approaches to our scientific world. Let us do two examples to illustrate this concept. Can you approximate the height of one of the buildings on your campus, or in your neighborhood? Let us make an approximation based upon the height…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m42121",
+    "chapter": "Introduction: The Nature of Science and Physics"
+  }
+]

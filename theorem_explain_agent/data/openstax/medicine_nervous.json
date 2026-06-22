@@ -1,0 +1,52 @@
+[
+  {
+    "theorem": "Basic Structure and Function of the Nervous System",
+    "description": "The picture you have in your mind of the nervous system probably includes the brain, the nervous tissue contained within the cranium, and the spinal cord, the extension of nervous tissue within the vertebral column. That suggests it is made of two organs—and you may not even think of the spinal cord as an organ—but the nervous system is a very complex structure. Within the brain, many different and separate regions are responsible for many different and separate functions. It is as if the nervous system is composed of many organs that all look similar and can only be differentiated using tools such as the microscope or electrophysiology. In comparison, it is easy to see that the stomach is different than the esophagus or the liver, so you can imagine the digestive system as a collection of specific organs. The nervous system can be divided into two major regions: the central and peripheral nervous systems. The central nervous system (CNS) is the brain and spinal cord, and the peripheral nervous system (PNS) is everything else ( ). The brain is contained within the cranial cavity of the skull, and the spinal cord is contained within the vertebral cavity of the vertebral column. It…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m46500",
+    "chapter": "The Nervous System and Nervous Tissue"
+  },
+  {
+    "theorem": "Nervous Tissue",
+    "description": "Nervous tissue is composed of two types of cells, neurons and glial cells. Neurons are the primary type of cell that most anyone associates with the nervous system. They are responsible for the computation and communication that the nervous system provides. They are electrically active and release chemical signals to target cells. Glial cells, or glia, are known to play a supporting role for nervous tissue. Ongoing research pursues an expanded role that glial cells might play in signaling, but neurons are still considered the basis of this function. Neurons are important, but without glial support they would not be able to perform their function. Neurons are the cells considered to be the basis of nervous tissue. They are responsible for the electrical signals that communicate information about sensations, and that produce movements in response to those stimuli, along with inducing thought processes within the brain. An important part of the function of neurons is in their structure, or shape. The three-dimensional shape of these cells makes the immense numbers of connections within the nervous system possible. As you learned in the first section, the main part of a neuron is the…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m46509",
+    "chapter": "The Nervous System and Nervous Tissue"
+  },
+  {
+    "theorem": "The Function of Nervous Tissue",
+    "description": "Having looked at the components of nervous tissue, and the basic anatomy of the nervous system, next comes an understanding of how nervous tissue is capable of communicating within the nervous system. Before getting to the nuts and bolts of how this works, an illustration of how the components come together will be helpful. An example is summarized in. Imagine you are about to take a shower in the morning before going to school. You have turned on the faucet to start the water as you prepare to get in the shower. After a few minutes, you expect the water to be a temperature that will be comfortable to enter. So you put your hand out into the spray of water. What happens next depends on how your nervous system interacts with the stimulus of the water temperature and what you do in response to that stimulus. Found in the skin of your fingers or toes is a type of sensory receptor that is sensitive to temperature, called a thermoreceptor. When you place your hand under the shower ( ), the cell membrane of the thermoreceptors changes its electrical state (voltage). The amount of change is dependent on the strength of the stimulus (how hot the water is). This is called a graded…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m46531",
+    "chapter": "The Nervous System and Nervous Tissue"
+  },
+  {
+    "theorem": "The Action Potential",
+    "description": "The functions of the nervous system—sensation, integration, and response—depend on the functions of the neurons underlying these pathways. To understand how neurons are able to communicate, it is necessary to describe the role of an excitable membrane in generating these signals. The basis of this communication is the action potential, which demonstrates how changes in the membrane can constitute a signal. Looking at the way these signals work in more variable circumstances involves a look at graded potentials, which will be covered in the next section. Most cells in the body make use of charged particles, ions, to build up a charge across the cell membrane. Previously, this was shown to be a part of how muscle cells work. For skeletal muscles to contract, based on excitation–contraction coupling, requires input from a neuron. Both of the cells make use of the cell membrane to regulate ion movement between the extracellular fluid and cytosol. As you learned in the chapter on cells, the cell membrane is primarily responsible for regulating what can cross the membrane and what stays on only one side. The cell membrane is a phospholipid bilayer, so only substances that can pass…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m46526",
+    "chapter": "The Nervous System and Nervous Tissue"
+  },
+  {
+    "theorem": "Communication Between Neurons",
+    "description": "The electrical changes taking place within a neuron, as described in the previous section, are similar to a light switch being turned on. A stimulus starts the depolarization, but the action potential runs on its own once a threshold has been reached. The question is now, “What flips the light switch on?” Temporary changes to the cell membrane voltage can result from neurons receiving information from the environment, or from the action of one neuron on another. These special types of potentials influence a neuron and determine whether an action potential will occur or not. Many of these transient signals originate at the synapse. Local changes in the membrane potential are called graded potentials and are usually associated with the dendrites of a neuron. The amount of change in the membrane potential is determined by the size of the stimulus that causes it. In the example of testing the temperature of the shower, slightly warm water would only initiate a small change in a thermoreceptor, whereas hot water would cause a large amount of change in the membrane potential. Graded potentials can be of two sorts, either they are depolarizing or hyperpolarizing ( ). For a membrane at…",
+    "difficulty": "",
+    "remark": "",
+    "subfield": "",
+    "source": "openstax",
+    "module_id": "m46503",
+    "chapter": "The Nervous System and Nervous Tissue"
+  }
+]

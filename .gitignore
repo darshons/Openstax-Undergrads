@@ -18,3 +18,14 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# TheoremExplainAgent — secrets, big artifacts, venv
+theorem_explain_agent/.env
+theorem_explain_agent/.venv/
+theorem_explain_agent/output/
+theorem_explain_agent/media/
+theorem_explain_agent/models/
+theorem_explain_agent/openstax_samples/
+**/__pycache__/
+*.pyc
+.DS_Store

@@ -1,13 +1,18 @@
 # Scenario Studio — Script Generator UI
 
-An internal admin tool for OpenStax. Editors select chapters &amp; sections from a
-textbook, generate an AI-grounded **scenario script** as a storyboard of scene
-cards, then revise scenes (with AI or by hand) before sending the script off to
-be rendered as a video.
+An internal admin tool for OpenStax. Editors pick a chapter/section from a
+textbook, generate an AI-grounded **scenario script** (overview, characters,
+branching scenes, decision points), edit it inline, then save it to the
+backend for downstream image / video generation.
 
-This repo contains **only the front-end UI** for the script-generation step. The
-LLM call, the textbook ingest, and the video-render pipeline are stubbed — see
-[Integration points](#integration-points).
+The UI is wired to the FastAPI backend in `../BackEnd/`:
+- `POST /api/initial_script` — generates a script via Anthropic or Gemini,
+  grounded in the OpenStax textbook content the crawler scrapes for the
+  chosen book / unit / chapter / page.
+- `POST /api/modified_script` — receives the user's edited script.
+
+Single-scene regeneration and whole-script revise are wireframed but have no
+backend route yet — see [Integration points](#integration-points).
 
 ---
 
@@ -17,14 +22,30 @@ No build step. It's a single HTML file that loads React + Babel from a CDN.
 
 ```bash
 # any static server works — pick one:
-npx serve .
+npx serve .            # serves on :3000 by default
 # or
-python3 -m http.server 8000
+python3 -m http.server 8080
 ```
 
-Then open <http://localhost:8000>. You can also just double-click `index.html`,
-but a local server is recommended so the `tweaks-panel.jsx` import resolves
-cleanly in all browsers.
+Then open the printed URL (e.g. <http://localhost:8080>). The backend must
+also be running:
+
+```bash
+cd ../BackEnd
+ANTHROPIC_API_KEY=... GEMINI_API_KEY=... \
+  python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+`BackEnd/main.py` allows the common local static-server ports
+(3000/5173/8000/8080) by default; for anything else, set
+`ALLOWED_ORIGINS=http://my-host:port` on the backend.
+
+To point the UI at a non-default backend, drop a `<script>` ahead of
+`api.js` in `index.html`:
+
+```html
+<script>window.OS_API_BASE = "http://my-backend:9000";</script>
+```
 
 > **Why no build?** Keeping it as plain HTML + in-browser Babel means anyone can
 > open the file, edit, and refresh — zero tooling. If the app outgrows this,
@@ -38,8 +59,9 @@ cleanly in all browsers.
 | File | What it is |
 |------|------------|
 | `index.html` | The whole app — markup, styles, and the React tree (inline `text/babel`). |
+| `api.js` | Backend client (`window.OSApi.fetchInitialScript`, `submitModifiedScript`). |
 | `tweaks-panel.jsx` | Reusable "Tweaks" panel (sliders/toggles/radios). Powers the in-app appearance controls. Don't edit unless you're changing the control kit. |
-| `docs/data-contracts.md` | The data shapes the UI consumes. **Read this before wiring a backend.** |
+| `docs/data-contracts.md` | The data shape returned by `/api/initial_script` and accepted by `/api/modified_script`. **Read this before changing fields.** |
 
 ---
 
@@ -48,40 +70,46 @@ cleanly in all browsers.
 Everything lives in `index.html` inside one `<script type="text/babel">`. Top to
 bottom:
 
-1. **`CATALOG`** — the mocked textbook library (books → chapters → sections).
-2. **`MOCK_SCRIPT`** — a sample generated script (array of scene objects).
-3. **Icons** (`I`) — inline SVGs.
-4. **Components** — `Sidebar`, `GeneratePanel`, `SceneCard`, `GenOverlay`,
-   `ReviseModal`, `VideoModal`, and the root `App`.
-
-The two data constants at the top are the contract. Swap them for real data and
-the UI just works — see `docs/data-contracts.md`.
+1. **`CATALOG`** — the OpenStax textbook library (books → chapters → sections).
+   Each chapter carries a `unit` (the backend crawler's `unit_num`) and each
+   book a `bookTitle` (the value sent as `book_title`).
+2. **`lookupSection` / `buildGenerateRequest`** — turn a UI section ID
+   (`"biology2e:09:9.1"`) into the `/api/initial_script` payload.
+3. **`SAMPLE_SCRIPT`** — a sample in the backend shape, used by the
+   "Load sample script" dev tweak so layout work doesn't require the LLM.
+4. **Icons** (`I`) — inline SVGs.
+5. **Components** — `Sidebar`, `GeneratePanel`, `SceneCard`, `CharacterCard`,
+   `DecisionPointCard`, `GenOverlay`, `VideoModal`, and the root `App`.
 
 ### Key interactions
-- **Select sections** in the left rail → they become context pills.
-- **Generate script** → runs a mocked 4-step generation, then renders the
-  storyboard.
-- **Click a scene** → revise popover (AI regenerate with feedback, or "Edit
-  manually").
-- **Pencil icon** on a card → inline manual edit of every field.
-- **Revise script** (action bar) → apply one direction to all scenes.
-- **Generate scenario video** → opens the render dialog (currently stubbed).
+- **Select a section** in the left rail → enables the Generate button.
+- **Type a scenario description** + **pick a model** (Anthropic / Gemini)
+  in the generate panel.
+- **Generate script** → `POST /api/initial_script` → overview, characters,
+  scene ribbon, and decision-points render from the response.
+- **Pencil on a scene card** → inline edit every backend field
+  (type, duration, setting, character actions, camera, dialogue with
+  character lookup, audio, routes-to).
+- **Pencil on a character card** → edit name, role, appearance subfields,
+  emotional baseline.
+- **Decision-point cards** → edit the question, choice text, mark the
+  correct answer, set each choice's destination scene.
+- **Save & continue** → `POST /api/modified_script` with the full edited
+  script.
+- **Generate scenario video** → still opens the stub render dialog.
 
 ---
 
 ## Integration points
 
-Search the code for these to find where to plug in real services:
-
-| Looking for | Where | Replace with |
-|-------------|-------|--------------|
-| Textbook catalog | `const CATALOG = [...]` | Your real books/chapters/sections feed. |
-| Script generation | `runGenerate()` in `App` | A call to your LLM. It should return an array matching the scene schema. |
-| Single-scene regen | `regenerateScene(idx, note)` | LLM call that regenerates one scene from the user's note. |
-| Whole-script revise | `reviseAll(note)` | LLM call that rewrites every scene under one direction. |
-| Render video | the `VideoModal` primary button | Hand the approved script + options to your render backend. |
-
-All four currently use `setTimeout` to fake latency and return canned data.
+| Status | What | Where |
+|--------|------|-------|
+| ✅ wired | Script generation | `App.runGenerate()` → `OSApi.fetchInitialScript` → `POST /api/initial_script` |
+| ✅ wired | Save edited script | `App.submitScript()` → `OSApi.submitModifiedScript` → `POST /api/modified_script` |
+| 🟡 client-only | Textbook catalog | `CATALOG` in `index.html`. Backed by hand-curated entries that match the OpenStax ABL titles + unit numbers the crawler accepts. Replace with a `/api/catalog` feed if you don't want to maintain it inline. |
+| ❌ no endpoint | Single-scene regen | UI affordance removed pending a `POST /api/regenerate_scene` route. |
+| ❌ no endpoint | Whole-script revise | UI affordance removed pending a `POST /api/revise_script` route. The old `ReviseModal` component was deleted; reintroduce alongside the endpoint. |
+| ❌ no endpoint | Render video | `VideoModal` still alerts. Hand the approved `script` + options to your render backend when one exists. |
 
 ---
 

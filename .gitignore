@@ -1,5 +1,5 @@
 # Environment
-.env
+*.env
 
 # Python
 venv/
@@ -18,3 +18,6 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# Scratch markdown the /api/initial_script writer produces before LLM upload
+BackEnd/Script_Generation_Pipeline/Textbook_Context/*.md

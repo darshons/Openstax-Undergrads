@@ -1,0 +1,318 @@
+{
+  "title": "Therapeutic Communication with Aphasia",
+  "learning_goal": "Apply therapeutic communication techniques and referent communication models to overcome emotional and physical communication barriers.",
+  "target_audience": "Nursing students and newly licensed nurses",
+  "total_duration_seconds": 145,
+  "visual_style": "2D semi-flat limited-animation style with dynamic but constrained movement. Mouth movement should suggest speech without matching every phoneme.",
+  "characters": [
+    {
+      "character_id": "Alex",
+      "name": "Alex",
+      "role": "Registered Nurse",
+      "appearance": {
+        "skin_tone": "Light brown",
+        "hair": "Short black hair",
+        "build": "Medium",
+        "uniform": "Navy blue scrubs with a stethoscope around the neck",
+        "distinguishing_features": "Warm, empathetic facial expressions"
+      },
+      "emotional_baseline": "Calm, professional, and observant"
+    },
+    {
+      "character_id": "Mr. Henderson",
+      "name": "Mr. Henderson",
+      "role": "Patient",
+      "appearance": {
+        "skin_tone": "Pale",
+        "hair": "Thinning gray hair",
+        "build": "Frail",
+        "uniform": "Light blue hospital gown",
+        "distinguishing_features": "Slight right-sided facial droop, primarily uses left hand to gesture"
+      },
+      "emotional_baseline": "Frustrated and anxious"
+    }
+  ],
+  "setting": {
+    "lighting": {
+      "source": "Bright daylight from the window and soft overhead room lights",
+      "time_of_day": "Morning"
+    },
+    "scene_description": "A standard private hospital room. There is a bed in the center, a side table, and a large window with open blinds letting in bright sunlight."
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "scene_summary": "Alex enters the room and observes Mr. Henderson struggling to communicate due to expressive aphasia following a stroke.",
+      "duration_seconds": 25,
+      "character_actions": "Alex walks to the bedside. Mr. Henderson points at his head, making frustrated grunting noises, and hits the mattress with his left hand.",
+      "camera": {
+        "angle": "Medium shot",
+        "movement": "Slow pan from Alex to Mr. Henderson",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "Good morning, Mr. Henderson. I'm Alex, your nurse. How are you feeling today?"
+          },
+          {
+            "character_id": "Mr. Henderson",
+            "line": "My... the... ugh! No, not the... argh!"
+          }
+        ],
+        "sound_effects": "Rustling of bedsheets, a frustrated hand smack against the mattress",
+        "ambience": "Low hum of medical equipment, distant hallway murmurs"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "scene_summary": "Alex uses nontherapeutic interrogation, which makes the patient defensive.",
+      "duration_seconds": 15,
+      "character_actions": "Alex questions the patient. Mr. Henderson glares, waves his hand dismissively, and turns his face away toward the wall.",
+      "camera": {
+        "angle": "Over-the-shoulder shot from Alex",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "Why are you getting so upset? We will figure it out."
+          }
+        ],
+        "sound_effects": "Sigh of frustration",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "scene_summary": "Alex uses therapeutic communication by sharing observations and offering silence.",
+      "duration_seconds": 20,
+      "character_actions": "Alex speaks calmly. Mr. Henderson takes a deep breath, his face softens. He nods, points to his head, and then points toward the bright window.",
+      "camera": {
+        "angle": "Two-shot",
+        "movement": "Slight zoom in on Mr. Henderson",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "It looks like you are frustrated. Take your time, I am here to listen."
+          }
+        ],
+        "sound_effects": "A deep, calming exhale",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "true_choice"
+      }
+    },
+    {
+      "scene_id": 4,
+      "type": "consequence",
+      "scene_summary": "Alex uses false reassurance and changes the subject, devaluing the patient's feelings.",
+      "duration_seconds": 15,
+      "character_actions": "Alex smiles falsely. Mr. Henderson shakes his head vigorously, pushes an imaginary cup away, and crosses his arms.",
+      "camera": {
+        "angle": "Medium close-up on Mr. Henderson",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "Don't worry, everything will be all right. I'll just get you some water."
+          }
+        ],
+        "sound_effects": "Fabric rustling from crossed arms",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 5,
+      "type": "narrative",
+      "scene_summary": "Alex tries to decode Mr. Henderson's gestures about his head and the window.",
+      "duration_seconds": 20,
+      "character_actions": "Alex stands attentively. Mr. Henderson nods eagerly but looks strained as he squints at the bright sunlight coming through the window.",
+      "camera": {
+        "angle": "Medium shot",
+        "movement": "Slow pan to the bright window and back",
+        "lens_effect": "Slight glare effect from window"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "You're pointing to your head and the window. Let's figure this out together."
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "introduction"
+      }
+    },
+    {
+      "scene_id": 6,
+      "type": "consequence",
+      "scene_summary": "Alex misunderstands the physical barrier and speaks loudly, frustrating the patient.",
+      "duration_seconds": 15,
+      "character_actions": "Alex leans in and exaggerates mouth movements. Mr. Henderson recoils, covers his ears, and shakes his head in annoyance.",
+      "camera": {
+        "angle": "Close-up on Alex, then quick cut to Mr. Henderson",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "DO... YOU... HURT?"
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 7,
+      "type": "consequence",
+      "scene_summary": "Alex rapid-fires questions, causing an information overload.",
+      "duration_seconds": 15,
+      "character_actions": "Alex lists options quickly. Mr. Henderson looks overwhelmed, rubs his forehead, and closes his eyes to shut out the noise.",
+      "camera": {
+        "angle": "Medium shot",
+        "movement": "Static",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "Do you want the TV on? Are you hungry? Do you want me to call your wife?"
+          }
+        ],
+        "sound_effects": "None",
+        "ambience": "Low hum of medical equipment"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      }
+    },
+    {
+      "scene_id": 8,
+      "type": "resolution",
+      "scene_summary": "Alex uses referent communication with a picture board to successfully interpret the patient's needs.",
+      "duration_seconds": 20,
+      "character_actions": "Alex holds up a communication board. Mr. Henderson points to a 'headache' icon, then to the 'blinds' icon. Alex nods and moves to lower the blinds. Mr. Henderson smiles and gives a thumbs-up.",
+      "camera": {
+        "angle": "Medium shot",
+        "movement": "Slow zoom in on the communication board and Mr. Henderson's hand",
+        "lens_effect": "None"
+      },
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "Alex",
+            "line": "Can you point to what you need on this board?"
+          },
+          {
+            "character_id": "Alex",
+            "line": "You have a headache and want the blinds closed? I can do that, and I'll check your pain medication."
+          }
+        ],
+        "sound_effects": "Sound of window blinds being pulled down",
+        "ambience": "Low hum of medical equipment, transitioning to a quieter atmosphere"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "true_choice"
+      }
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "How should Alex respond to Mr. Henderson's frustration while applying therapeutic communication techniques?",
+      "associated_introduction_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "It looks like you are frustrated. Take your time, I am here to listen.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "Why are you getting so upset? We will figure it out.",
+          "is_correct": false,
+          "misconception": "Asking 'why' questions is a nontherapeutic interrogating technique that makes the patient feel defensive.",
+          "routes_to_scene": 2
+        },
+        {
+          "choice_id": "C",
+          "text": "Don't worry, everything will be all right. I'll just get you some water.",
+          "is_correct": false,
+          "misconception": "Giving false reassurance and changing the subject are nontherapeutic techniques that devalue the patient's concerns.",
+          "routes_to_scene": 4
+        }
+      ]
+    },
+    {
+      "decision_point_id": 2,
+      "question_text": "Which strategy should Alex use to clarify the patient's needs, considering his physical communication barrier?",
+      "associated_introduction_scene_id": 5,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Use a visual communication board and ask simple yes/no questions.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 8
+        },
+        {
+          "choice_id": "B",
+          "text": "Speak louder and slower, asking him to repeat the words until he gets them right.",
+          "is_correct": false,
+          "misconception": "Speaking louder does not help with aphasia, which is an expressive language barrier, not a hearing deficit.",
+          "routes_to_scene": 6
+        },
+        {
+          "choice_id": "C",
+          "text": "Ask a rapid series of questions: 'Do you want the TV on? Are you hungry? Do you need your wife?'",
+          "is_correct": false,
+          "misconception": "Asking multiple questions rapidly causes a volume of information overload, which acts as a barrier to communication.",
+          "routes_to_scene": 7
+        }
+      ]
+    }
+  ]
+}

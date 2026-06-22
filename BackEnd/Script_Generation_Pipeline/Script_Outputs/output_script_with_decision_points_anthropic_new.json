@@ -1,0 +1,382 @@
+{
+  "message": "Initial script generation completed",
+  "script": {
+    "title": "Finding the Right Words: Communicating with a Patient After Stroke",
+    "learning_goal": "Learners will identify and apply appropriate therapeutic communication techniques and recognize barriers to communication when caring for a patient with expressive aphasia following a stroke, using principles of effective, patient-centered communication.",
+    "target_audience": "Nursing students and early-career nurses in clinical or simulation training",
+    "total_duration_seconds": 285,
+    "visual_style": "2D semi-flat limited animation. Clean, muted clinical color palette with soft warm lighting. Characters express emotion through head turns, brow movement, hand gestures, and posture shifts. Mouth movement suggests speech without phoneme-level sync. All scenes maintain consistent character designs, backgrounds, and proportions.",
+    "characters": [
+      {
+        "character_id": "nurse_maya",
+        "name": "Maya",
+        "role": "Registered Nurse",
+        "appearance": {
+          "skin_tone": "Medium brown",
+          "hair": "Dark brown, pulled back in a low bun",
+          "build": "Average height, slender build",
+          "uniform": "Navy blue scrub top and pants, hospital ID badge clipped to left chest, stethoscope around neck",
+          "distinguishing_features": "Small stud earrings, calm and attentive facial expression as default"
+        },
+        "emotional_baseline": "Warm, composed, and professionally attentive"
+      },
+      {
+        "character_id": "patient_harold",
+        "name": "Harold",
+        "role": "Patient, 68-year-old male, three days post-ischemic stroke with expressive aphasia",
+        "appearance": {
+          "skin_tone": "Light tan",
+          "hair": "Short, silver-gray, slightly disheveled",
+          "build": "Medium height, heavyset build",
+          "uniform": "Light blue hospital gown, white blanket across lap, seated upright in a hospital bed with guardrails raised",
+          "distinguishing_features": "Slight right-sided facial droop, visible frustration in brow and eyes when attempting to speak"
+        },
+        "emotional_baseline": "Anxious, frustrated, effortful when attempting communication"
+      },
+      {
+        "character_id": "family_diane",
+        "name": "Diane",
+        "role": "Harold's adult daughter, present at bedside",
+        "appearance": {
+          "skin_tone": "Light tan, similar to Harold",
+          "hair": "Medium-length auburn hair, loose around shoulders",
+          "build": "Average height and build",
+          "uniform": "Civilian clothing: a gray cardigan over a white blouse, dark jeans",
+          "distinguishing_features": "Reading glasses pushed up on her head, worried expression, occasionally glances between Harold and Maya"
+        },
+        "emotional_baseline": "Worried but cooperative, eager to help translate Harold's needs"
+      }
+    ],
+    "setting": {
+      "lighting": {
+        "source": "Overhead fluorescent ceiling panels softened with warm-toned diffusers, natural light from a window on the left wall",
+        "time_of_day": "Late morning"
+      },
+      "scene_description": "A single-occupancy room on a medical-surgical unit. Harold is seated upright in a hospital bed centered in the frame, guardrails raised. A bedside table holds a water pitcher and a communication picture board. A chair is positioned to the left of the bed where Diane sits. A whiteboard on the wall behind the bed shows Harold's care team names. The room is tidy and moderately quiet, with occasional soft monitor beeping in the background."
+    },
+    "scenes": [
+      {
+        "scene_id": 1,
+        "type": "narrative",
+        "scene_summary": "Maya enters Harold's room for a morning assessment. Harold becomes visibly distressed as he tries to speak and cannot find words. Diane explains this pattern. Maya must decide how to begin communicating with Harold.",
+        "duration_seconds": 28,
+        "character_actions": "Maya enters the room, makes eye contact with Harold, and gives a calm nod. Harold attempts to speak, produces fragmented sounds, then stops and grips the bedsheet with visible frustration. Diane leans forward from her chair. Maya pauses at the bedside, posture open and unhurried.",
+        "camera": {
+          "angle": "Medium shot of all three characters; cuts to close-up on Harold's face as he attempts to speak, then back to medium shot",
+          "movement": "Slow pan in from doorway on Maya entering, then static",
+          "lens_effect": "Slightly soft focus on background, characters in sharp focus"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Good morning, Harold. I'm Maya, your nurse today. I'm going to check in with you and see how you're feeling."
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "I— I want… the… no…"
+            },
+            {
+              "character_id": "family_diane",
+              "line": "He's been trying to say something since breakfast. He gets really upset when the words won't come. I've been trying to help but I'm not always sure what he needs."
+            }
+          ],
+          "sound_effects": "Soft cardiac monitor beeping in background",
+          "ambience": "Quiet hospital room ambience, distant hallway sounds"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 2,
+        "type": "consequence",
+        "scene_summary": "Maya addresses Diane directly and begins asking Diane what Harold needs instead of engaging Harold himself. Harold notices he is being spoken about rather than spoken to, and his frustration visibly increases.",
+        "duration_seconds": 18,
+        "character_actions": "Maya turns slightly toward Diane and directs her questions to her. Harold's gaze shifts between them. He shakes his head slowly and grips the sheet tighter. His brow furrows and he turns his face away toward the window.",
+        "camera": {
+          "angle": "Medium two-shot of Maya and Diane, with Harold visible in the background",
+          "movement": "Static; brief cut to Harold's profile showing his expression",
+          "lens_effect": "Standard"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Diane, can you tell me what Harold usually needs in the morning? It might be quicker if I just ask you."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "I can try, but— I think he wants to tell you himself. He keeps looking at you."
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "No… no…"
+            }
+          ],
+          "sound_effects": "None",
+          "ambience": "Quiet hospital room"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 3,
+        "type": "resolution",
+        "scene_summary": "Maya uses the communication picture board on the bedside table, makes direct eye contact with Harold, and asks him yes-or-no questions while pointing to images. Harold's posture relaxes and he nods clearly, successfully indicating he is in pain.",
+        "duration_seconds": 18,
+        "character_actions": "Maya steps closer to Harold, picks up the picture board, holds it at his eye level, and points to images one at a time while maintaining eye contact. Harold watches carefully, then nods firmly when Maya points to the pain symbol. Diane exhales with visible relief.",
+        "camera": {
+          "angle": "Over-the-shoulder shot from behind Maya toward Harold; cut to close-up of picture board, then Harold's nod",
+          "movement": "Slight push-in toward Harold as he nods",
+          "lens_effect": "Standard"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Harold, let's use this board together. I'll point to something and you can nod for yes or shake your head for no. Are you in any pain right now?"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "Mm— yes."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "That's the most clearly he's communicated all morning. Thank you."
+            }
+          ],
+          "sound_effects": "Soft sound of picture board being placed on the bed tray",
+          "ambience": "Quiet hospital room"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "true_choice"
+        }
+      },
+      {
+        "scene_id": 4,
+        "type": "consequence",
+        "scene_summary": "Maya speaks in long, detailed sentences explaining his plan of care, using medical terminology. Harold appears increasingly overwhelmed and withdraws, stopping his attempts to communicate.",
+        "duration_seconds": 18,
+        "character_actions": "Maya speaks with a calm but information-heavy delivery. Harold's eye contact drifts and he looks down at his hands. His shoulders drop and he stops attempting to respond. Diane glances at Maya with a hesitant expression.",
+        "camera": {
+          "angle": "Medium shot of Maya speaking, with Harold in the frame appearing disengaged",
+          "movement": "Static",
+          "lens_effect": "Standard"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "So Harold, I need to go over your neurological status, your medication reconciliation, and the PT consult that's scheduled for this afternoon, and then we'll discuss your discharge criteria."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "I think he's shutting down. He does this when there's too much at once."
+            }
+          ],
+          "sound_effects": "None",
+          "ambience": "Quiet hospital room"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 5,
+        "type": "narrative",
+        "scene_summary": "Having identified Harold's pain, Maya administers pain medication and returns thirty minutes later. Harold is calmer. Maya now needs to teach Harold about the communication strategies the speech-language pathologist recommended. She must decide how to deliver this information effectively.",
+        "duration_seconds": 26,
+        "character_actions": "Maya enters the room again. Harold appears more relaxed, his posture less tense. Diane is seated, reviewing a pamphlet. Maya carries a small printed handout from speech therapy. She sets it on the bedside table and addresses both Harold and Diane.",
+        "camera": {
+          "angle": "Medium wide shot showing all three characters",
+          "movement": "Gentle pan from doorway as Maya enters, then static",
+          "lens_effect": "Slightly warm tone to suggest the passage of time"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Harold, I'm glad you're more comfortable. I have some information here from the speech therapist about ways to help you communicate. I'd like to go over it with you and Diane together."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "That would be really helpful. We've both been a little lost on what to do."
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "Mm… yes."
+            }
+          ],
+          "sound_effects": "Paper handout being placed on the table",
+          "ambience": "Quiet hospital room, soft monitor beeping"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 6,
+        "type": "consequence",
+        "scene_summary": "Maya reads the handout aloud to Harold and Diane from start to finish without pausing, then asks if they have questions. Diane looks uncertain, and Harold appears passive and unengaged. When Maya asks Harold if he understood, he gives a reflexive nod that does not appear to reflect comprehension.",
+        "duration_seconds": 17,
+        "character_actions": "Maya reads the handout at a steady pace without pausing to check in. Harold's eye contact drifts. When Maya finishes and asks for questions, Diane glances at Harold and then looks down. Harold nods vaguely.",
+        "camera": {
+          "angle": "Medium shot of Maya with the handout, cut to Harold's passive expression",
+          "movement": "Static",
+          "lens_effect": "Standard"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "I'll just go through all of this now, and let me know if you have questions at the end."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "I'm not sure Harold followed all of that. And honestly, neither did I."
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "Mm…"
+            }
+          ],
+          "sound_effects": "Paper rustling",
+          "ambience": "Quiet hospital room"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 7,
+        "type": "consequence",
+        "scene_summary": "Maya tells Diane to take the handout home and read it, and says she will explain it at the next visit. She moves quickly to her next task. Harold watches the door close, his expression resigned. Diane looks at the handout without direction.",
+        "duration_seconds": 17,
+        "character_actions": "Maya hands the handout to Diane, gestures briefly toward the door, and begins to leave. Harold watches her go, expression flat. Diane holds the handout and looks uncertain, flipping it over.",
+        "camera": {
+          "angle": "Medium shot of Diane and Harold as Maya exits the frame",
+          "movement": "Static; pan slightly to Harold watching the door",
+          "lens_effect": "Standard"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Why don't you take this home and read through it? I'll check in on it tomorrow when there's more time."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "I just— I was hoping we could start today. I'm not here every day."
+            }
+          ],
+          "sound_effects": "Door opening softly",
+          "ambience": "Quiet hospital room"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 8,
+        "type": "resolution",
+        "scene_summary": "Maya presents one strategy at a time using both verbal explanation and the printed visuals, pauses after each to check Harold's understanding with a yes-or-no question, and asks Diane to demonstrate back one strategy. Both Harold and Diane show visible engagement and growing confidence.",
+        "duration_seconds": 19,
+        "character_actions": "Maya points to the first item on the handout, explains it simply, then holds the picture board and asks Harold a yes-or-no question to confirm understanding. Harold nods clearly. Maya then asks Diane to show her how she would use the strategy. Diane demonstrates, and Harold watches attentively and gives a thumbs up.",
+        "camera": {
+          "angle": "Medium shot; cuts between Maya pointing to handout and Harold's engaged expression; final wide shot of all three",
+          "movement": "Slight push-in as Harold gives thumbs up",
+          "lens_effect": "Slightly warmer tone to signal positive outcome"
+        },
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Let's take it one piece at a time. The first strategy is asking Harold yes-or-no questions. Harold, does that feel easier than open questions? Go ahead and nod or shake your head."
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "Mm— yes."
+            },
+            {
+              "character_id": "family_diane",
+              "line": "I can do that. I didn't realize it made such a difference just to ask one thing at a time."
+            }
+          ],
+          "sound_effects": "Soft sound of handout being set on the tray table",
+          "ambience": "Quiet hospital room, occasional gentle monitor tone"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "true_choice"
+        }
+      }
+    ],
+    "decision_points": [
+      {
+        "decision_point_id": 1,
+        "question_text": "Harold is struggling to express himself and is becoming frustrated. How should Maya approach communication with him?",
+        "associated_introduction_scene_id": 1,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Use the communication picture board at Harold's eye level and ask clear yes-or-no questions while maintaining direct eye contact with him.",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 3
+          },
+          {
+            "choice_id": "B",
+            "text": "Turn to Diane and ask her to describe what Harold needs, since she knows him best and communication will be faster.",
+            "is_correct": false,
+            "misconception": "Redirecting all communication to the family member bypasses the patient as the primary source of information and undermines patient-centered care. The patient should be directly engaged using appropriate adaptive communication strategies.",
+            "routes_to_scene": 2
+          },
+          {
+            "choice_id": "C",
+            "text": "Speak to Harold in detailed sentences covering his full plan of care so he has all the information at once.",
+            "is_correct": false,
+            "misconception": "Providing lengthy, information-dense communication to a patient with aphasia creates a volume-of-information barrier and overwhelms the patient, causing communication breakdown rather than facilitating understanding.",
+            "routes_to_scene": 4
+          }
+        ]
+      },
+      {
+        "decision_point_id": 2,
+        "question_text": "Maya is ready to teach Harold and Diane about communication strategies from the speech therapist. What is the most effective approach to delivering this patient education?",
+        "associated_introduction_scene_id": 5,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Present one strategy at a time using the printed visual and verbal explanation, pause to confirm Harold's understanding with a yes-or-no check, and ask Diane to demonstrate the strategy back.",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 8
+          },
+          {
+            "choice_id": "B",
+            "text": "Read through the entire handout aloud from start to finish, then ask if there are any questions at the end.",
+            "is_correct": false,
+            "misconception": "Reading all content at once without pausing to check comprehension creates information overload and fails to use the feedback loop needed to evaluate whether therapeutic communication has been effective. A reflexive nod from the patient does not confirm understanding.",
+            "routes_to_scene": 6
+          },
+          {
+            "choice_id": "C",
+            "text": "Give Diane the handout to read at home and plan to revisit the content at the next nursing visit.",
+            "is_correct": false,
+            "misconception": "Deferring patient education without a clear reason misses an available teachable moment and fails to involve the patient directly. Nurses should use every encounter as an opportunity to educate, and written materials alone are insufficient without verbal and interactive reinforcement.",
+            "routes_to_scene": 7
+          }
+        ]
+      }
+    ]
+  }
+}

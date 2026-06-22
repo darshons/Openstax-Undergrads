@@ -19,20 +19,21 @@
       "emotional_baseline": ""
     }
   ],
+  "setting": {
+     "lighting": {
+          "source": "",
+          "time_of_day": ""
+        },
+        "scene_description": ""
+  },
+  
   "scenes": [
     {
       "scene_id": 1,
       "type": "narrative",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -58,14 +59,7 @@
       "type": "consequence",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -91,14 +85,7 @@
       "type": "resolution",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -124,14 +111,7 @@
       "type": "consequence",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -157,14 +137,7 @@
       "type": "narrative",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -190,14 +163,7 @@
       "type": "consequence",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -223,14 +189,7 @@
       "type": "consequence",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",
@@ -256,14 +215,7 @@
       "type": "resolution",
       "scene_summary": "",
       "duration_seconds": 0,
-      "setting": "",
       "character_actions": "",
-      "lighting": {
-          "source": "",
-          "quality": "",
-          "color": "",
-          "mood": ""
-        },
       "camera": {
         "angle": "",
         "movement": "",

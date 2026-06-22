@@ -118,7 +118,7 @@ def delete_uploaded_files(client, file_names):
         client.files.delete(name=file)
 
 if __name__ == "__main__":
-    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini.json"
+    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
 
     with open(json_file_path, "r") as f:
         json_script = f.read()

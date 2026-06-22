@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Stitch Pipeline
-Generates vides by stitching Veo clips together using Veo's
-video extension feature. Each clip continues from the last second
+Generates videos using Veo's video extension feature. Each clip continues from the last second
 of the previous one.
 """
 
@@ -26,31 +25,28 @@ RESOLUTION = "720p"
 ASPECT_RATIO = "16:9"
 POLL_INTERVAL = 10
 REFERENCE_IMAGES = ["maya_reference.png", "carl_reference.png"]
-
+#DURATION CONSTRAINTS
+VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
+EXTENSION_SECONDS = 7
+MAX_CLIPS = 21
 
 #GENERATE FIRST CLIP
-def generate_first_clip(
-    client,
-    prompt: str,
-    scene_id: int,
-    clip_index: int,
-    reference_images: list = None,
-) -> str:
+def generate_first_clip(client, prompt, clip_index=1, reference_images=None, duration_seconds=8):
     """
-    Generates the first 8-second clip for a scene.
-    Returns local path to saved video file.
+    Generates the opening clip for a scene.
+
+    duration_seconds: 4, 6, or 8 - only when no reference images are used. 
+    Asset/subject reference images force 8 second duration for veo-3.1-generate-preview, 
+    so the value will get overridden in that case.
+
+    Returns the Veo video object.
     """
     from google.genai import types
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = str(OUTPUT_DIR / f"scene{scene_id}_clip{clip_index}_{timestamp}.mp4")
-
-    print(f"\n  Generating clip {clip_index} (first clip)...")
+    from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
 
     #build reference image configs if provided
     ref_image_configs = []
     if reference_images:
-        from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
         for img_path in reference_images:
             with open(img_path, "rb") as f:
                 image_bytes = f.read()
@@ -61,6 +57,13 @@ def generate_first_clip(
                 )
             )
 
+    #reference images force 8 seconds on the preview model - that's okay
+    if ref_image_configs and duration_seconds != 8:
+        print(f" Note: reference images force 8s; ignoring duration_seconds={duration_seconds}")
+        duration_seconds = 8
+
+    print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s)...")
+
     operation = client.models.generate_videos(
         model=MODEL,
         prompt=prompt,
@@ -68,33 +71,25 @@ def generate_first_clip(
             aspect_ratio=ASPECT_RATIO,
             resolution=RESOLUTION,
             number_of_videos=1,
+            duration_seconds=duration_seconds,
             reference_images=ref_image_configs if ref_image_configs else None,
         ),
     )
 
     operation = _poll_until_done(client, operation)
-    video_obj = operation.response.generated_videos[0].video
-    return _download_clip(client, operation, output_file), video_obj
+    return operation.response.generated_videos[0].video
 
 #GENERATE EXTENSION CLIP
-def generate_extension_clip(
-    client,
-    prompt: str,
-    previous_video_obj,
-    scene_id: int,
-    clip_index: int,
-) -> tuple:
+def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
     """
-    Extends a previously generated Veo video by passing the video object
-    directly from the previous operation response.
-    Returns (local_path, video_obj) tuple.
+    Extend the previous Veo video by one ~7s hop. Duration is NOT configurable on
+    extension - the API returns a fixed ~7s continuation - so the clip's content
+    must be written to fill ~7s. Continuity comes from the prior clip's final
+    second, so no reference images here.
     """
     from google.genai import types
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = str(OUTPUT_DIR / f"scene{scene_id}_clip{clip_index}_{timestamp}.mp4")
-
-    print(f"\n  Generating clip {clip_index} (extension)...")
+    print(f"\n  Generating clip {clip_index} (extension, ~7s)...")
 
     operation = client.models.generate_videos(
         model=MODEL,
@@ -108,8 +103,7 @@ def generate_extension_clip(
     )
 
     operation = _poll_until_done(client, operation)
-    video_obj = operation.response.generated_videos[0].video
-    return _download_clip(client, operation, output_file), video_obj
+    return operation.response.generated_videos[0].video
 
 #POLLING
 def _poll_until_done(client, operation):
@@ -124,96 +118,72 @@ def _poll_until_done(client, operation):
 
 
 #DOWNLOAD CLIP
-def _download_clip(client, operation, output_file: str) -> str:
-    """Download generated video and save to output folder."""
-    generated_videos = operation.response.generated_videos
-    if not generated_videos:
-        raise RuntimeError("Veo returned no videos — check quota and prompt.")
-
-    video_uri = generated_videos[0].video.uri
-    video_data = client.files.download(file=video_uri)
+def download_video(client, video_obj, output_file):
+    """ Download one Veo video object. Called once, on the final combined
+    video — never on intermediate extension handles."""
+    video_data = client.files.download(file=video_obj.uri)
     with open(output_file, "wb") as f:
         f.write(video_data)
-
     size_mb = os.path.getsize(output_file) / (1024 * 1024)
     print(f"  Saved: {output_file} ({size_mb:.1f} MB)")
     return output_file
 
+#ADD CLIP PROMPTS
 
-#STITCH CLIPS TOGETHER
-def stitch_clips(clip_paths: list, output_path: str) -> str:
+def build_clip_prompts(scene, characters, visual_style):
     """
-    Concatenates a list of video clips into one final video using moviepy.
+    
     """
-    from moviepy import VideoFileClip, concatenate_videoclips
-
-    print(f"\nStitching {len(clip_paths)} clips together...")
-    clips = [VideoFileClip(p) for p in clip_paths]
-    final = concatenate_videoclips(clips, method="compose")
-    final.write_videofile(output_path, codec="libx264", audio_codec="aac", logger=None)
-
-    for clip in clips:
-        clip.close()
-    final.close()
-
-    size_mb = os.path.getsize(output_path) / (1024 * 1024)
-    print(f"Final video saved: {output_path} ({size_mb:.1f} MB)")
-    return output_path
-
+    #TODO implement: split this scene into per-clip dialogue chunks, build a
+    #prompt for each (e.g. via build_veo_prompt) combining the chunk with the
+    #shared stage directions, and return them in clip order. this is the
+    #beats/JSON work.
+    raise NotImplementedError("build_clip_prompts: derive per-clip prompts from the scene")
 
 #MAIN SCENE PIPELINE
-def run_scene_pipeline(
-    client,
-    scene: dict,
-    characters: list,
-    visual_style: str,
-    num_clips: int = 3,
-    use_reference_images: bool = True,
-):
+def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, first_clip_seconds=8):
     """
-    Full pipeline for one scene:
-    1. Generate first clip from prompt
-    2. Upload to Files API
-    3. Extend num_clips-1 more times
-    4. Stitch all clips into one final video
+    Generate one scene as a single continuous video via Veo extension.
 
-    Args:
-        num_clips: how many 8-second clips to chain (3 = ~24 seconds)
-        use_reference_images: whether to pass maya/carl reference images
+    clip_prompts: one prompt per clip, in order, built by build_clip_prompts.
+    first_clip_seconds: 4/6/8 — only takes effect if reference_images is None.
     """
-    scene_id = scene["scene_id"]
-    prompt = build_veo_prompt(scene, characters, visual_style)
-    ref_images = REFERENCE_IMAGES if use_reference_images else None
+    num_clips = len(clip_prompts)
+    if num_clips < 1:
+        raise ValueError("clip_prompts is empty — nothing to generate.")
+    if first_clip_seconds not in VALID_FIRST_CLIP_SECONDS:
+        raise ValueError(f"first_clip_seconds must be one of {VALID_FIRST_CLIP_SECONDS}.")
+    if num_clips > MAX_CLIPS:
+        raise ValueError(
+            f"{num_clips} clips exceeds Veo's extension ceiling of {MAX_CLIPS} "
+            f"clips / ~148s. Split this scene before generating."
+        )
+    
+    #reference images pin the opener to 8s, so reflect that in the estimate
+    effective_first = 8 if reference_images else first_clip_seconds
+    est_seconds = effective_first + (num_clips - 1) * EXTENSION_SECONDS
 
     print(f"\n{'─'*60}")
-    print(f"SCENE {scene_id} — generating {num_clips} clips (~{num_clips * 8}s total)")
+    print(f"SCENE {scene_id} — {num_clips} clips (~{est_seconds}s total)")
     print(f"{'─'*60}")
 
     start_time = time.time()
-    clip_paths = []
 
-    #generate first clip
-    first_clip, previous_video_obj = generate_first_clip(
-        client, prompt, scene_id, clip_index=1, reference_images=ref_images
+    video_obj = generate_first_clip(
+        client, clip_prompts[0], clip_index=1,
+        reference_images=reference_images, duration_seconds=first_clip_seconds,
     )
-    clip_paths.append(first_clip)
+    
+    for i, prompt in enumerate(clip_prompts[1:], start=2):
+        video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i)
 
-    for i in range(2, num_clips + 1):
-        next_clip, previous_video_obj = generate_extension_clip(
-            client, prompt, previous_video_obj, scene_id, clip_index=i
-        )
-        clip_paths.append(next_clip)
-
-    #stitch all clips
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    sprite_label = "sprites" if use_reference_images else "no_sprites"
+    sprite_label = "sprites" if reference_images else "no_sprites"
     final_path = str(OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4")
-    stitch_clips(clip_paths, final_path)
+    download_video(client, video_obj, final_path)
 
-    total_time = time.time() - start_time
-    print(f"\nScene {scene_id} complete in {total_time:.0f}s")
-    print(f"Individual clips: {clip_paths}")
-    print(f"Final stitched video: {final_path}")
+    print(f"\nScene {scene_id} complete in {time.time() - start_time:.0f}s")
+    print(f"Final video: {final_path}")
     return final_path
 
 
@@ -236,15 +206,16 @@ def main():
     visual_style = scenario["visual_style"]
     scenes = scenario["scenes"]
 
-    #test with scene 3 first, with sprites, 3 clips (~24 seconds)
     scene3 = next(s for s in scenes if s["scene_id"] == 3)
+
+    #clip_prompts: one prompt per clip, built from this scene's clips.
+    clip_prompts = build_clip_prompts(scene3, characters, visual_style)  #<- yours to write
+
     run_scene_pipeline(
         client=client,
-        scene=scene3,
-        characters=characters,
-        visual_style=visual_style,
-        num_clips=3,
-        use_reference_images=True,
+        scene_id=scene3["scene_id"],
+        clip_prompts=clip_prompts,
+        reference_images=REFERENCE_IMAGES,
     )
 
 

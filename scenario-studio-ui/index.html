@@ -273,11 +273,11 @@
   .scene-num b{color:var(--os-orange)}
   .scene-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
     padding:2px 7px;border-radius:4px;background:#eef7df;color:#4d6e1d}
-  .scene-tag.hook{background:#fde7d8;color:#a04412}
+  .scene-tag.hook,.scene-tag.narrative{background:#fde7d8;color:#a04412}
   .scene-tag.concept{background:#dbe6ff;color:#1a3a8c}
   .scene-tag.demo{background:#eef7df;color:#4d6e1d}
-  .scene-tag.problem{background:#fff4d1;color:#8a6b00}
-  .scene-tag.recap{background:#e8e9ed;color:#3d4452}
+  .scene-tag.problem,.scene-tag.consequence{background:#fff4d1;color:#8a6b00}
+  .scene-tag.recap,.scene-tag.resolution{background:#e8e9ed;color:#3d4452}
 
   .scene-body{padding:14px;flex:1;display:flex;flex-direction:column;gap:10px}
   .scene-title{font-size:15px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
@@ -371,6 +371,96 @@
   .opt-l{font-size:11px;font-weight:700;color:var(--os-ink-3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
   .opt-v{font-size:13px;font-weight:700;color:var(--os-ink)}
   .opt-d{font-size:11px;color:var(--os-ink-3);margin-top:3px}
+
+  /* ─── Generate-panel additions (model selector, scenario textarea) ─── */
+  .gp-label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--os-ink-3);margin:10px 0 5px}
+  .gp-models{display:flex;gap:6px}
+  .gp-model{flex:1;padding:7px 8px;border:1px solid var(--os-line);border-radius:7px;
+    background:#fff;font-size:12px;font-weight:600;color:var(--os-ink-2);transition:.12s}
+  .gp-model:hover{border-color:var(--os-line-strong);color:var(--os-ink)}
+  .gp-model.on{border-color:var(--os-navy);background:#f4f7ff;color:var(--os-navy);box-shadow:0 0 0 2px rgba(0,37,105,.08)}
+  .gp-textarea{width:100%;min-height:78px;padding:8px 10px;border:1px solid var(--os-line);
+    border-radius:7px;background:var(--os-bg-2);font-size:12.5px;line-height:1.45;
+    resize:vertical;outline:none;font-family:inherit;color:inherit}
+  .gp-textarea:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+
+  /* ─── Overview header (editable script.title / learning_goal / target_audience) ─── */
+  .overview{background:#fff;border:1px solid var(--os-line);border-radius:12px;
+    padding:18px 22px;margin-bottom:22px;box-shadow:var(--shadow-sm)}
+  .overview-title{font-size:24px;font-weight:900;color:var(--os-ink);margin:0 0 4px;
+    letter-spacing:-.015em;line-height:1.2;width:100%;border:0;background:transparent;
+    outline:none;font-family:inherit;padding:0}
+  .overview-title:focus{box-shadow:0 2px 0 var(--os-orange)}
+  .overview-meta{display:flex;flex-wrap:wrap;gap:18px;font-size:12px;color:var(--os-ink-2);margin-top:8px}
+  .overview-meta b{color:var(--os-ink);font-weight:700}
+  .overview-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .overview-field{display:flex;flex-direction:column;gap:4px}
+  .overview-field label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--os-ink-3)}
+  .overview-field textarea{width:100%;min-height:50px;padding:8px 10px;border:1px solid var(--os-line);
+    border-radius:7px;background:var(--os-bg-2);font-size:12.5px;line-height:1.5;resize:vertical;
+    outline:none;font-family:inherit;color:var(--os-ink)}
+  .overview-field textarea:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+
+  /* ─── Section header (Characters / Decision points) ─── */
+  .section-hd{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
+  .section-hd h2{font-size:14px;font-weight:700;color:var(--os-ink);margin:0;letter-spacing:.005em}
+  .section-hd em{font-style:normal;color:var(--os-ink-3);font-weight:400;font-size:12px;margin-left:8px}
+  .strip{display:flex;gap:14px;align-items:stretch;padding-bottom:12px;overflow-x:auto}
+
+  /* ─── Character card ─── */
+  .char-card{flex-shrink:0;width:240px;background:#fff;border:1px solid var(--os-line);
+    border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-sm)}
+  .char-card .char-id{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+    font-family:"JetBrains Mono",monospace}
+  .char-card .char-name{font-size:14px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
+  .char-card .char-role{font-size:11.5px;color:var(--os-ink-2);font-style:italic}
+  .char-card .char-detail{font-size:11.5px;color:var(--os-ink-2);line-height:1.45}
+  .char-card .char-detail b{color:var(--os-ink);font-weight:600}
+  .char-card input,.char-card textarea{width:100%;padding:6px 8px;border:1px solid var(--os-line);
+    border-radius:6px;background:var(--os-bg-2);font-size:12px;line-height:1.4;outline:none;
+    font-family:inherit;color:inherit;resize:vertical}
+  .char-card input:focus,.char-card textarea:focus{border-color:var(--os-navy);background:#fff;
+    box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+  .char-card .char-appearance{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px}
+  .char-card .char-foot{display:flex;justify-content:flex-end;gap:5px;margin-top:6px}
+
+  /* ─── Decision-point card ─── */
+  .dp-card{flex-shrink:0;width:340px;background:#fff;border:1px solid var(--os-line);
+    border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow-sm)}
+  .dp-id{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+    font-family:"JetBrains Mono",monospace}
+  .dp-card textarea,.dp-card input{width:100%;padding:7px 9px;border:1px solid var(--os-line);
+    border-radius:6px;background:var(--os-bg-2);font-size:12.5px;line-height:1.45;outline:none;
+    font-family:inherit;color:inherit;resize:vertical}
+  .dp-card textarea:focus,.dp-card input:focus{border-color:var(--os-navy);background:#fff;
+    box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+  .dp-q{font-weight:600;color:var(--os-ink);min-height:42px}
+  .dp-choice{display:flex;flex-direction:column;gap:5px;padding:9px;border:1px solid var(--os-line);
+    border-radius:8px;background:var(--os-bg-2)}
+  .dp-choice.is-correct{border-color:var(--os-green);background:#f6fbe9}
+  .dp-choice-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--os-ink-2)}
+  .dp-choice-hd label{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--os-ink-2);font-weight:600;margin-left:auto}
+  .dp-choice select{padding:3px 6px;border:1px solid var(--os-line);border-radius:5px;
+    background:#fff;font-size:11px;color:var(--os-ink);outline:none;font-family:inherit}
+
+  /* ─── Scene-card edit-mode subsections ─── */
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .dialogue-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:5px}
+  .dialogue-row select{padding:5px 7px;border:1px solid var(--os-line);border-radius:5px;
+    background:#fff;font-size:11px;color:var(--os-ink);outline:none;font-family:inherit;flex-shrink:0;width:64px}
+  .dialogue-row textarea{flex:1;min-height:42px;font-size:12px}
+  .dialogue-row button{padding:3px 6px;font-size:10px;color:var(--os-ink-3);border:1px solid var(--os-line);border-radius:5px;background:#fff;flex-shrink:0}
+  .dialogue-row button:hover{color:var(--os-ink);background:var(--os-bg-3)}
+
+  /* ─── Save/submit banner ─── */
+  .save-banner{margin-left:8px;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600}
+  .save-banner.success{background:#eef7df;color:#4d6e1d;border:1px solid #c9e08f}
+  .save-banner.error{background:#fde7d8;color:#a04412;border:1px solid #f5c79b}
+
+  /* ─── Generate-side error banner ─── */
+  .gen-error{margin-top:8px;padding:8px 10px;border-radius:7px;font-size:11.5px;font-weight:600;
+    background:#fde7d8;color:#a04412;border:1px solid #f5c79b;line-height:1.4}
 </style>
 
 <script type="application/json" id="TWEAK_DEFAULTS">{"accent":"orange","showCitations":true,"density":"comfy","sceneStyle":"narrated"}</script>
@@ -378,122 +468,146 @@
 <body>
 <div id="root"></div>
 
+<script src="api.js"></script>
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 
 <script type="text/babel">
 /* eslint-disable */
 const {useState, useEffect, useRef, useMemo, Fragment} = React;
 
-/* ─── Mocked OpenStax catalog ─── */
+/* ─── OpenStax catalog ───
+   `bookTitle` is what the backend crawler expects in book_title (matches
+   the OpenStax ABL entry). `unit` on each chapter is what gets sent as
+   unit_num — the crawler needs it and section IDs don't encode it. */
 const CATALOG = [
   {
     id:"biology2e", title:"Biology 2e", sub:"Clark · Douglas · Choi", color:"#9ccb3b",
+    bookTitle:"Biology 2e",
     chapters:[
-      {n:"01", name:"The Study of Life",
+      {n:"01", unit:1, name:"The Study of Life",
        secs:[{n:"1.1",t:"The Science of Biology"},{n:"1.2",t:"Themes and Concepts of Biology"}]},
-      {n:"02", name:"The Chemical Foundation of Life",
+      {n:"02", unit:1, name:"The Chemical Foundation of Life",
        secs:[{n:"2.1",t:"Atoms, Isotopes, Ions, and Molecules"},{n:"2.2",t:"Water"},{n:"2.3",t:"Carbon"}]},
-      {n:"05", name:"Structure and Function of Plasma Membranes",
+      {n:"05", unit:2, name:"Structure and Function of Plasma Membranes",
        secs:[{n:"5.1",t:"Components and Structure"},{n:"5.2",t:"Passive Transport"},{n:"5.3",t:"Active Transport"},{n:"5.4",t:"Bulk Transport"}]},
-      {n:"09", name:"Cellular Respiration",
+      {n:"09", unit:2, name:"Cellular Respiration",
        secs:[{n:"9.1",t:"Energy in Living Systems"},{n:"9.2",t:"Glycolysis"},{n:"9.3",t:"Citric Acid Cycle"},{n:"9.4",t:"Oxidative Phosphorylation"}]},
     ]
   },
   {
     id:"chem2e", title:"Chemistry 2e", sub:"Flowers · Theopold · Langley", color:"#f36f21",
+    bookTitle:"Chemistry 2e",
     chapters:[
-      {n:"03", name:"Composition of Substances",
+      {n:"03", unit:1, name:"Composition of Substances",
        secs:[{n:"3.1",t:"Formula Mass and the Mole"},{n:"3.2",t:"Determining Empirical and Molecular Formulas"}]},
-      {n:"04", name:"Stoichiometry of Chemical Reactions",
+      {n:"04", unit:1, name:"Stoichiometry of Chemical Reactions",
        secs:[{n:"4.1",t:"Writing and Balancing Chemical Equations"},{n:"4.2",t:"Classifying Chemical Reactions"},{n:"4.3",t:"Reaction Stoichiometry"}]},
     ]
   },
   {
     id:"physics", title:"University Physics Vol. 1", sub:"Ling · Sanny · Moebs", color:"#002569",
+    bookTitle:"University Physics Volume 1",
     chapters:[
-      {n:"02", name:"Vectors",
+      {n:"02", unit:1, name:"Vectors",
        secs:[{n:"2.1",t:"Scalars and Vectors"},{n:"2.2",t:"Coordinate Systems"},{n:"2.3",t:"Algebra of Vectors"}]},
-      {n:"06", name:"Applications of Newton's Laws",
+      {n:"06", unit:1, name:"Applications of Newton's Laws",
        secs:[{n:"6.1",t:"Solving Problems with Newton's Laws"},{n:"6.2",t:"Friction"},{n:"6.3",t:"Centripetal Force"}]},
     ]
   },
   {
     id:"micro", title:"Principles of Microeconomics 3e", sub:"Greenlaw · Shapiro", color:"#f4c61f",
+    bookTitle:"Principles of Microeconomics 3e",
     chapters:[
-      {n:"03", name:"Demand and Supply",
+      {n:"03", unit:1, name:"Demand and Supply",
        secs:[{n:"3.1",t:"Demand, Supply, and Equilibrium in Markets"},{n:"3.2",t:"Shifts in Demand and Supply"},{n:"3.3",t:"Price Ceilings and Floors"}]},
     ]
   },
   {
     id:"psych2e", title:"Psychology 2e", sub:"Spielman · Jenkins · Lovett", color:"#5e6a71",
+    bookTitle:"Psychology 2e",
     chapters:[
-      {n:"06", name:"Learning",
+      {n:"06", unit:2, name:"Learning",
        secs:[{n:"6.1",t:"What is Learning?"},{n:"6.2",t:"Classical Conditioning"},{n:"6.3",t:"Operant Conditioning"}]},
     ]
   },
 ];
 
-/* ─── Mock generated script (storyboard) ─── */
-const MOCK_SCRIPT = [
-  {
-    n:1, tag:"HOOK", duration:"0:00–0:18",
-    title:"Why does a sliced apple turn brown?",
-    narration:"You've seen it a hundred times — slice an apple, leave it on the counter, and within minutes it starts to brown. What's actually happening at the molecular level? Today we're going to follow a single oxygen molecule into the cell.",
-    visual:"Close-up time-lapse of an apple slice oxidizing. Cuts to a stylized zoom into one cell, then deeper into the mitochondrion.",
-    onscreen:"Title card: ‘A Tour Inside the Mitochondrion’",
-    cites:["Bio 2e §9.1","Bio 2e §9.4"]
-  },
-  {
-    n:2, tag:"CONCEPT", duration:"0:18–1:05",
-    title:"Energy currency: ATP and electron carriers",
-    narration:"Cells don't burn glucose all at once — they sip energy from it in tiny steps and store that energy in ATP. The key players are NAD⁺ and FAD, the molecular taxis that ferry electrons from one place to another.",
-    visual:"Side-by-side animation: a flame burning sugar (uncontrolled) vs a clean staircase of small enzymatic steps (controlled).",
-    onscreen:"Key terms: ATP, NAD⁺ → NADH, FAD → FADH₂",
-    cites:["Bio 2e §9.1"]
-  },
-  {
-    n:3, tag:"DEMO", duration:"1:05–2:10",
-    title:"Glycolysis — splitting glucose in the cytoplasm",
-    narration:"In the cytoplasm, a six-carbon glucose molecule gets phosphorylated, rearranged, and finally split in half. The net result: two molecules of pyruvate, two ATP, and two NADH — all before we've even entered the mitochondrion.",
-    visual:"2D molecular diagram: glucose marches through 10 enzymatic steps. Each step lights up as it's described. Counter in the corner tallies ATP and NADH.",
-    onscreen:"Net yield (per glucose): 2 ATP · 2 NADH · 2 pyruvate",
-    cites:["Bio 2e §9.2"]
-  },
-  {
-    n:4, tag:"DEMO", duration:"2:10–3:25",
-    title:"The Citric Acid Cycle",
-    narration:"Pyruvate enters the mitochondrial matrix, sheds a carbon as CO₂, and joins coenzyme A. From there, the cycle turns — generating more NADH, FADH₂, and a little ATP — but the real prize is the loaded electron carriers heading to the inner membrane.",
-    visual:"Camera follows acetyl-CoA into the cycle. The cycle rotates once; tags appear at each output: CO₂, NADH, FADH₂, ATP.",
-    onscreen:"Per turn: 3 NADH · 1 FADH₂ · 1 ATP · 2 CO₂",
-    cites:["Bio 2e §9.3"]
-  },
-  {
-    n:5, tag:"DEMO", duration:"3:25–4:40",
-    title:"Oxidative phosphorylation — where the magic happens",
-    narration:"The electron transport chain is a series of protein pumps embedded in the inner membrane. Electrons cascade from one to the next, releasing energy that's used to shove protons across the membrane. The resulting gradient powers ATP synthase — a literal molecular turbine.",
-    visual:"3D rendering of the inner mitochondrial membrane. Electrons flow through complexes I–IV; protons pile up in the intermembrane space; ATP synthase spins.",
-    onscreen:"~26–28 ATP per glucose · O₂ is the final electron acceptor",
-    cites:["Bio 2e §9.4"]
-  },
-  {
-    n:6, tag:"PROBLEM", duration:"4:40–5:30",
-    title:"Check your understanding",
-    narration:"So — back to the apple. Why does it turn brown? And what would happen to a cell if we suddenly removed all the oxygen? Pause the video and think about it. We'll work through both in the next scene.",
-    visual:"Split screen: apple on left, schematic of a cell on right. A question mark hovers between them.",
-    onscreen:"Q1: What is the role of O₂ in cellular respiration?\nQ2: What happens if O₂ is absent?",
-    cites:["Bio 2e §9.4"]
-  },
-  {
-    n:7, tag:"RECAP", duration:"5:30–6:00",
-    title:"Putting it all together",
-    narration:"One glucose molecule. Three stages. Roughly 30 ATP. Oxygen is the gatekeeper — without it, the whole chain backs up and cells have to fall back on fermentation. Next lesson, we'll see exactly how that fallback works.",
-    visual:"Full pathway map zooms out: glycolysis → citric acid cycle → ETC. Arrows show inputs and outputs. End on the apple, now fully oxidized.",
-    onscreen:"Up next: Fermentation & anaerobic metabolism",
-    cites:["Bio 2e §9.1","Bio 2e §9.2","Bio 2e §9.3","Bio 2e §9.4"]
-  },
-];
+/* Look up the book + chapter for a section ID like "biology2e:09:9.1". */
+function lookupSection(id){
+  const [bookId, chapN, secN] = id.split(":");
+  const book = CATALOG.find(b => b.id === bookId);
+  if (!book) return null;
+  const chap = book.chapters.find(c => c.n === chapN);
+  if (!chap) return null;
+  return {book, chap, secN};
+}
 
-const TAGS = ["HOOK","CONCEPT","DEMO","PROBLEM","RECAP"];
+/* Build the /api/initial_script request from the section the user selected
+   first. The backend takes one (book_title, unit_num) at a time; if multiple
+   sections are picked we use the first and let chapter/page narrow it. */
+function buildGenerateRequest({selected, model, userQuery}){
+  const firstId = Array.from(selected)[0];
+  const hit = firstId && lookupSection(firstId);
+  if (!hit) return null;
+  return {
+    book_title: hit.book.bookTitle,
+    unit_num: hit.chap.unit,
+    chapter_num: parseInt(hit.chap.n, 10),
+    page_num: hit.secN,
+    user_query: userQuery,
+    model_choice: model,
+  };
+}
+
+/* ─── Backend scene types (used in scene.type) ─── */
+const SCENE_TYPES = ["narrative","consequence","resolution"];
+const ROUTE_TYPES = ["introduction","true_choice","false_choice"];
+
+/* ─── Sample script in the backend shape ───
+   Lets the "Load sample script" tweak preview the storyboard without
+   hitting the LLM. Matches /api/initial_script's response.script. */
+const SAMPLE_SCRIPT = {
+  title:"A Tour Inside the Mitochondrion",
+  learning_goal:"Understand how cellular respiration turns glucose into ATP across glycolysis, the citric acid cycle, and oxidative phosphorylation.",
+  target_audience:"Intro biology undergraduates",
+  total_duration_seconds:360,
+  visual_style:"Clean 3D molecular animation with diagrammatic overlays; warm neutral palette.",
+  characters:[
+    {character_id:"A", name:"Maya", role:"Curious student narrator",
+     appearance:{skin_tone:"warm beige",hair:"black, shoulder-length",build:"average",uniform:"hoodie + jeans",distinguishing_features:"silver hoop earrings"},
+     emotional_baseline:"engaged, asks questions"},
+    {character_id:"B", name:"Dr. Chen", role:"Biology instructor",
+     appearance:{skin_tone:"medium",hair:"short grey",build:"slim",uniform:"white lab coat over teal shirt",distinguishing_features:"round glasses"},
+     emotional_baseline:"warm, patient"},
+  ],
+  scenes:[
+    {scene_id:1, type:"narrative", scene_summary:"Hook: a sliced apple browning",
+     duration_seconds:20, setting:"Sunlit kitchen counter",
+     character_actions:"Maya watches an apple slice slowly brown.",
+     camera:{angle:"close-up",movement:"slow push-in",lens_effect:"shallow depth of field"},
+     audio:{dialogue:[{character_id:"A",line:"Why does this happen so fast?"}],
+            sound_effects:"soft ambient kitchen",ambience:"morning light"},
+     routes_to:{decision_point_id:1, type:"introduction"}},
+    {scene_id:2, type:"narrative", scene_summary:"Inside the cell",
+     duration_seconds:45, setting:"Stylized animated cytoplasm",
+     character_actions:"Dr. Chen narrates as a glucose molecule splits.",
+     camera:{angle:"isometric",movement:"orbit",lens_effect:"none"},
+     audio:{dialogue:[{character_id:"B",line:"Glucose gets broken in half — that's glycolysis."}],
+            sound_effects:"subtle whoosh on each enzymatic step",ambience:"soft synth pad"},
+     routes_to:{decision_point_id:1, type:"introduction"}},
+  ],
+  decision_points:[
+    {decision_point_id:1, question_text:"What does the cell do with pyruvate next?",
+     associated_introduction_scene_id:2,
+     choices:[
+       {choice_id:"A", text:"Feed it into the citric acid cycle", is_correct:true,
+        misconception:null, routes_to_scene:3},
+       {choice_id:"B", text:"Convert it to glycogen for storage", is_correct:false,
+        misconception:"That happens elsewhere — glycogen synthesis isn't part of respiration.",
+        routes_to_scene:3},
+     ]},
+  ],
+};
 
 /* ─── Icons ─── */
 const I = {
@@ -594,9 +708,11 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
 }
 
 /* ─── Sidebar footer · just context pills + generate ─── */
-function GeneratePanel({selected, removeSec, onGenerate, onRevise, busy, hasScript}){
+function GeneratePanel({selected, removeSec, onGenerate, busy, hasScript,
+                        model, setModel, userQuery, setUserQuery, genError}){
   const pillsArr = Array.from(selected);
-  const canRun = selected.size>0 && !busy;
+  const queryReady = userQuery.trim().length > 0;
+  const canRun = selected.size>0 && queryReady && !busy;
   return (
     <div className="sb-foot">
       <div className="ctx-tag">
@@ -621,92 +737,163 @@ function GeneratePanel({selected, removeSec, onGenerate, onRevise, busy, hasScri
         </div>
       )}
 
-      <button className="btn btn-primary btn-full" disabled={!canRun} onClick={onGenerate} style={{marginTop:4}}>
+      <label className="gp-label">Scenario description</label>
+      <textarea className="gp-textarea" value={userQuery}
+        onChange={e=>setUserQuery(e.target.value)}
+        placeholder="What scenario should the script dramatize? e.g. A nursing student watches a patient's glucose metabolism in real time."/>
+
+      <label className="gp-label">Model</label>
+      <div className="gp-models">
+        <button type="button" className={`gp-model ${model==="anthropic"?"on":""}`}
+          onClick={()=>setModel("anthropic")}>Anthropic</button>
+        <button type="button" className={`gp-model ${model==="gemini"?"on":""}`}
+          onClick={()=>setModel("gemini")}>Gemini</button>
+      </div>
+
+      <button className="btn btn-primary btn-full" disabled={!canRun} onClick={onGenerate} style={{marginTop:12}}>
         {busy ? <><span className="spin"/>Generating…</> : <>{I.sparkle} {hasScript?"Generate new script":"Generate script"}</>}
       </button>
-      {hasScript && !busy && (
-        <button className="btn btn-ghost btn-full" onClick={onRevise} style={{marginTop:8}}>
-          {I.edit} Revise current script
-        </button>
-      )}
+
+      {genError && <div className="gen-error">{genError}</div>}
+
       {hasScript && (
         <p style={{fontSize:11,color:"var(--os-ink-3)",margin:"10px 0 0",lineHeight:1.5,textAlign:"center"}}>
-          Tip — click any scene to revise with AI, or hit its pencil icon to edit it manually.
+          Tip — click the pencil on any scene, character, or choice to edit it manually.
         </p>
       )}
     </div>
   );
 }
 
-/* ─── Scene card ─── */
-function SceneCard({s, showCitations, density, isSelected, isEditing, isRegenerating,
-                    onSelect, onDeselect, onRevise, onStartEdit, onSaveEdit, onCancelEdit, onDuplicate}){
+/* ─── Scene card ───
+   Backend scene shape:
+   { scene_id, type, scene_summary, duration_seconds, setting,
+     character_actions, camera:{angle,movement,lens_effect},
+     audio:{dialogue:[{character_id,line}], sound_effects, ambience},
+     routes_to:{decision_point_id, type} } */
+function fmtDuration(secs){
+  if (secs == null) return "—";
+  const m = Math.floor(secs / 60), s = secs % 60;
+  return m > 0 ? `${m}:${String(s).padStart(2,"0")}` : `${s}s`;
+}
+function characterName(characters, id){
+  const c = (characters || []).find(c => c.character_id === id);
+  return c ? c.name : id;
+}
+
+function SceneCard({s, characters, decisionPoints, density, isEditing,
+                    onStartEdit, onSaveEdit, onCancelEdit, onDuplicate}){
   const padding = density==="compact" ? 10 : density==="comfy" ? 14 : 12;
-  const [note, setNote] = useState("");
   const [draft, setDraft] = useState(s);
-  const quick = ["Too long", "Simplify language", "Wrong concept", "Bad analogy", "Add an example", "Stronger hook"];
 
   useEffect(() => { if (isEditing) setDraft(s); }, [isEditing, s]);
-  const updField = (k, v) => setDraft(d => ({...d, [k]: v}));
+  const upd = (k, v) => setDraft(d => ({...d, [k]: v}));
+  const updCamera = (k, v) => setDraft(d => ({...d, camera: {...(d.camera||{}), [k]: v}}));
+  const updAudio = (k, v) => setDraft(d => ({...d, audio: {...(d.audio||{}), [k]: v}}));
+  const updRoutes = (k, v) => setDraft(d => ({...d, routes_to: {...(d.routes_to||{}), [k]: v}}));
+  const updDialogueLine = (idx, k, v) => setDraft(d => {
+    const dialogue = (d.audio?.dialogue || []).map((row,i) => i===idx ? {...row, [k]: v} : row);
+    return {...d, audio: {...(d.audio||{}), dialogue}};
+  });
+  const addDialogueLine = () => setDraft(d => {
+    const dialogue = [...(d.audio?.dialogue || []), {character_id: characters?.[0]?.character_id || "", line: ""}];
+    return {...d, audio: {...(d.audio||{}), dialogue}};
+  });
+  const removeDialogueLine = (idx) => setDraft(d => {
+    const dialogue = (d.audio?.dialogue || []).filter((_,i) => i!==idx);
+    return {...d, audio: {...(d.audio||{}), dialogue}};
+  });
 
   if (isEditing) {
     return (
       <div style={{position:"relative"}}>
-        <article className="scene editing" style={{width: density==="compact"?280:320}}
+        <article className="scene editing" style={{width: density==="compact"?320:380}}
           onClick={e=>e.stopPropagation()}>
           <div className="edit-banner">
             <span className="dot"/>
-            EDITING SCENE {String(s.n).padStart(2,"0")} · MANUAL
+            EDITING SCENE {String(s.scene_id).padStart(2,"0")} · MANUAL
           </div>
           <div className="scene-hd" style={{padding:"8px 10px"}}>
             <div className="edit-tag-row">
-              <span className="scene-num">SC <b>{String(s.n).padStart(2,"0")}</b></span>
-              <select value={draft.tag} onChange={e=>updField("tag", e.target.value)}>
-                {TAGS.map(tg => <option key={tg} value={tg}>{tg}</option>)}
+              <span className="scene-num">SC <b>{String(s.scene_id).padStart(2,"0")}</b></span>
+              <select value={draft.type || ""} onChange={e=>upd("type", e.target.value)}>
+                {SCENE_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
               </select>
-              <input value={draft.duration} onChange={e=>updField("duration", e.target.value)}
-                placeholder="0:00–0:00"/>
+              <input type="number" value={draft.duration_seconds ?? ""}
+                onChange={e=>upd("duration_seconds", e.target.value === "" ? null : Number(e.target.value))}
+                placeholder="seconds" style={{width:80}}/>
             </div>
           </div>
           <div className="scene-body" style={{padding,gap:9}}>
-            <input className="edit-field edit-title" value={draft.title}
-              onChange={e=>updField("title", e.target.value)} placeholder="Scene title"/>
+            <input className="edit-field edit-title" value={draft.scene_summary || ""}
+              onChange={e=>upd("scene_summary", e.target.value)} placeholder="Scene summary"/>
 
-            <div className="scene-block narr">
-              <div className="scene-block-lbl">Narration</div>
-              <textarea className="edit-field" value={draft.narration}
-                onChange={e=>updField("narration", e.target.value)}
-                style={{minHeight:84,fontStyle:"italic",fontSize:13}}/>
+            <div className="scene-block">
+              <div className="scene-block-lbl">Setting</div>
+              <textarea className="edit-field" value={draft.setting || ""}
+                onChange={e=>upd("setting", e.target.value)} style={{minHeight:48,fontSize:12}}/>
             </div>
 
-            <div className="scene-block visual">
-              <div className="scene-block-lbl">Visual</div>
-              <textarea className="edit-field" value={draft.visual}
-                onChange={e=>updField("visual", e.target.value)}
-                style={{minHeight:64,fontSize:12}}/>
+            <div className="scene-block">
+              <div className="scene-block-lbl">Character actions</div>
+              <textarea className="edit-field" value={draft.character_actions || ""}
+                onChange={e=>upd("character_actions", e.target.value)} style={{minHeight:48,fontSize:12}}/>
             </div>
 
-            <div className="scene-block onscreen">
-              <div className="scene-block-lbl">On-screen</div>
-              <textarea className="edit-field" value={draft.onscreen}
-                onChange={e=>updField("onscreen", e.target.value)}
-                style={{minHeight:54,fontSize:12}}/>
-            </div>
-
-            {showCitations && (
-              <div>
-                <div className="scene-block-lbl" style={{marginBottom:4}}>Citations</div>
-                <div className="citation" style={{margin:0}}>
-                  {draft.cites.map((c,i) => (
-                    <span key={i} className="cite" style={{display:"inline-flex",alignItems:"center",gap:4}}>
-                      {c}
-                      <button onClick={()=>updField("cites", draft.cites.filter((_,j)=>j!==i))}
-                        style={{padding:0,color:"var(--os-ink-3)",fontSize:11,lineHeight:1,display:"flex"}}>×</button>
-                    </span>
-                  ))}
-                </div>
+            <div className="scene-block">
+              <div className="scene-block-lbl">Camera (angle · movement · lens)</div>
+              <div className="edit-grid">
+                <input className="edit-field" value={draft.camera?.angle || ""}
+                  onChange={e=>updCamera("angle", e.target.value)} placeholder="angle"/>
+                <input className="edit-field" value={draft.camera?.movement || ""}
+                  onChange={e=>updCamera("movement", e.target.value)} placeholder="movement"/>
+                <input className="edit-field" value={draft.camera?.lens_effect || ""}
+                  onChange={e=>updCamera("lens_effect", e.target.value)} placeholder="lens"/>
               </div>
-            )}
+            </div>
+
+            <div className="scene-block">
+              <div className="scene-block-lbl" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span>Dialogue</span>
+                <button type="button" onClick={addDialogueLine}
+                  style={{fontSize:10,fontWeight:600,color:"var(--os-navy)",letterSpacing:".04em"}}>+ ADD LINE</button>
+              </div>
+              {(draft.audio?.dialogue || []).map((row, i) => (
+                <div key={i} className="dialogue-row">
+                  <select value={row.character_id || ""} onChange={e=>updDialogueLine(i, "character_id", e.target.value)}>
+                    {(characters || []).map(c => <option key={c.character_id} value={c.character_id}>{c.character_id} · {c.name}</option>)}
+                  </select>
+                  <textarea value={row.line || ""} onChange={e=>updDialogueLine(i, "line", e.target.value)} placeholder="dialogue line"/>
+                  <button type="button" onClick={()=>removeDialogueLine(i)} title="Remove">×</button>
+                </div>
+              ))}
+            </div>
+
+            <div className="scene-block">
+              <div className="scene-block-lbl">Audio (sound effects · ambience)</div>
+              <input className="edit-field" value={draft.audio?.sound_effects || ""}
+                onChange={e=>updAudio("sound_effects", e.target.value)} placeholder="sound effects" style={{marginBottom:5}}/>
+              <input className="edit-field" value={draft.audio?.ambience || ""}
+                onChange={e=>updAudio("ambience", e.target.value)} placeholder="ambience"/>
+            </div>
+
+            <div className="scene-block">
+              <div className="scene-block-lbl">Routes to (decision point · type)</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                <select className="edit-field" value={draft.routes_to?.decision_point_id ?? ""}
+                  onChange={e=>updRoutes("decision_point_id", e.target.value === "" ? null : Number(e.target.value))}>
+                  <option value="">— none —</option>
+                  {(decisionPoints || []).map(dp => (
+                    <option key={dp.decision_point_id} value={dp.decision_point_id}>DP {dp.decision_point_id}</option>
+                  ))}
+                </select>
+                <select className="edit-field" value={draft.routes_to?.type || ""}
+                  onChange={e=>updRoutes("type", e.target.value)}>
+                  <option value="">— type —</option>
+                  {ROUTE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
           <div className="scene-foot" style={{justifyContent:"flex-end"}}>
             <div className="edit-actions">
@@ -719,82 +906,146 @@ function SceneCard({s, showCitations, density, isSelected, isEditing, isRegenera
     );
   }
 
+  const tagLabel = (s.type || "scene").toUpperCase();
+  const tagClass = (s.type || "scene").toLowerCase();
+  const dialogue = s.audio?.dialogue || [];
+  const lineCount = dialogue.length;
+
   return (
     <div style={{position:"relative"}}>
-      <article className={`scene ${isSelected?"selected":""} ${isRegenerating?"regenerating":""}`}
-        style={{width: density==="compact"?280:320}}
-        onClick={(e)=>{ if(!isRegenerating) onSelect(); }}>
-        {isRegenerating && (
-          <div className="scene-regen-veil">
-            <span className="spin"/>
-            <span>Regenerating scene…</span>
-          </div>
-        )}
+      <article className="scene"
+        style={{width: density==="compact"?280:320}}>
         <div className="scene-hd">
-          <span className="scene-num">SCENE <b>{String(s.n).padStart(2,"0")}</b> · {s.duration}</span>
-          <span className={`scene-tag ${s.tag.toLowerCase()}`}>{s.tag}</span>
+          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
+          <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
         <div className="scene-body" style={{padding,gap:density==="compact"?7:10}}>
-          <h3 className="scene-title">{s.title}</h3>
+          <h3 className="scene-title">{s.scene_summary}</h3>
 
           <div className="scene-block narr">
-            <div className="scene-block-lbl">Narration</div>
-            <p>"{s.narration}"</p>
+            <div className="scene-block-lbl">Dialogue</div>
+            {dialogue.length === 0 ? (
+              <p style={{color:"var(--os-ink-3)",fontStyle:"normal"}}>(no dialogue)</p>
+            ) : dialogue.map((row, i) => (
+              <p key={i} style={{margin:i>0?"4px 0 0":0}}>
+                <b style={{fontStyle:"normal",color:"var(--os-navy)",marginRight:6}}>{characterName(characters, row.character_id)}:</b>
+                "{row.line}"
+              </p>
+            ))}
           </div>
 
           <div className="scene-block visual">
-            <div className="scene-block-lbl">Visual</div>
-            <p>{s.visual}</p>
+            <div className="scene-block-lbl">Setting · Action</div>
+            <p>{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
           </div>
 
           <div className="scene-block onscreen">
-            <div className="scene-block-lbl">On-screen</div>
-            <p>{s.onscreen.split("\n").map((line,i) => <Fragment key={i}>{i>0&&<br/>}{line}</Fragment>)}</p>
+            <div className="scene-block-lbl">Audio</div>
+            <p>
+              {s.audio?.sound_effects && <Fragment>FX: {s.audio.sound_effects}<br/></Fragment>}
+              {s.audio?.ambience && <Fragment>Ambient: {s.audio.ambience}</Fragment>}
+              {!s.audio?.sound_effects && !s.audio?.ambience && <span style={{color:"var(--os-ink-3)"}}>(none)</span>}
+            </p>
           </div>
-
-          {showCitations && s.cites.length>0 && (
-            <div className="citation">
-              {s.cites.map(c => <span key={c} className="cite">{c}</span>)}
-            </div>
-          )}
         </div>
         <div className="scene-foot">
           <div className="scene-foot-l">
-            <span><b>{s.narration.split(" ").length}</b> words</span>
+            <span><b>{lineCount}</b> line{lineCount===1?"":"s"}</span>
             <span>·</span>
-            <span>{s.cites.length} source{s.cites.length===1?"":"s"}</span>
+            <span>{fmtDuration(s.duration_seconds)}</span>
+            {s.routes_to?.decision_point_id != null && (
+              <Fragment><span>·</span><span>→ DP {s.routes_to.decision_point_id}</span></Fragment>
+            )}
           </div>
           <div className="scene-foot-r">
             <button className="icon-btn" title="Edit manually"
               onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
             <button className="icon-btn" title="Duplicate"
               onClick={(e)=>{e.stopPropagation(); onDuplicate();}}>{I.copy}</button>
-            <button className="icon-btn" title="More" onClick={(e)=>e.stopPropagation()}>{I.more}</button>
           </div>
         </div>
       </article>
+    </div>
+  );
+}
 
-      {isSelected && !isRegenerating && (
-        <div className="revise-pop" onClick={e=>e.stopPropagation()}>
-          <h4>Revise scene {String(s.n).padStart(2,"0")}</h4>
-          <p className="hint">Two ways to fix this scene — let AI rewrite it from feedback, or edit the text yourself.</p>
-          <textarea value={note} onChange={e=>setNote(e.target.value)}
-            placeholder="What should AI change? e.g. The hook is too dry — start with a question students actually wonder about." />
-          <div className="qs">
-            {quick.map(q => (
-              <button key={q} onClick={()=>setNote(n => n ? `${n}. ${q}` : q)}>{q}</button>
-            ))}
-          </div>
-          <div className="actions">
-            <button className="btn btn-ghost btn-sm" onClick={()=>{ onDeselect(); onStartEdit(); }}>
-              {I.edit} Edit manually
-            </button>
-            <button className="btn btn-primary btn-sm" onClick={()=>onRevise(note)}>
-              {I.sparkle} Regenerate with AI
-            </button>
-          </div>
+/* ─── Character card (view + edit toggle) ─── */
+function CharacterCard({c, isEditing, onStartEdit, onSaveEdit, onCancelEdit}){
+  const [draft, setDraft] = useState(c);
+  useEffect(() => { if (isEditing) setDraft(c); }, [isEditing, c]);
+  const upd = (k, v) => setDraft(d => ({...d, [k]: v}));
+  const updApp = (k, v) => setDraft(d => ({...d, appearance: {...(d.appearance||{}), [k]: v}}));
+
+  if (isEditing) {
+    return (
+      <div className="char-card" style={{borderColor:"var(--os-navy)",boxShadow:"0 0 0 3px rgba(0,37,105,.12)"}}>
+        <div className="char-id">CHAR {c.character_id}</div>
+        <input value={draft.name || ""} onChange={e=>upd("name", e.target.value)} placeholder="name"/>
+        <input value={draft.role || ""} onChange={e=>upd("role", e.target.value)} placeholder="role"/>
+        <div className="char-appearance">
+          <input value={draft.appearance?.skin_tone || ""} onChange={e=>updApp("skin_tone", e.target.value)} placeholder="skin tone"/>
+          <input value={draft.appearance?.hair || ""} onChange={e=>updApp("hair", e.target.value)} placeholder="hair"/>
+          <input value={draft.appearance?.build || ""} onChange={e=>updApp("build", e.target.value)} placeholder="build"/>
+          <input value={draft.appearance?.uniform || ""} onChange={e=>updApp("uniform", e.target.value)} placeholder="uniform"/>
         </div>
-      )}
+        <input value={draft.appearance?.distinguishing_features || ""} onChange={e=>updApp("distinguishing_features", e.target.value)} placeholder="distinguishing features"/>
+        <textarea value={draft.emotional_baseline || ""} onChange={e=>upd("emotional_baseline", e.target.value)} placeholder="emotional baseline" style={{minHeight:42}}/>
+        <div className="char-foot">
+          <button className="btn btn-ghost btn-sm" onClick={onCancelEdit}>Cancel</button>
+          <button className="btn btn-navy btn-sm" onClick={()=>onSaveEdit(draft)}>Save</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="char-card">
+      <div className="char-id">CHAR {c.character_id}</div>
+      <h4 className="char-name">{c.name}</h4>
+      <div className="char-role">{c.role}</div>
+      {c.appearance?.uniform && <div className="char-detail"><b>Wears:</b> {c.appearance.uniform}</div>}
+      {c.emotional_baseline && <div className="char-detail"><b>Mood:</b> {c.emotional_baseline}</div>}
+      <div className="char-foot">
+        <button className="icon-btn" title="Edit character" onClick={onStartEdit}>{I.edit}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Decision-point card ─── */
+function DecisionPointCard({dp, scenes, onChange}){
+  const updQ = (v) => onChange({...dp, question_text: v});
+  const updChoice = (idx, k, v) => onChange({
+    ...dp,
+    choices: dp.choices.map((c,i) => i===idx ? {...c, [k]: v} : c)
+  });
+  const setCorrect = (idx) => onChange({
+    ...dp,
+    choices: dp.choices.map((c,i) => ({...c, is_correct: i===idx}))
+  });
+  return (
+    <div className="dp-card">
+      <div className="dp-id">DP {dp.decision_point_id} · intro scene {dp.associated_introduction_scene_id ?? "—"}</div>
+      <textarea className="dp-q" value={dp.question_text || ""} onChange={e=>updQ(e.target.value)} placeholder="Question prompted to the viewer"/>
+      {(dp.choices || []).map((c, i) => (
+        <div key={c.choice_id || i} className={`dp-choice ${c.is_correct?"is-correct":""}`}>
+          <div className="dp-choice-hd">
+            <span>Choice {c.choice_id || String.fromCharCode(65+i)}</span>
+            <label>
+              <input type="radio" name={`dp-${dp.decision_point_id}-correct`} checked={!!c.is_correct} onChange={()=>setCorrect(i)}/>
+              correct
+            </label>
+            <select value={c.routes_to_scene ?? ""}
+              onChange={e=>updChoice(i, "routes_to_scene", e.target.value === "" ? null : Number(e.target.value))}>
+              <option value="">→ scene…</option>
+              {(scenes || []).map(s => <option key={s.scene_id} value={s.scene_id}>→ Scene {s.scene_id}</option>)}
+            </select>
+          </div>
+          <textarea value={c.text || ""} onChange={e=>updChoice(i, "text", e.target.value)} placeholder="Choice text"/>
+          {!c.is_correct && (
+            <textarea value={c.misconception || ""} onChange={e=>updChoice(i, "misconception", e.target.value)} placeholder="Misconception this choice represents (optional)" style={{fontSize:11.5,minHeight:32}}/>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -884,52 +1135,8 @@ function VideoModal({onClose, sceneCount}){
   );
 }
 
-/* ─── Revise-whole-script modal ─── */
-function ReviseModal({onClose, onRevise, sceneCount}){
-  const [note, setNote] = useState("");
-  const presets = [
-    "Make the language more accessible to non-majors",
-    "Tighten the runtime — cut anything not essential",
-    "Add more concrete real-world examples",
-    "Less narration, more visuals",
-    "Use a different hook — the apple one feels overused",
-  ];
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <div className="modal" style={{width:560}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-hd">
-          <h3>Revise the whole script</h3>
-          <p>Apply a single direction to all {sceneCount} scenes. The structure stays — only the writing changes.</p>
-        </div>
-        <div className="modal-body">
-          <div style={{fontSize:11,fontWeight:700,color:"var(--os-ink-3)",letterSpacing:".06em",textTransform:"uppercase",marginBottom:8}}>Your direction</div>
-          <textarea className="gen-input" style={{minHeight:90}} value={note} onChange={e=>setNote(e.target.value)}
-            placeholder="What should the next pass do differently?"/>
-          <div style={{fontSize:11,fontWeight:700,color:"var(--os-ink-3)",letterSpacing:".06em",textTransform:"uppercase",margin:"16px 0 8px"}}>Quick suggestions</div>
-          <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {presets.map(p => (
-              <button key={p} onClick={()=>setNote(n => n ? `${n}\n• ${p}` : `• ${p}`)}
-                style={{textAlign:"left",padding:"9px 12px",border:"1px solid var(--os-line)",borderRadius:8,
-                  background:"var(--os-bg-2)",fontSize:12.5,color:"var(--os-ink-2)",fontWeight:500}}>
-                + {p}
-              </button>
-            ))}
-          </div>
-          <div style={{fontSize:11.5,color:"var(--os-ink-3)",lineHeight:1.5,marginTop:14,padding:"10px 12px",
-            background:"var(--os-bg-3)",borderRadius:8}}>
-            <b style={{color:"var(--os-ink-2)"}}>Tip</b> — to fix a single scene only, close this and click that scene's card on the canvas instead.
-          </div>
-        </div>
-        <div className="modal-foot">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!note.trim()} onClick={()=>onRevise(note)}>
-            {I.sparkle} Revise all scenes
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* ReviseModal removed — there's no backend endpoint for whole-script
+   revision yet. Reintroduce when an /api/revise_script route exists. */
 
 /* ─── App ─── */
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -940,19 +1147,28 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 
 function App(){
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [selected, setSelected] = useState(new Set(["biology2e:09:9.1","biology2e:09:9.2","biology2e:09:9.3","biology2e:09:9.4"]));
+  const [selected, setSelected] = useState(new Set(["biology2e:09:9.2"]));
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
+  // Generate-panel form state
+  const [model, setModel] = useState("anthropic");
+  const [userQuery, setUserQuery] = useState("");
+  const [genError, setGenError] = useState(null);
+
+  // Full backend script object: {title, learning_goal, target_audience,
+  // total_duration_seconds, visual_style, characters[], scenes[], decision_points[]}
   const [script, setScript] = useState(null);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [showVideo, setShowVideo] = useState(false);
-  const [activeSceneIdx, setActiveSceneIdx] = useState(null);    // which card has the revise popover
-  const [editingIdx, setEditingIdx] = useState(null);            // which card is in manual edit mode
-  const [regeneratingIdx, setRegeneratingIdx] = useState(null);  // which card is mid-regen
-  const [reviseOpen, setReviseOpen] = useState(false);           // global revise modal
+  const [editingSceneIdx, setEditingSceneIdx] = useState(null);
+  const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
+
+  // Save flow
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState(null); // {kind:"success"|"error", text}
 
   const toggleSec = (id) => {
     setSelected(s => {
@@ -963,68 +1179,81 @@ function App(){
   };
   const removeSec = (id) => setSelected(s => { const n = new Set(s); n.delete(id); return n; });
 
-  const runGenerate = () => {
+  // Walk the four-step overlay forward while the LLM call is in flight, then
+  // freeze on the last step until the fetch resolves.
+  const runGenerate = async () => {
+    const req = buildGenerateRequest({selected, model, userQuery: userQuery.trim()});
+    if (!req) {
+      setGenError("Pick at least one section from a known textbook.");
+      return;
+    }
+    setGenError(null);
+    setSubmitMsg(null);
     setBusy(true);
     setGenStep(0);
     setScript(null);
-    setActiveSceneIdx(null);
-    let i = 0;
-    const tick = () => {
-      i++;
-      setGenStep(i);
-      if (i < 4) setTimeout(tick, 650);
-      else setTimeout(() => { setBusy(false); setScript(MOCK_SCRIPT); }, 500);
-    };
-    setTimeout(tick, 500);
+    setEditingSceneIdx(null);
+    setEditingCharacterIdx(null);
+
+    const stepper = setInterval(() => {
+      setGenStep(s => Math.min(s + 1, 3));
+    }, 900);
+
+    try {
+      const result = await window.OSApi.fetchInitialScript(req);
+      clearInterval(stepper);
+      setGenStep(4);
+      setScript(result);
+    } catch (err) {
+      clearInterval(stepper);
+      setGenError(err.message || "Generation failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  // Regenerate a single scene in place
-  const regenerateScene = (idx, note) => {
-    setActiveSceneIdx(null);
-    setRegeneratingIdx(idx);
-    setTimeout(() => {
-      setScript(curr => curr.map((s, i) => i === idx ? {
-        ...s,
-        title: s.title.replace(/—/g, "—") + " • v2",
-        narration: note
-          ? `[Revised on note: “${note.slice(0,60)}${note.length>60?"…":""}”] ${s.narration}`
-          : `[Revised] ${s.narration}`,
-      } : s));
-      setRegeneratingIdx(null);
-    }, 1600);
-  };
+  const updateScriptField = (k, v) => setScript(curr => curr ? {...curr, [k]: v} : curr);
 
-  // Manual edit: save user-edited draft back to the script
   const saveSceneEdit = (idx, draft) => {
-    setScript(curr => curr.map((s,i) => i===idx ? {...draft} : s));
-    setEditingIdx(null);
+    setScript(curr => ({
+      ...curr,
+      scenes: curr.scenes.map((s,i) => i===idx ? draft : s),
+    }));
+    setEditingSceneIdx(null);
   };
   const duplicateScene = (idx) => {
     setScript(curr => {
-      const copy = {...curr[idx]};
-      const out = [...curr.slice(0,idx+1), copy, ...curr.slice(idx+1)];
-      return out.map((s,i) => ({...s, n: i+1}));
+      const scenes = curr.scenes;
+      const copy = {...scenes[idx], scene_id: (scenes[scenes.length-1].scene_id || scenes.length) + 1};
+      return {...curr, scenes: [...scenes.slice(0,idx+1), copy, ...scenes.slice(idx+1)]};
     });
   };
+  const saveCharacterEdit = (idx, draft) => {
+    setScript(curr => ({
+      ...curr,
+      characters: curr.characters.map((c,i) => i===idx ? draft : c),
+    }));
+    setEditingCharacterIdx(null);
+  };
+  const updateDecisionPoint = (idx, dp) => {
+    setScript(curr => ({
+      ...curr,
+      decision_points: curr.decision_points.map((d,i) => i===idx ? dp : d),
+    }));
+  };
 
-  // Global revise: keep structure, soften everything
-  const reviseAll = (note) => {
-    setReviseOpen(false);
-    setBusy(true);
-    setGenStep(0);
-    let i = 0;
-    const tick = () => {
-      i++; setGenStep(i);
-      if (i < 4) setTimeout(tick, 500);
-      else setTimeout(() => {
-        setBusy(false);
-        setScript(curr => (curr || MOCK_SCRIPT).map(s => ({
-          ...s,
-          narration: note ? `[Revised: ${note.slice(0,40)}…] ${s.narration}` : s.narration,
-        })));
-      }, 400);
-    };
-    setTimeout(tick, 300);
+  const submitScript = async () => {
+    if (!script) return;
+    setSubmitting(true);
+    setSubmitMsg(null);
+    try {
+      await window.OSApi.submitModifiedScript(script);
+      setSubmitMsg({kind:"success", text:"Saved — backend acknowledged."});
+    } catch (err) {
+      setSubmitMsg({kind:"error", text: err.message || "Save failed"});
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Apply accent dynamically
@@ -1042,8 +1271,8 @@ function App(){
     }
   }, [t.accent]);
 
-  const totalWords = script ? script.reduce((a,s) => a + s.narration.split(" ").length, 0) : 0;
-  const totalDuration = "~6:00";
+  const sceneCount = script?.scenes?.length || 0;
+  const runtimeLabel = script ? fmtDuration(script.total_duration_seconds) : "—";
 
   return (
     <div className="app">
@@ -1061,9 +1290,8 @@ function App(){
         <div className="topbar-right">
           <div className="crumb">
             <span className="crumb-dot"/>
-            <span>Project · <b style={{color:"var(--os-ink)",fontWeight:600}}>Cellular Respiration explainer</b></span>
+            <span>Project · <b style={{color:"var(--os-ink)",fontWeight:600}}>{script?.title || "Untitled scenario"}</b></span>
           </div>
-          <button className="btn btn-ghost btn-sm">Saved 2 min ago</button>
           <div className="avatar">MR</div>
         </div>
       </header>
@@ -1071,14 +1299,17 @@ function App(){
       <div className="main">
         <div style={{display:"flex",flexDirection:"column",minHeight:0,borderRight:"1px solid var(--os-line)",background:"#fff"}}>
           <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
-          <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate} onRevise={()=>setReviseOpen(true)}
-            busy={busy} hasScript={!!script}/>
+          <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
+            busy={busy} hasScript={!!script}
+            model={model} setModel={setModel}
+            userQuery={userQuery} setUserQuery={setUserQuery}
+            genError={genError}/>
         </div>
 
         <div className="stage">
           <div className="stage-bar">
             <div className="stage-bar-l">
-              <h2 className="stage-title">Storyboard canvas <em>{script ? `${script.length} scenes · ${totalDuration}` : "no script yet"}</em></h2>
+              <h2 className="stage-title">Storyboard canvas <em>{script ? `${sceneCount} scenes · ${runtimeLabel}` : "no script yet"}</em></h2>
               <div className={`stage-status ${busy?"busy":script?"ready":""}`}>
                 <span className="dot"/>
                 {busy ? "Generating" : script ? "Draft ready" : "Idle"}
@@ -1090,7 +1321,14 @@ function App(){
                 <span className="zv">{zoom}%</span>
                 <button onClick={()=>setZoom(z=>Math.min(150,z+10))}>+</button>
               </div>
-              <button className="btn btn-ghost btn-sm">Export script</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>{
+                if (!script) return;
+                const blob = new Blob([JSON.stringify(script, null, 2)], {type:"application/json"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "scenario_script.json"; a.click();
+                URL.revokeObjectURL(url);
+              }} disabled={!script}>Export script</button>
             </div>
           </div>
 
@@ -1098,44 +1336,85 @@ function App(){
             <div className="canvas-inner" style={{transform:`scale(${zoom/100})`}}>
               {script ? (
                 <>
-                  <div className="rail-head">
-                    <h1 className="rail-h1">A Tour Inside the Mitochondrion <em>working title</em></h1>
-                    <div className="rail-meta">
-                      <span><b>{script.length}</b> scenes</span>
-                      <span><b>{totalWords}</b> words</span>
-                      <span><b>{totalDuration}</b> est. runtime</span>
-                      <span>Grounded in <b>{selected.size}</b> sections</span>
+                  <div className="overview">
+                    <input className="overview-title" value={script.title || ""}
+                      onChange={e=>updateScriptField("title", e.target.value)} placeholder="Script title"/>
+                    <div className="overview-meta">
+                      <span><b>{sceneCount}</b> scenes</span>
+                      <span><b>{(script.characters||[]).length}</b> characters</span>
+                      <span><b>{(script.decision_points||[]).length}</b> decision points</span>
+                      <span><b>{runtimeLabel}</b> est. runtime</span>
+                      <span>Grounded in <b>{selected.size}</b> section{selected.size===1?"":"s"}</span>
+                    </div>
+                    <div className="overview-fields">
+                      <div className="overview-field">
+                        <label>Learning goal</label>
+                        <textarea value={script.learning_goal || ""}
+                          onChange={e=>updateScriptField("learning_goal", e.target.value)}/>
+                      </div>
+                      <div className="overview-field">
+                        <label>Target audience</label>
+                        <textarea value={script.target_audience || ""}
+                          onChange={e=>updateScriptField("target_audience", e.target.value)}/>
+                      </div>
+                      <div className="overview-field" style={{gridColumn:"1 / -1"}}>
+                        <label>Visual style</label>
+                        <textarea value={script.visual_style || ""}
+                          onChange={e=>updateScriptField("visual_style", e.target.value)}/>
+                      </div>
                     </div>
                   </div>
-                  <div className="ribbon" onClick={(e)=>{ if(e.target.classList.contains("ribbon")) setActiveSceneIdx(null); }}>
-                    {script.map((s,i) => (
-                      <Fragment key={`${s.n}-${i}`}>
-                        <SceneCard s={s} showCitations={t.showCitations} density={t.density}
-                          isSelected={activeSceneIdx===i}
-                          isEditing={editingIdx===i}
-                          isRegenerating={regeneratingIdx===i}
-                          onSelect={()=>{ if(editingIdx===null) setActiveSceneIdx(i); }}
-                          onDeselect={()=>setActiveSceneIdx(null)}
-                          onRevise={(note)=>regenerateScene(i, note)}
-                          onStartEdit={()=>{ setActiveSceneIdx(null); setEditingIdx(i); }}
-                          onCancelEdit={()=>setEditingIdx(null)}
+
+                  <div className="section-hd">
+                    <h2>Characters <em>{(script.characters||[]).length}</em></h2>
+                  </div>
+                  <div className="strip">
+                    {(script.characters || []).map((c, i) => (
+                      <CharacterCard key={c.character_id || i} c={c}
+                        isEditing={editingCharacterIdx===i}
+                        onStartEdit={()=>setEditingCharacterIdx(i)}
+                        onCancelEdit={()=>setEditingCharacterIdx(null)}
+                        onSaveEdit={(draft)=>saveCharacterEdit(i, draft)}/>
+                    ))}
+                    {(script.characters||[]).length === 0 && (
+                      <div style={{padding:14,color:"var(--os-ink-3)",fontSize:12.5,fontStyle:"italic"}}>No characters defined.</div>
+                    )}
+                  </div>
+
+                  <div className="section-hd">
+                    <h2>Scenes <em>{sceneCount}</em></h2>
+                  </div>
+                  <div className="ribbon">
+                    {(script.scenes || []).map((s, i) => (
+                      <Fragment key={s.scene_id ?? i}>
+                        <SceneCard s={s} characters={script.characters} decisionPoints={script.decision_points}
+                          density={t.density}
+                          isEditing={editingSceneIdx===i}
+                          onStartEdit={()=>setEditingSceneIdx(i)}
+                          onCancelEdit={()=>setEditingSceneIdx(null)}
                           onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
-                          onDuplicate={()=>duplicateScene(i)}
-                        />
-                        {i < script.length-1 && (
+                          onDuplicate={()=>duplicateScene(i)}/>
+                        {i < (script.scenes.length - 1) && (
                           <div className="connector">{I.arrow}</div>
                         )}
                       </Fragment>
                     ))}
-                    <div className="connector" style={{color:"var(--os-line-strong)"}}>{I.arrow}</div>
-                    <button onClick={runGenerate} style={{
-                      flexShrink:0,width:200,minHeight:220,borderRadius:12,border:"2px dashed var(--os-line-strong)",
-                      background:"transparent",color:"var(--os-ink-3)",fontSize:12.5,fontWeight:600,
-                      display:"flex",flexDirection:"column",gap:8,alignItems:"center",justifyContent:"center",cursor:"default"}}>
-                      <span style={{fontSize:24,fontWeight:300}}>+</span>
-                      Add scene
-                    </button>
                   </div>
+
+                  {(script.decision_points || []).length > 0 && (
+                    <>
+                      <div className="section-hd">
+                        <h2>Decision points <em>{script.decision_points.length}</em></h2>
+                      </div>
+                      <div className="strip">
+                        {script.decision_points.map((dp, i) => (
+                          <DecisionPointCard key={dp.decision_point_id ?? i} dp={dp}
+                            scenes={script.scenes}
+                            onChange={(updated)=>updateDecisionPoint(i, updated)}/>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               ) : !busy && (
                 <div className="empty">
@@ -1144,7 +1423,7 @@ function App(){
                       <div/><div/><div/>
                     </div>
                     <h2>Your script will appear here as a storyboard</h2>
-                    <p>Pick chapters &amp; sections in the library on the left, then hit <b style={{color:"var(--os-orange)"}}>Generate script</b>. Each scene becomes a card — click any one to revise just that scene with feedback.</p>
+                    <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{color:"var(--os-orange)"}}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
                   </div>
                 </div>
               )}
@@ -1158,11 +1437,11 @@ function App(){
               <div className="ab-stat">
                 <div>
                   <div className="ab-stat-k">Scenes</div>
-                  <div className="ab-stat-v">{script.length}</div>
+                  <div className="ab-stat-v">{sceneCount}</div>
                 </div>
                 <div>
                   <div className="ab-stat-k">Runtime</div>
-                  <div className="ab-stat-v">{totalDuration}</div>
+                  <div className="ab-stat-v">{runtimeLabel}</div>
                 </div>
                 <div>
                   <div className="ab-stat-k">Sources</div>
@@ -1170,31 +1449,33 @@ function App(){
                 </div>
               </div>
               <div className="ab-actions">
-                <button className="btn btn-ghost" onClick={()=>setReviseOpen(true)}>{I.edit} Revise script</button>
-                <button className="btn btn-navy" onClick={()=>setShowVideo(true)}>
+                <button className="btn btn-navy" onClick={submitScript} disabled={submitting}>
+                  {submitting ? <><span className="spin"/>Saving…</> : <>{I.edit} Save &amp; continue</>}
+                </button>
+                <button className="btn btn-ghost" onClick={()=>setShowVideo(true)}>
                   {I.film} Generate scenario video
                 </button>
+                {submitMsg && (
+                  <div className={`save-banner ${submitMsg.kind}`}>{submitMsg.text}</div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {showVideo && <VideoModal onClose={()=>setShowVideo(false)} sceneCount={script?.length || 7}/>}
-      {reviseOpen && <ReviseModal onClose={()=>setReviseOpen(false)} onRevise={reviseAll} sceneCount={script?.length || 7}/>}
+      {showVideo && <VideoModal onClose={()=>setShowVideo(false)} sceneCount={sceneCount || 0}/>}
 
       <TweaksPanel>
         <TweakSection label="Canvas density"/>
         <TweakRadio label="Card density" value={t.density} options={["compact","comfy"]}
           onChange={v=>setTweak("density", v)}/>
-        <TweakToggle label="Show citations" value={t.showCitations}
-          onChange={v=>setTweak("showCitations", v)}/>
         <TweakSection label="Accent"/>
         <TweakRadio label="Accent color" value={t.accent} options={["orange","navy","green"]}
           onChange={v=>setTweak("accent", v)}/>
-        <TweakSection label="Demo controls"/>
+        <TweakSection label="Dev controls"/>
         <TweakButton label={script ? "Reset to empty state" : "Load sample script"}
-          onClick={()=> script ? setScript(null) : setScript(MOCK_SCRIPT)}/>
+          onClick={()=> script ? setScript(null) : setScript(SAMPLE_SCRIPT)}/>
       </TweaksPanel>
     </div>
   );

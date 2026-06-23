@@ -29,6 +29,9 @@ REFERENCE_IMAGES = ["maya_reference.png", "carl_reference.png"]
 VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
 EXTENSION_SECONDS = 7
 MAX_CLIPS = 21
+#PROCESSING SETTLE - an extension's output isn't extend-eligible the instant the
+#operation reports done; let it finish before chaining the next hop
+EXTENSION_SETTLE_SECONDS = 15
 
 #GENERATE FIRST CLIP
 def generate_first_clip(client, prompt, clip_index=1, reference_images=None, duration_seconds=8):
@@ -197,9 +200,23 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
         reference_images=reference_images, duration_seconds=first_clip_seconds,
     )
     
-    for i, prompt in enumerate(clip_prompts[1:], start=2):
-        video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i)
-
+    i = 1
+    try:
+        for i, prompt in enumerate(clip_prompts[1:], start=2):
+            video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i)
+            #don't chain the next hop until this combined output has settled
+            if i < num_clips:
+                print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")
+                time.sleep(EXTENSION_SETTLE_SECONDS)
+    except Exception as e:
+        #download the last good combined video so the spent hops aren't lost
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        checkpoint = str(OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{i-1}_{ts}.mp4")
+        download_video(client, video_obj, checkpoint)
+        print(f"\n  Extension failed at clip {i}: {e}")
+        print(f"  Last good video saved: {checkpoint}")
+        raise
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     sprite_label = "sprites" if reference_images else "no_sprites"
     final_path = str(OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4")
@@ -229,14 +246,14 @@ def main():
     visual_style = scenario["visual_style"]
     scenes = scenario["scenes"]
 
-    scene3 = next(s for s in scenes if s["scene_id"] == 3)
+    scene = next(s for s in scenes if s["scene_id"] == 2)
 
     #clip_prompts: one prompt per clip, built from this scene's clips.
-    clip_prompts = build_clip_prompts(scene3, characters, visual_style)  #<- yours to write
+    clip_prompts = build_clip_prompts(scene, characters, visual_style)  #<- yours to write
 
     run_scene_pipeline(
         client=client,
-        scene_id=scene3["scene_id"],
+        scene_id=scene["scene_id"],
         clip_prompts=clip_prompts,
         reference_images=REFERENCE_IMAGES,
     )

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, BackgroundTasks
 from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
 import Script_Generation_Pipeline.Script_With_Dpoints.anthropic_script_generation as anthropic_script_generation
-import Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation as gemini_script_generation 
+import Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation as gemini_script_generation
 from pydantic import BaseModel
 from pathlib import Path
+import os
 import re
+import tempfile
 from typing import Any
 
 class SceneInformation(BaseModel):
@@ -44,29 +46,36 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     if scene_information.chapter_num is not None: parts.append(f"ch-{scene_information.chapter_num}")
     if scene_information.page_num is not None: parts.append(f"p-{scene_information.page_num}")
  
-    # Make absolute position in the project folder
-    PROJECT_DIR = Path(__file__).resolve().parent
-    output_dir = PROJECT_DIR / "Script_Generation_Pipeline" / "Textbook_Context"
+    # Write the merged textbook markdown to a writable directory. On Vercel (and
+    # other serverless hosts) the deployment filesystem is read-only except for
+    # the system temp dir, so default there; allow an override via env var.
+    output_dir = Path(
+        os.getenv("TEXTBOOK_CONTEXT_DIR")
+        or (Path(tempfile.gettempdir()) / "Textbook_Context")
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    md_path = output_dir / f"{'_'.join(parts)}.md" 
+    md_path = output_dir / f"{'_'.join(parts)}.md"
 
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(merged)
-    
+
     # script generation functionality call
     initial_script = None
 
     if scene_information.model_choice == "anthropic":
         initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
-        
-        background_tasks.add_task(anthropic_script_generation.delete_uploaded_files, file_ids)
-        
+
+        for file_id in file_ids:
+            background_tasks.add_task(anthropic_script_generation.delete_uploaded_file, file_id)
+
     elif scene_information.model_choice == "gemini":
         initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
-        
-        background_tasks.add_task(gemini_script_generation.delete_uploaded_files, file_ids)
-        
-    background_tasks.add_task(delete_md_file, md_path) # delete the merged markdown file after processing
+
+        for file_name in file_ids:
+            background_tasks.add_task(gemini_script_generation.delete_uploaded_file, file_name)
+
+    background_tasks.add_task(delete_md_file, md_path)
     
     return {"message": "Initial script generation completed", "script": initial_script}
 

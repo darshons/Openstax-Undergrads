@@ -2,7 +2,10 @@ import os
 from fastapi import FastAPI
 from api import api_router
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 import uvicorn
+
+load_dotenv()
 
 
 app = FastAPI(title="OpenStax Video Scenario Generation API")

@@ -1,69 +1,81 @@
 {
-  "title": "Therapeutic Communication with Aphasia",
-  "learning_goal": "Apply therapeutic communication techniques and referent communication models to overcome emotional and physical communication barriers.",
-  "target_audience": "Nursing students and newly licensed nurses",
-  "total_duration_seconds": 145,
-  "visual_style": "2D semi-flat limited-animation style with dynamic but constrained movement. Mouth movement should suggest speech without matching every phoneme.",
+  "title": "Communicating Through Barriers: Aphasia and Anxiety",
+  "learning_goal": "Apply therapeutic communication techniques and appropriate communication models while avoiding nontherapeutic barriers when interacting with a patient who has expressive aphasia.",
+  "target_audience": "Nursing students and healthcare professionals",
+  "total_duration_seconds": 150,
+  "visual_style": "2D semi-flat limited-animation style with dynamic but constrained movement. Characters express emotion through head turns, nods, subtle posture shifts, and facial expressions. Non-photorealistic rendering, suggestive lip-sync.",
   "characters": [
     {
-      "character_id": "Alex",
-      "name": "Alex",
+      "character_id": "char_sarah",
+      "name": "Sarah Jenkins",
       "role": "Registered Nurse",
       "appearance": {
-        "skin_tone": "Light brown",
-        "hair": "Short black hair",
-        "build": "Medium",
-        "uniform": "Navy blue scrubs with a stethoscope around the neck",
-        "distinguishing_features": "Warm, empathetic facial expressions"
+        "skin_tone": "Medium brown",
+        "hair": "Dark brown hair pulled back into a neat bun",
+        "build": "Average build and height",
+        "uniform": "Light blue medical scrubs with a stethoscope around her neck",
+        "distinguishing_features": "Warm, professional facial expressions with attentive posture"
       },
-      "emotional_baseline": "Calm, professional, and observant"
+      "emotional_baseline": "Calm, observant, and empathetic"
     },
     {
-      "character_id": "Mr. Henderson",
-      "name": "Mr. Henderson",
-      "role": "Patient",
+      "character_id": "char_arthur",
+      "name": "Arthur Pendelton",
+      "role": "Patient (Post-stroke with expressive aphasia)",
       "appearance": {
-        "skin_tone": "Pale",
-        "hair": "Thinning gray hair",
-        "build": "Frail",
-        "uniform": "Light blue hospital gown",
-        "distinguishing_features": "Slight right-sided facial droop, primarily uses left hand to gesture"
+        "skin_tone": "Light peach",
+        "hair": "Sparse white hair",
+        "build": "Thin build, slightly slumped posture",
+        "uniform": "Pale green standard hospital gown",
+        "distinguishing_features": "Slight facial droop on the right side, uses left hand predominantly"
       },
-      "emotional_baseline": "Frustrated and anxious"
+      "emotional_baseline": "Easily frustrated due to communication barriers, anxious but willing to cooperate if understood"
     }
   ],
   "setting": {
+    "location": "Hospital Room",
+    "scene_description": "A clean, standard hospital room. The patient is sitting up in the hospital bed with the rails raised. A bedside table sits to the right, and a window shows daylight outside.",
     "lighting": {
-      "source": "Bright daylight from the window and soft overhead room lights",
-      "time_of_day": "Morning"
+      "source": "Natural light from the window mixed with soft overhead fluorescent lighting",
+      "time_of_day": "Mid-morning"
     },
-    "scene_description": "A standard private hospital room. There is a bed in the center, a side table, and a large window with open blinds letting in bright sunlight."
+  "background_furniture": [
+    {"name": "Hospital bed", "count": 1, "description": "Standard adjustable hospital bed with white sheets and a light blanket"},
+    {"name": "Bedside table", "count": 1, "description": "Small table with a lamp and a few personal items"}
+  ],
+  "background_equipment": [
+    {"name": "IV pole", "count": 1, "description": "Standard IV pole with a saline bag attached"},
+    {"name": "Mounted television", "count": 1, "description": "Large-screen television mounted on the wall"}
+  ],
+    "camera": {
+      "angle": "Eye-level medium shot",
+      "perspective": "Slightly off-center, capturing both the nurse standing beside the bed and the patient in the bed"
+    }
   },
   "scenes": [
     {
       "scene_id": 1,
       "type": "narrative",
-      "scene_summary": "Alex enters the room and observes Mr. Henderson struggling to communicate due to expressive aphasia following a stroke.",
+      "scene_summary": "Nurse Sarah enters the room to assess Arthur, who is agitated and struggling to speak due to aphasia.",
       "duration_seconds": 25,
-      "character_actions": "Alex walks to the bedside. Mr. Henderson points at his head, making frustrated grunting noises, and hits the mattress with his left hand.",
-      "camera": {
-        "angle": "Medium shot",
-        "movement": "Slow pan from Alex to Mr. Henderson",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah walks up to the bed, offering a warm smile. Arthur is grimacing, gripping his right shoulder with his left hand. He opens his mouth to speak but only produces a frustrated grunt, shaking his head.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "Good morning, Mr. Henderson. I'm Alex, your nurse. How are you feeling today?"
+            "character_id": "char_sarah",
+            "line": "Good morning, Arthur. I'm your nurse, Sarah. I can see you're uncomfortable today."
           },
           {
-            "character_id": "Mr. Henderson",
-            "line": "My... the... ugh! No, not the... argh!"
+            "character_id": "char_arthur",
+            "line": "(Grunts in frustration, points repeatedly to his shoulder and grimaces)"
+          },
+          {
+            "character_id": "char_sarah",
+            "line": "It looks like you're in pain, but I know it's hard to find the words right now. Let's figure this out."
           }
         ],
-        "sound_effects": "Rustling of bedsheets, a frustrated hand smack against the mattress",
-        "ambience": "Low hum of medical equipment, distant hallway murmurs"
+        "sound_effects": "Footsteps approaching, rustling of hospital gown.",
+        "ambience": "Low hum of hospital ventilation, distant faint beeping."
       },
       "routes_to": {
         "decision_point_id": 1,
@@ -73,23 +85,22 @@
     {
       "scene_id": 2,
       "type": "consequence",
-      "scene_summary": "Alex uses nontherapeutic interrogation, which makes the patient defensive.",
+      "scene_summary": "Sarah uses interrogating questions and medical jargon, causing Arthur to shut down.",
       "duration_seconds": 15,
-      "character_actions": "Alex questions the patient. Mr. Henderson glares, waves his hand dismissively, and turns his face away toward the wall.",
-      "camera": {
-        "angle": "Over-the-shoulder shot from Alex",
-        "movement": "Static",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah tilts her head and points to his shoulder. Arthur throws his left hand up in the air in defeat, turns his head away toward the window, and closes his eyes, refusing to look back.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "Why are you getting so upset? We will figure it out."
+            "character_id": "char_sarah",
+            "line": "Why are you getting so frustrated, Arthur? Is the pain radiating toward your distal clavicle?"
+          },
+          {
+            "character_id": "char_arthur",
+            "line": "(Loud, angry sigh)"
           }
         ],
-        "sound_effects": "Sigh of frustration",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Hand slapping lightly against the bed mattress.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 1,
@@ -99,23 +110,26 @@
     {
       "scene_id": 3,
       "type": "resolution",
-      "scene_summary": "Alex uses therapeutic communication by sharing observations and offering silence.",
+      "scene_summary": "Sarah successfully uses visual/referent communication to assess Arthur's pain.",
       "duration_seconds": 20,
-      "character_actions": "Alex speaks calmly. Mr. Henderson takes a deep breath, his face softens. He nods, points to his head, and then points toward the bright window.",
-      "camera": {
-        "angle": "Two-shot",
-        "movement": "Slight zoom in on Mr. Henderson",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah holds up a clipboard with a FACES pain scale. Arthur looks at it, visibly relaxing. He points with his left index finger to the severe pain face, then taps his right shoulder.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "It looks like you are frustrated. Take your time, I am here to listen."
+            "character_id": "char_sarah",
+            "line": "Let's use this picture board. Can you point to the face that shows how bad it hurts?"
+          },
+          {
+            "character_id": "char_arthur",
+            "line": "(Points to the chart, then to his shoulder)"
+          },
+          {
+            "character_id": "char_sarah",
+            "line": "Thank you, Arthur. An eight out of ten in your shoulder. I will get your pain medication right away."
           }
         ],
-        "sound_effects": "A deep, calming exhale",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Paper rustling as the clipboard is presented.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 1,
@@ -125,23 +139,22 @@
     {
       "scene_id": 4,
       "type": "consequence",
-      "scene_summary": "Alex uses false reassurance and changes the subject, devaluing the patient's feelings.",
+      "scene_summary": "Sarah gives false reassurance, causing Arthur to become more distressed.",
       "duration_seconds": 15,
-      "character_actions": "Alex smiles falsely. Mr. Henderson shakes his head vigorously, pushes an imaginary cup away, and crosses his arms.",
-      "camera": {
-        "angle": "Medium close-up on Mr. Henderson",
-        "movement": "Static",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah smiles broadly and pats his arm casually. Arthur aggressively shakes his head 'no', pointing frantically to his shoulder, his eyes wide with anxiety.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "Don't worry, everything will be all right. I'll just get you some water."
+            "character_id": "char_sarah",
+            "line": "Everything will be fine, Arthur. I'm sure it's just normal soreness. I'll get your scheduled Tylenol."
+          },
+          {
+            "character_id": "char_arthur",
+            "line": "(Loud grunt, shakes head vigorously)"
           }
         ],
-        "sound_effects": "Fabric rustling from crossed arms",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Rustling of bedsheets as the patient moves frantically.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 1,
@@ -151,23 +164,26 @@
     {
       "scene_id": 5,
       "type": "narrative",
-      "scene_summary": "Alex tries to decode Mr. Henderson's gestures about his head and the window.",
-      "duration_seconds": 20,
-      "character_actions": "Alex stands attentively. Mr. Henderson nods eagerly but looks strained as he squints at the bright sunlight coming through the window.",
-      "camera": {
-        "angle": "Medium shot",
-        "movement": "Slow pan to the bright window and back",
-        "lens_effect": "Slight glare effect from window"
-      },
+      "scene_summary": "After Arthur's pain is managed, Sarah introduces physical therapy, which triggers an emotional barrier.",
+      "duration_seconds": 25,
+      "character_actions": "Sarah stands beside the bed holding a gait belt. Arthur looks at the belt, his eyes widen, and he immediately shakes his head 'no'. He tightly grips the bedrail with his left hand and looks down.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "You're pointing to your head and the window. Let's figure this out together."
+            "character_id": "char_sarah",
+            "line": "Arthur, your pain medication should be working now. The physical therapist wants us to try getting out of bed to walk a few steps."
+          },
+          {
+            "character_id": "char_arthur",
+            "line": "(Shakes head rapidly, refusing to make eye contact)"
+          },
+          {
+            "character_id": "char_sarah",
+            "line": "You don't want to get up right now?"
           }
         ],
-        "sound_effects": "None",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Clinking of the metal buckle on the gait belt.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 2,
@@ -177,23 +193,18 @@
     {
       "scene_id": 6,
       "type": "consequence",
-      "scene_summary": "Alex misunderstands the physical barrier and speaks loudly, frustrating the patient.",
+      "scene_summary": "Sarah gives unsolicited advice, causing Arthur to become defensive and angry.",
       "duration_seconds": 15,
-      "character_actions": "Alex leans in and exaggerates mouth movements. Mr. Henderson recoils, covers his ears, and shakes his head in annoyance.",
-      "camera": {
-        "angle": "Close-up on Alex, then quick cut to Mr. Henderson",
-        "movement": "Static",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah puts her hands on her hips. Arthur glares at her, crosses his working arm over his chest, and leans back stiffly into the pillows.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "DO... YOU... HURT?"
+            "character_id": "char_sarah",
+            "line": "If it were me, I'd just do the therapy. You have to try, Arthur, or you're never going to get your strength back."
           }
         ],
-        "sound_effects": "None",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Fabric shifting as Arthur crosses his arms.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 2,
@@ -203,23 +214,18 @@
     {
       "scene_id": 7,
       "type": "consequence",
-      "scene_summary": "Alex rapid-fires questions, causing an information overload.",
+      "scene_summary": "Sarah changes the subject, leaving Arthur feeling ignored and anxious.",
       "duration_seconds": 15,
-      "character_actions": "Alex lists options quickly. Mr. Henderson looks overwhelmed, rubs his forehead, and closes his eyes to shut out the noise.",
-      "camera": {
-        "angle": "Medium shot",
-        "movement": "Static",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah waves her hand dismissively and points to the television. Arthur drops his hand from the bedrail, looking confused and defeated, his anxiety visibly unresolved.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "Do you want the TV on? Are you hungry? Do you want me to call your wife?"
+            "character_id": "char_sarah",
+            "line": "Well, let's not worry about therapy right now. What would you like to watch on TV this afternoon?"
           }
         ],
-        "sound_effects": "None",
-        "ambience": "Low hum of medical equipment"
+        "sound_effects": "Click of a television remote.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 2,
@@ -229,27 +235,26 @@
     {
       "scene_id": 8,
       "type": "resolution",
-      "scene_summary": "Alex uses referent communication with a picture board to successfully interpret the patient's needs.",
+      "scene_summary": "Sarah shares observations to address Arthur's fear, establishing a therapeutic connection.",
       "duration_seconds": 20,
-      "character_actions": "Alex holds up a communication board. Mr. Henderson points to a 'headache' icon, then to the 'blinds' icon. Alex nods and moves to lower the blinds. Mr. Henderson smiles and gives a thumbs-up.",
-      "camera": {
-        "angle": "Medium shot",
-        "movement": "Slow zoom in on the communication board and Mr. Henderson's hand",
-        "lens_effect": "None"
-      },
+      "character_actions": "Sarah leans in slightly, speaking softly. Arthur looks up, nods slowly, and mimics a falling motion with his hand. Sarah nods back reassuringly. Arthur gives a small smile and a thumbs up.",
       "audio": {
         "dialogue": [
           {
-            "character_id": "Alex",
-            "line": "Can you point to what you need on this board?"
+            "character_id": "char_sarah",
+            "line": "I notice you look very worried when I mention walking. Are you afraid of falling?"
           },
           {
-            "character_id": "Alex",
-            "line": "You have a headache and want the blinds closed? I can do that, and I'll check your pain medication."
+            "character_id": "char_arthur",
+            "line": "(Nods slowly, exhales a deep breath)"
+          },
+          {
+            "character_id": "char_sarah",
+            "line": "I understand. I will be right beside you holding this belt the entire time. We will only go at your pace."
           }
         ],
-        "sound_effects": "Sound of window blinds being pulled down",
-        "ambience": "Low hum of medical equipment, transitioning to a quieter atmosphere"
+        "sound_effects": "Soft rustling as Sarah steps closer to the bed.",
+        "ambience": "Low hum of hospital ventilation."
       },
       "routes_to": {
         "decision_point_id": 2,
@@ -260,56 +265,56 @@
   "decision_points": [
     {
       "decision_point_id": 1,
-      "question_text": "How should Alex respond to Mr. Henderson's frustration while applying therapeutic communication techniques?",
+      "question_text": "Arthur is experiencing a physical barrier to communication due to expressive aphasia. How should Sarah assess his pain?",
       "associated_introduction_scene_id": 1,
       "choices": [
         {
           "choice_id": "A",
-          "text": "It looks like you are frustrated. Take your time, I am here to listen.",
+          "text": "Use visual/referent communication, like a FACES pain scale, allowing Arthur to point to convey his message.",
           "is_correct": true,
           "misconception": null,
           "routes_to_scene": 3
         },
         {
           "choice_id": "B",
-          "text": "Why are you getting so upset? We will figure it out.",
+          "text": "Ask \"why\" he is frustrated and use detailed medical terminology to see if he understands where the pain is.",
           "is_correct": false,
-          "misconception": "Asking 'why' questions is a nontherapeutic interrogating technique that makes the patient feel defensive.",
+          "misconception": "Interrogating a patient with 'why' questions and using semantic noise (medical jargon) are nontherapeutic communication techniques that cause defensiveness and misunderstandings.",
           "routes_to_scene": 2
         },
         {
           "choice_id": "C",
-          "text": "Don't worry, everything will be all right. I'll just get you some water.",
+          "text": "Offer reassurance that the pain is normal and rely on providing his scheduled medications.",
           "is_correct": false,
-          "misconception": "Giving false reassurance and changing the subject are nontherapeutic techniques that devalue the patient's concerns.",
+          "misconception": "Giving false reassurance and automatic responses minimizes the patient's valid concerns and acts as a barrier to accurate clinical assessment.",
           "routes_to_scene": 4
         }
       ]
     },
     {
       "decision_point_id": 2,
-      "question_text": "Which strategy should Alex use to clarify the patient's needs, considering his physical communication barrier?",
+      "question_text": "Arthur is displaying an emotional barrier (fear/anxiety) toward physical therapy. How should Sarah therapeutically respond to his reluctance?",
       "associated_introduction_scene_id": 5,
       "choices": [
         {
           "choice_id": "A",
-          "text": "Use a visual communication board and ask simple yes/no questions.",
+          "text": "Share observations about his worried demeanor and clarify his specific fears about getting out of bed.",
           "is_correct": true,
           "misconception": null,
           "routes_to_scene": 8
         },
         {
           "choice_id": "B",
-          "text": "Speak louder and slower, asking him to repeat the words until he gets them right.",
+          "text": "Provide advice on what she would do in his situation, emphasizing the negative consequences of skipping therapy.",
           "is_correct": false,
-          "misconception": "Speaking louder does not help with aphasia, which is an expressive language barrier, not a hearing deficit.",
+          "misconception": "Giving personal advice and making judgmental or threatening statements damages the nurse-patient relationship and prevents the patient from setting their own goals.",
           "routes_to_scene": 6
         },
         {
           "choice_id": "C",
-          "text": "Ask a rapid series of questions: 'Do you want the TV on? Are you hungry? Do you need your wife?'",
+          "text": "Change the subject to a more pleasant topic, like television, to avoid escalating his anxiety.",
           "is_correct": false,
-          "misconception": "Asking multiple questions rapidly causes a volume of information overload, which acts as a barrier to communication.",
+          "misconception": "Changing the subject is a nontherapeutic technique that makes the patient feel their concerns are unimportant, leaving the underlying emotional barrier unresolved.",
           "routes_to_scene": 7
         }
       ]

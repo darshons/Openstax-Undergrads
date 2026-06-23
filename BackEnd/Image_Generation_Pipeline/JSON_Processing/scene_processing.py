@@ -18,6 +18,7 @@ def process_scene_json(json_script: str, character_image_file_mapping: dict) -> 
 
         scene_json = {
             "visual_style": data["visual_style"],
+            "setting": data["setting"],
             "characters": data["characters"],
             "scene": scene,            
         }

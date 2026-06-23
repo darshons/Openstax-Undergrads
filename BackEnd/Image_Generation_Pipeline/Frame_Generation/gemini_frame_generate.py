@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 
 
-def generate_frames(json_script, character_image_file_mapping):
+def generate_frames(json_script, character_image_file_mapping, background_image_file_path):
     # Set up Gemini client
     client = setup_gemini_client()
     
@@ -22,12 +22,40 @@ def generate_frames(json_script, character_image_file_mapping):
 
     The user prompt will provide:
     • Character reference images that define the appearance of all characters.
+    • Background reference image that defines the appearance of all relevant environmental elements.
     • A JSON object detailing the scene description and character information. 
 
     The JSON object will have the following structure:
     
-    {
+    
+{
         "visual_style": "",
+        "setting": {
+        "location": "",
+        "scene_description": "",
+        "lighting": {
+          "source": "",
+          "time_of_day": ""
+        },
+        "background_furniture": [
+        {
+          "name": "",
+          "count": 0,
+          "description": ""
+        }
+      ],
+        "background_equipment": [
+          {
+            "name": "",
+            "count": 0,
+            "description": ""
+          }
+        ],
+        "camera": {
+          "angle": "",
+          "perspective": ""
+        }
+      },
         "characters": [
         {
         "character_id": "",
@@ -40,7 +68,7 @@ def generate_frames(json_script, character_image_file_mapping):
             "uniform": "",
             "distinguishing_features": ""
         },
-        "emotional_baseline": "",
+        "emotional_baseline": ""
         }
     ],
     "scene": 
@@ -75,22 +103,33 @@ def generate_frames(json_script, character_image_file_mapping):
     • The image should represent the earliest point in time that can reasonably be inferred from the scene description.
     • Focus on establishing the initial conditions of the scenario rather than later events, consequences, or developments.
     • Do not depict future actions, outcomes, or information that would not yet be visible at the start of the scene.
-    • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, lighting, and overall visual presentation.
+    • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, and overall visual presentation.
     • Include all important characters, objects, and environmental details that would be visible at the beginning of the scene.
     • Focus exclusively on visual content. 
     • Do not include dialogue, narration, captions, subtitles, labels, or text within the image under any circumstances.
     • Ensure the image clearly establishes who is present, where the scene takes place, and what situation is unfolding at the start of the scenario.
     
-   Reference Image Fidelity Requirements (Highest Priority):
-    • Character fidelity to the provided reference images is the single highest-priority requirement in this task and takes precedence over stylistic interpretation, composition, cinematography, aesthetics, and other visual considerations.
+   Reference Image Fidelity Requirements:
     • The character reference images are the definitive source of truth for character identity and appearance. Do not redesign, reinterpret, embellish, or alter the characters.
     • Reproduce each referenced character with maximum possible visual fidelity, preserving facial structure, facial proportions, eye shape, nose shape, mouth shape, hairstyle, hair color, skin tone, age, body type, clothing, accessories, and all other visible identifying characteristics.
     • Maintain identity-level consistency with the reference images. The generated character should be immediately recognizable as the exact same individual depicted in the references.
-    • Any ambiguity in the scene description must be resolved in favor of preserving the appearance shown in the reference images.
-    • Do not substitute, simplify, stylize, average, or invent character features that are not supported by the reference images.
+    • Any ambiguity in the character description must be resolved in favor of preserving the appearance shown in the character reference images.
+    • Do not substitute, simplify, stylize, average, or invent character features that are not supported by the character reference images.
     • Ensure that facial identity remains highly consistent even when the character is viewed from different angles, distances, poses, lighting conditions, or expressions.
-    • The success of the image is determined primarily by how accurately the characters match their reference images. Character identity preservation is more important than artistic style, dramatic composition, environmental detail, or visual effects.
-    • Before finalizing the image, verify that every referenced character closely matches their reference images and that no significant visual deviations have been introduced.
+    • The success of the image is determined primarily by how accurately the characters match their reference images. Character identity preservation is more important than artistic style, dramatic composition, or visual effects.
+    • Before finalizing the image, verify that every referenced character closely matches their reference images and their descriptions in the JSON scene description under the "characters" field, such that no significant visual deviations have been introduced to the characters.
+
+    Background Reference Fidelity Requirements:
+    • The background reference image is the definitive source of truth for the environment, location, architecture, layout, furnishings, props, materials, colors, and all other visible environmental elements. Do not redesign, reinterpret, embellish, or substantially alter the setting depicted in the reference image.
+    • Reproduce the environment with maximum possible visual fidelity, preserving the overall spatial layout, architectural features, room configuration, structural elements, furniture placement, surface materials, textures, color palette, décor, signage, equipment, and other visible environmental details.
+    • Maintain scene-level consistency with the background reference image. The generated setting should be immediately recognizable as the same location depicted in the reference image.
+    • Any ambiguity in the scene description must be resolved in favor of preserving the environment shown in the background reference image
+    • Do not substitute, simplify, stylize, remove, or invent major environmental features that are not supported by the background reference image.
+    • Preserve the relative positioning and visual relationships between important environmental elements whenever they are visible in the generated composition.
+    • Ensure that environmental details remain consistent even when viewed from different camera angles, focal lengths, distances, or compositions.
+    • Before finalizing the image, verify that the environment closely matches the background reference image  and their descriptions in the JSON scene description under the "setting" field, such that no significant architectural, spatial, stylistic, or environmental deviations have been introduced.
+     • Use the `background_furniture` and `background_equipment` fields in the JSON scene description to ensure that all relevant furniture and equipment are accurately represented in the opening frame image.
+
 
     The resulting image should function as an establishing shot for the scenario, providing a clear visual introduction to the scene and its initial state before the main events occur.
     """
@@ -104,6 +143,7 @@ def generate_frames(json_script, character_image_file_mapping):
     
     The user prompt will provide:
     • Character reference images that define the appearance of all characters.
+    • Background reference image that defines the appearance of all relevant environmental elements.
     • A JSON object detailing the scene description and character information. 
     • An opening frame image generated for the same scene, which visually represents the initial state of the scenario.
 
@@ -111,6 +151,32 @@ def generate_frames(json_script, character_image_file_mapping):
 
     {
         "visual_style": "",
+        "setting": {
+        "location": "",
+        "scene_description": "",
+        "lighting": {
+          "source": "",
+          "time_of_day": ""
+        },
+        "background_furniture": [
+        {
+          "name": "",
+          "count": 0,
+          "description": ""
+        }
+      ],
+        "background_equipment": [
+          {
+            "name": "",
+            "count": 0,
+            "description": ""
+          }
+        ],
+        "camera": {
+          "angle": "",
+          "perspective": ""
+        }
+      },
         "characters": [
         {
         "character_id": "",
@@ -123,7 +189,7 @@ def generate_frames(json_script, character_image_file_mapping):
             "uniform": "",
             "distinguishing_features": ""
         },
-        "emotional_baseline": "",
+        "emotional_baseline": ""
         }
     ],
     "scene": 
@@ -158,29 +224,38 @@ def generate_frames(json_script, character_image_file_mapping):
     • The image should represent the latest point in time that can reasonably be inferred from the scene description.
     • Focus on the final state of the scenario after the relevant actions and developments of the scene have occurred.
     • Do not depict events, outcomes, consequences, or information that occur after the scene ends.
-    • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, lighting, and overall visual presentation.
+    • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, and overall visual presentation.
     • Include all important characters, objects, and environmental details that would be visible at the end of the scene.
     • Focus exclusively on visual content. 
     • Do not include dialogue, narration, captions, subtitles, labels, or text within the image under any circumstances.
     • Ensure the image clearly establishes the final state of the situation
 
     Reference Image Fidelity Requirements:
-    • Character fidelity to the provided reference images is the single highest-priority requirement in this task and takes precedence over stylistic interpretation, composition, cinematography, aesthetics, and other visual considerations.
     • The character reference images are the definitive source of truth for character identity and appearance. Do not redesign, reinterpret, embellish, or alter the characters.
     • Reproduce each referenced character with maximum possible visual fidelity, preserving facial structure, facial proportions, eye shape, nose shape, mouth shape, hairstyle, hair color, skin tone, age, body type, clothing, accessories, and all other visible identifying characteristics
     • Maintain identity-level consistency with the reference images. The generated character should be immediately recognizable as the exact same individual depicted in the references.
-    • Do not substitute, simplify, stylize, average, or invent character features that are not supported by the reference images.
+    • Any ambiguity in the character description must be resolved in favor of preserving the appearance shown in the character reference images.
+    • Do not substitute, simplify, stylize, average, or invent character features that are not supported by the character reference images.
     • Ensure that facial identity remains highly consistent even when the character is viewed from different angles, distances, poses, lighting conditions, or expressions.
-    • The success of the image is determined primarily by how accurately the characters match their reference images. Character identity preservation is more important than artistic style, dramatic composition, environmental detail, or visual effects.
+    • The success of the image is determined primarily by how accurately the characters match their reference images. Character identity preservation is more important than artistic style, dramatic composition, or visual effects.
     • Before finalizing the image, verify that every referenced character closely matches their reference images and their descriptions in the JSON scene description under the "characters" field, and that no significant visual deviations have been introduced to the characters.
+
+    Background Reference Fidelity Requirements:
+    • The background reference image is the definitive source of truth for the environment, location, architecture, layout, furnishings, props, materials, colors, and all other visible environmental elements. Do not redesign, reinterpret, embellish, or substantially alter the setting depicted in the reference image.
+    • Reproduce the environment with maximum possible visual fidelity, preserving the overall spatial layout, architectural features, room configuration, structural elements, furniture placement, surface materials, textures, color palette, décor, signage, equipment, and other visible environmental details.
+    • Maintain scene-level consistency with the background reference image. The generated setting should be immediately recognizable as the same location depicted in the reference image.
+    • Any ambiguity in the scene description must be resolved in favor of preserving the environment shown in the background reference image
+    • Do not substitute, simplify, stylize, remove, or invent major environmental features that are not supported by the background reference image.
+    • Preserve the relative positioning and visual relationships between important environmental elements whenever they are visible in the generated composition.
+    • Ensure that environmental details remain consistent even when viewed from different camera angles, focal lengths, distances, or compositions.
+    • Before finalizing the image, verify that the environment closely matches the background reference image  and their descriptions in the JSON scene description under the "setting" field, such that no significant architectural, spatial, stylistic, or environmental deviations have been introduced.
+    • Use the `background_furniture` and `background_equipment` fields in the JSON scene description to ensure that all relevant furniture and equipment are accurately represented in the ending frame image.
 
     Scene Continuity Maintenance Instructions:
     • The user prompt will provide an image representing the opening frame of the scene.
-    • Treat the opening scene image as the authoritative visual reference for the scene's environment, location, layout, background elements, lighting conditions, props, furnishings, equipment, vehicles, and other visible objects unless the JSON scene description indicates that these elements change during the scene.
+    • Treat the opening scene image as the authoritative visual reference for the scene unless the JSON scene description indicates that these elements change during the scene.
     • Ground the ending scene image in the visual information contained in the opening scene image so that both images appear to belong to the same continuous scene.
     • Preserve environmental continuity whenever appropriate, including architectural details, room layouts, object placement, terrain, weather, time of day, lighting, and other visual characteristics established in the opening scene image.
-    • If the scene description indicates that characters move, objects are repositioned, environmental conditions change, or the action concludes in a different location, infer and depict the most plausible final state of the environment based on the events described in the scene.
-    • When the ending moment occurs in a different part of the same location, extrapolate the surrounding environment in a manner that remains consistent with the visual style and world established by the opening scene image.
     • Reflect any changes to objects, equipment, props, vehicles, documents, tools, environmental conditions, or scene layout that result from actions occurring during the scene.
     • Do not simply recreate the opening scene image. Instead, depict the environment as it would realistically appear at the end of the scene after all described actions and developments have occurred.
 
@@ -223,6 +298,9 @@ def generate_frames(json_script, character_image_file_mapping):
     
     ending_scene_frame_file_mapping = {}
     
+    # Upload the background reference image to Gemini and store its uploaded file name for reference in prompts
+    uploaded_background_image = client.files.upload(file=background_image_file_path, config=types.UploadFileConfig(display_name="background_reference_image", mime_type="image/png"))
+    
     # Upload character reference images and scene JSON files to Gemini and store their uploaded file names for reference in prompts
     for character_id, character_image_file_path in character_image_file_mapping.items():
             
@@ -253,11 +331,14 @@ def generate_frames(json_script, character_image_file_mapping):
 
         Character reference images:
         {character_references}
+        
+        Background reference image:
+        {uploaded_background_image.name}
         """
         
         response = client.models.generate_content(
             model=MODEL,
-            contents=[opening_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()]],
+            contents=[opening_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_background_image],
             config=opening_frame_config
         )
         
@@ -282,13 +363,16 @@ def generate_frames(json_script, character_image_file_mapping):
         Character reference images:
         {character_references}
         
+        Background reference image:
+        {uploaded_background_image.name}
+        
         Opening Frame Image:
         {uploaded_opening_frame_mapping[scene_id][0]}
         """
         
         response = client.models.generate_content(
             model=MODEL,
-            contents=[ending_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_opening_frame_mapping[scene_id][1]],
+            contents=[ending_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_background_image, uploaded_opening_frame_mapping[scene_id][1]],
             config=ending_frame_config
         )
         
@@ -300,10 +384,9 @@ def generate_frames(json_script, character_image_file_mapping):
         ending_scene_frame_file_mapping[scene_id] = str(dir_path / f"{scene_id}_ending_frame.png")
     
     # Compile a list of all uploaded file names to facilitate cleanup after generation
-    uploaded_file_names = [uploaded_json_name for uploaded_json_name, _ in uploaded_scene_json_mapping.values()] + [uploaded_character_image_name for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()] + [uploaded_opening_frame_name for uploaded_opening_frame_name, _ in uploaded_opening_frame_mapping.values()]
+    uploaded_file_names = [uploaded_json_name for uploaded_json_name, _ in uploaded_scene_json_mapping.values()] + [uploaded_character_image_name for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()] + [uploaded_opening_frame_name for uploaded_opening_frame_name, _ in uploaded_opening_frame_mapping.values()] + [uploaded_background_image.name]
         
     return opening_scene_frame_file_mapping, ending_scene_frame_file_mapping, uploaded_file_names, list(scene_json_file_mapping.values())
-
 
 def delete_local_files(file_paths):
     for file_path in file_paths:
@@ -314,17 +397,22 @@ def delete_uploaded_files(client, file_names):
         client.files.delete(name=file)
 
 if __name__ == "__main__":
-    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini.json"
+    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
 
     with open(json_file_path, "r") as f:
         json_script = f.read()
     
-    character_image_file_mapping = {'char_thorne': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/char_thorne_reference_image.png', 'char_julian': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/char_julian_reference_image.png'}
+    character_image_file_mapping = {'char_sarah': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/char_sarah_reference_image.png', 
+                                    'char_arthur': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/char_arthur_reference_image.png'}
     
-    opening_scene_frame_file_mapping, ending_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = generate_frames(json_script, character_image_file_mapping)
+    background_image_file_path = '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Background_Image_Output/background_reference_image.png'
+    
+    opening_scene_frame_file_mapping, ending_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = generate_frames(json_script, character_image_file_mapping, background_image_file_path)
     
     delete_local_files(scene_json_file_paths)
     
     delete_uploaded_files(setup_gemini_client(), uploaded_file_names)
+    
+    print("done!")
     
 

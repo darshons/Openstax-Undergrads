@@ -31,20 +31,41 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
     
     The user prompt will provide a JSON object with the following structure:
 
-    {
+{
     "visual_style": "",
-    "setting": {
-     "lighting": {
-          "source": "",
-          "time_of_day": ""
-        },
-        "scene_description": ""
+     "setting": {
+    "location": "",
+    "scene_description": "",
+    "lighting": {
+      "source": "",
+      "time_of_day": ""
+    },
+    "background_furniture": [
+    {
+      "name": "",
+      "count": 0,
+      "description": ""
     }
+  ],
+    "background_equipment": [
+      {
+        "name": "",
+        "count": 0,
+        "description": ""
+      }
+    ],
+     "camera": {
+      "angle": "",
+      "perspective": ""
     }
+  }
+}
 
     Use the "visual_style" field as the global visual specification for the generated asset.
     
     The "setting" object represents the single environment to be generated.
+    
+    Use the "background_furniture" and "background_equipment" fields in the JSON scene description to ensure that all relevant furniture and equipment are accurately represented in the background reference image.
     
     Image Generation Requirements:
     • Generate exactly one image.
@@ -52,7 +73,7 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
     • Use all provided setting fields when constructing the scene.
     • Maintain the specified visual style throughout the asset.
     • No text should appear in the image.
-    • No characters, people, animals, or living subjects should appear in the image.
+    • No characters, people, animals, or living subjects should appear in the image whatsoever.
     • The background should represent a complete, coherent environment with natural spatial depth and perspective.
     
     Your output should create a clear, production-ready background reference asset that can be used consistently throughout the simulation.

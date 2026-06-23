@@ -132,13 +132,36 @@ def download_video(client, video_obj, output_file):
 
 def build_clip_prompts(scene, characters, visual_style):
     """
-    
+    Turn one scene into an ordered list of per-clip prompts (list[str]), one per
+    clip. Each prompt carries the shared stage directions (setting, actions,
+    camera, sound bed) plus only that clip's dialogue chunk
     """
-    #TODO implement: split this scene into per-clip dialogue chunks, build a
-    #prompt for each (e.g. via build_veo_prompt) combining the chunk with the
-    #shared stage directions, and return them in clip order. this is the
-    #beats/JSON work.
-    raise NotImplementedError("build_clip_prompts: derive per-clip prompts from the scene")
+    clips = scene.get("clips")
+    if not clips:
+        raise ValueError(f"Scene {scene.get('scene_id')} has no 'clips' to build clips from.")
+
+    shared_audio = scene.get("audio", {})
+    prompts = []
+    for i, clip in enumerate(clips):
+        #per-clip mini-scene: shared fields, clip overrides where present, this clip's dialogue only
+        clip_scene = {
+            "scene_id": scene.get("scene_id"),
+            "setting": scene.get("setting", ""),
+            "character_actions": clip.get("character_actions", scene.get("character_actions", "")),
+            "camera": clip.get("camera", scene.get("camera", {})),
+            "audio": {
+                "dialogue": clip.get("dialogue", []),          #the repetition fix
+                "sound_effects": shared_audio.get("sound_effects", "none"),
+                "ambience": shared_audio.get("ambience", "none"),
+            },
+        }
+        #on_screen_text is an "at end" overlay - only the final clip carries it
+        if i == len(clips) - 1 and scene.get("on_screen_text"):
+            clip_scene["on_screen_text"] = scene["on_screen_text"]
+
+        prompts.append(build_veo_prompt(clip_scene, characters, visual_style))
+
+    return prompts
 
 #MAIN SCENE PIPELINE
 def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, first_clip_seconds=8):

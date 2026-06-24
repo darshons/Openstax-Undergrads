@@ -216,7 +216,7 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
         print(f"\n  Extension failed at clip {i}: {e}")
         print(f"  Last good video saved: {checkpoint}")
         raise
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     sprite_label = "sprites" if reference_images else "no_sprites"
     final_path = str(OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4")
@@ -246,7 +246,7 @@ def main():
     visual_style = scenario["visual_style"]
     scenes = scenario["scenes"]
 
-    scene = next(s for s in scenes if s["scene_id"] == 2)
+    scene = next(s for s in scenes if s["scene_id"] == 3)
 
     #clip_prompts: one prompt per clip, built from this scene's clips.
     clip_prompts = build_clip_prompts(scene, characters, visual_style)  #<- yours to write

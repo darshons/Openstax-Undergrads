@@ -83,14 +83,30 @@ def generate_first_clip(client, prompt, clip_index=1, reference_images=None, dur
     return operation.response.generated_videos[0].video
 
 #GENERATE EXTENSION CLIP
-def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
+def generate_extension_clip(client, prompt, previous_video_obj, clip_index, reference_images=None):
     """
     Extend the previous Veo video by one ~7s hop. Duration is NOT configurable on
-    extension - the API returns a fixed ~7s continuation - so the clip's content
-    must be written to fill ~7s. Continuity comes from the prior clip's final
-    second, so no reference images here.
+    extension — the API returns a fixed ~7s continuation.
+
+    reference_images: optional list of image file paths. GenerateVideosConfig accepts
+    reference_images even in extension mode (video= and reference_images= are independent
+    parameters), so passing the same character sprites used for the first clip gives the
+    model a pixel-level appearance anchor on every hop rather than relying on text alone.
     """
     from google.genai import types
+    from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
+
+    ref_image_configs = []
+    if reference_images:
+        for img_path in reference_images:
+            with open(img_path, "rb") as f:
+                image_bytes = f.read()
+            ref_image_configs.append(
+                VideoGenerationReferenceImage(
+                    image=GenaImage(image_bytes=image_bytes, mime_type="image/png"),
+                    reference_type="asset",
+                )
+            )
 
     print(f"\n  Generating clip {clip_index} (extension, ~7s)...")
 
@@ -102,6 +118,7 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
             aspect_ratio=ASPECT_RATIO,
             resolution=RESOLUTION,
             number_of_videos=1,
+            reference_images=ref_image_configs if ref_image_configs else None,
         ),
     )
 
@@ -146,12 +163,18 @@ def build_clip_prompts(scene, characters, visual_style):
     shared_audio = scene.get("audio", {})
     prompts = []
     for i, clip in enumerate(clips):
+        #camera: use per-clip override if present, otherwise fall back to scene-level and warn
+        clip_camera = clip.get("camera")
+        if clip_camera is None:
+            print(f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera.")
+            clip_camera = scene.get("camera", {})
+
         #per-clip mini-scene: shared fields, clip overrides where present, this clip's dialogue only
         clip_scene = {
             "scene_id": scene.get("scene_id"),
             "setting": scene.get("setting", ""),
             "character_actions": clip.get("character_actions", scene.get("character_actions", "")),
-            "camera": clip.get("camera", scene.get("camera", {})),
+            "camera": clip_camera,
             "audio": {
                 "dialogue": clip.get("dialogue", []),          #the repetition fix
                 "sound_effects": shared_audio.get("sound_effects", "none"),
@@ -162,7 +185,7 @@ def build_clip_prompts(scene, characters, visual_style):
         if i == len(clips) - 1 and scene.get("on_screen_text"):
             clip_scene["on_screen_text"] = scene["on_screen_text"]
 
-        prompts.append(build_veo_prompt(clip_scene, characters, visual_style))
+        prompts.append(build_veo_prompt(clip_scene, characters, visual_style, is_continuation=(i > 0)))
 
     return prompts
 
@@ -203,7 +226,7 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     i = 1
     try:
         for i, prompt in enumerate(clip_prompts[1:], start=2):
-            video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i)
+            video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i, reference_images=reference_images)
             #don't chain the next hop until this combined output has settled
             if i < num_clips:
                 print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")

@@ -12,15 +12,24 @@ def process_scene_json(json_script: str, character_image_file_mapping: dict) -> 
     
     dir_path = PROJECT_DIR / "Filtered_JSON_Output"
     
+    scene_fields = [
+    "scene_id",
+    "scene_summary",
+    "initial_character_positions"
+    ]
+    
     for scene in data["scenes"]:
         
-        scene.pop("routes_to", None)
+        filtered_scene = {
+        key: scene[key]
+        for key in scene_fields
+        }
 
         scene_json = {
             "visual_style": data["visual_style"],
             "setting": data["setting"],
             "characters": data["characters"],
-            "scene": scene,            
+            "scene": filtered_scene,            
         }
         
         temp_file = tempfile.NamedTemporaryFile(

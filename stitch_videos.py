@@ -83,30 +83,16 @@ def generate_first_clip(client, prompt, clip_index=1, reference_images=None, dur
     return operation.response.generated_videos[0].video
 
 #GENERATE EXTENSION CLIP
-def generate_extension_clip(client, prompt, previous_video_obj, clip_index, reference_images=None):
+def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
     """
     Extend the previous Veo video by one ~7s hop. Duration is NOT configurable on
     extension — the API returns a fixed ~7s continuation.
 
-    reference_images: optional list of image file paths. GenerateVideosConfig accepts
-    reference_images even in extension mode (video= and reference_images= are independent
-    parameters), so passing the same character sprites used for the first clip gives the
-    model a pixel-level appearance anchor on every hop rather than relying on text alone.
+    The Veo API rejects reference_images when video= (extension mode) is also provided —
+    the two are mutually exclusive. Character consistency on extension clips is enforced
+    through the is_continuation text anchor in build_veo_prompt instead.
     """
     from google.genai import types
-    from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
-
-    ref_image_configs = []
-    if reference_images:
-        for img_path in reference_images:
-            with open(img_path, "rb") as f:
-                image_bytes = f.read()
-            ref_image_configs.append(
-                VideoGenerationReferenceImage(
-                    image=GenaImage(image_bytes=image_bytes, mime_type="image/png"),
-                    reference_type="asset",
-                )
-            )
 
     print(f"\n  Generating clip {clip_index} (extension, ~7s)...")
 
@@ -118,7 +104,6 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index, refe
             aspect_ratio=ASPECT_RATIO,
             resolution=RESOLUTION,
             number_of_videos=1,
-            reference_images=ref_image_configs if ref_image_configs else None,
         ),
     )
 
@@ -134,6 +119,16 @@ def _poll_until_done(client, operation):
         operation = client.operations.get(operation)
         print(".", end="", flush=True)
     print(" done!")
+
+    #done=True does not mean success — Veo sets error on the operation when generation fails
+    #(content policy, transient error, etc.) and leaves response=None
+    if getattr(operation, "error", None):
+        raise RuntimeError(f"Veo generation failed: {operation.error}")
+    if not getattr(operation, "response", None) or not getattr(operation.response, "generated_videos", None):
+        raise RuntimeError(
+            "Veo returned no videos — operation completed but response is empty. "
+            "Possible causes: content policy rejection, API quota, or transient generation failure."
+        )
     return operation
 
 
@@ -172,13 +167,13 @@ def build_clip_prompts(scene, characters, visual_style):
         #per-clip mini-scene: shared fields, clip overrides where present, this clip's dialogue only
         clip_scene = {
             "scene_id": scene.get("scene_id"),
-            "setting": scene.get("setting", ""),
+            "setting": clip.get("setting", scene.get("setting", "")),
             "character_actions": clip.get("character_actions", scene.get("character_actions", "")),
             "camera": clip_camera,
             "audio": {
-                "dialogue": clip.get("dialogue", []),          #the repetition fix
-                "sound_effects": shared_audio.get("sound_effects", "none"),
-                "ambience": shared_audio.get("ambience", "none"),
+                "dialogue": clip.get("dialogue", []),
+                "sound_effects": clip.get("sound_effects", shared_audio.get("sound_effects", "none")),
+                "ambience": clip.get("ambience", shared_audio.get("ambience", "none")),
             },
         }
         #on_screen_text is an "at end" overlay - only the final clip carries it
@@ -226,7 +221,7 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     i = 1
     try:
         for i, prompt in enumerate(clip_prompts[1:], start=2):
-            video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i, reference_images=reference_images)
+            video_obj = generate_extension_clip(client, prompt, video_obj, clip_index=i)
             #don't chain the next hop until this combined output has settled
             if i < num_clips:
                 print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")

@@ -1,323 +1,422 @@
 {
-  "title": "Communicating Through Barriers: Aphasia and Anxiety",
-  "learning_goal": "Apply therapeutic communication techniques and appropriate communication models while avoiding nontherapeutic barriers when interacting with a patient who has expressive aphasia.",
-  "target_audience": "Nursing students and healthcare professionals",
-  "total_duration_seconds": 150,
-  "visual_style": "2D semi-flat limited-animation style with dynamic but constrained movement. Characters express emotion through head turns, nods, subtle posture shifts, and facial expressions. Non-photorealistic rendering, suggestive lip-sync.",
-  "characters": [
-    {
-      "character_id": "char_sarah",
-      "name": "Sarah Jenkins",
-      "role": "Registered Nurse",
-      "appearance": {
-        "skin_tone": "Medium brown",
-        "hair": "Dark brown hair pulled back into a neat bun",
-        "build": "Average build and height",
-        "uniform": "Light blue medical scrubs with a stethoscope around her neck",
-        "distinguishing_features": "Warm, professional facial expressions with attentive posture"
+    "title": "Navigating Communication Barriers in Dementia Care",
+    "learning_goal": "Apply therapeutic communication techniques and identify nontherapeutic communication to effectively interact with a patient experiencing cognitive and emotional communication barriers.",
+    "target_audience": "Nursing students and early-career registered nurses.",
+    "total_duration_seconds": 145,
+    "visual_style": "2D semi-flat limited-animation style with dynamic but constrained movement. Characters express emotion through head turns, nods, hand gestures, subtle posture shifts, and facial expressions. Mouth movement suggests speech without exact phoneme matching.",
+    "characters": [
+      {
+        "character_id": "Nurse_Clara",
+        "name": "Nurse Clara",
+        "role": "Registered Nurse",
+        "appearance": {
+          "skin_tone": "Dark brown",
+          "hair": "Black, styled in short neat locs",
+          "build": "Average height, athletic build",
+          "uniform": "Royal blue medical scrubs with a stethoscope around her neck",
+          "distinguishing_features": "Warm, expressive eyes and a calm demeanor"
+        },
+        "emotional_baseline": "Professional, empathetic, and observant"
       },
-      "emotional_baseline": "Calm, observant, and empathetic"
-    },
-    {
-      "character_id": "char_arthur",
-      "name": "Arthur Pendelton",
-      "role": "Patient (Post-stroke with expressive aphasia)",
-      "appearance": {
-        "skin_tone": "Light peach",
-        "hair": "Sparse white hair",
-        "build": "Thin build, slightly slumped posture",
-        "uniform": "Pale green standard hospital gown",
-        "distinguishing_features": "Slight facial droop on the right side, uses left hand predominantly"
-      },
-      "emotional_baseline": "Easily frustrated due to communication barriers, anxious but willing to cooperate if understood"
-    }
-  ],
-  "setting": {
-    "location": "Hospital Room",
-    "scene_description": "A clean, standard hospital room. The patient is sitting up in the hospital bed with the rails raised. A bedside table sits to the right, and a window shows daylight outside.",
-    "lighting": {
-      "source": "Natural light from the window mixed with soft overhead fluorescent lighting",
-      "time_of_day": "Mid-morning"
-    },
-  "background_furniture": [
-    {"name": "Hospital bed", "count": 1, "description": "Standard adjustable hospital bed with white sheets and a light blanket"},
-    {"name": "Bedside table", "count": 1, "description": "Small table with a lamp and a few personal items"}
-  ],
-  "background_equipment": [
-    {"name": "IV pole", "count": 1, "description": "Standard IV pole with a saline bag attached"},
-    {"name": "Mounted television", "count": 1, "description": "Large-screen television mounted on the wall"}
-  ],
-    "camera": {
-      "angle": "Eye-level medium shot",
-      "perspective": "Slightly off-center, capturing both the nurse standing beside the bed and the patient in the bed"
-    }
-  },
-  "scenes": [
-    {
-      "scene_id": 1,
-      "type": "narrative",
-      "scene_summary": "Nurse Sarah enters the room to assess Arthur, who is agitated and struggling to speak due to aphasia.",
-      "duration_seconds": 25,
-      "character_actions": "Sarah walks up to the bed, offering a warm smile. Arthur is grimacing, gripping his right shoulder with his left hand. He opens his mouth to speak but only produces a frustrated grunt, shaking his head.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Good morning, Arthur. I'm your nurse, Sarah. I can see you're uncomfortable today."
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Grunts in frustration, points repeatedly to his shoulder and grimaces)"
-          },
-          {
-            "character_id": "char_sarah",
-            "line": "It looks like you're in pain, but I know it's hard to find the words right now. Let's figure this out."
-          }
-        ],
-        "sound_effects": "Footsteps approaching, rustling of hospital gown.",
-        "ambience": "Low hum of hospital ventilation, distant faint beeping."
-      },
-      "routes_to": {
-        "decision_point_id": 1,
-        "type": "introduction"
+      {
+        "character_id": "Patient_Arthur",
+        "name": "Arthur Vance",
+        "role": "Patient with early-stage Alzheimer's dementia",
+        "appearance": {
+          "skin_tone": "Fair",
+          "hair": "Thinning white hair",
+          "build": "Slightly stooped, frail build",
+          "uniform": "Light blue hospital gown over comfortable sweatpants",
+          "distinguishing_features": "Wears wire-rimmed glasses, often has furrowed brows indicating confusion or worry"
+        },
+        "emotional_baseline": "Anxious, restless, and confused"
       }
-    },
-    {
-      "scene_id": 2,
-      "type": "consequence",
-      "scene_summary": "Sarah uses interrogating questions and medical jargon, causing Arthur to shut down.",
-      "duration_seconds": 15,
-      "character_actions": "Sarah tilts her head and points to his shoulder. Arthur throws his left hand up in the air in defeat, turns his head away toward the window, and closes his eyes, refusing to look back.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Why are you getting so frustrated, Arthur? Is the pain radiating toward your distal clavicle?"
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Loud, angry sigh)"
-          }
-        ],
-        "sound_effects": "Hand slapping lightly against the bed mattress.",
-        "ambience": "Low hum of hospital ventilation."
+    ],
+    "setting": {
+      "location": "Hospital Patient Room",
+      "scene_description": "A standard, clean hospital room with a patient bed, a small bedside table, and a window. A small duffel bag is on the bed.",
+      "lighting": {
+        "source": "Overhead fluorescent lights mixed with soft natural light from the window",
+        "time_of_day": "Late Afternoon"
       },
-      "routes_to": {
-        "decision_point_id": 1,
-        "type": "false_choice"
-      }
-    },
-    {
-      "scene_id": 3,
-      "type": "resolution",
-      "scene_summary": "Sarah successfully uses visual/referent communication to assess Arthur's pain.",
-      "duration_seconds": 20,
-      "character_actions": "Sarah holds up a clipboard with a FACES pain scale. Arthur looks at it, visibly relaxing. He points with his left index finger to the severe pain face, then taps his right shoulder.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Let's use this picture board. Can you point to the face that shows how bad it hurts?"
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Points to the chart, then to his shoulder)"
-          },
-          {
-            "character_id": "char_sarah",
-            "line": "Thank you, Arthur. An eight out of ten in your shoulder. I will get your pain medication right away."
-          }
-        ],
-        "sound_effects": "Paper rustling as the clipboard is presented.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 1,
-        "type": "true_choice"
-      }
-    },
-    {
-      "scene_id": 4,
-      "type": "consequence",
-      "scene_summary": "Sarah gives false reassurance, causing Arthur to become more distressed.",
-      "duration_seconds": 15,
-      "character_actions": "Sarah smiles broadly and pats his arm casually. Arthur aggressively shakes his head 'no', pointing frantically to his shoulder, his eyes wide with anxiety.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Everything will be fine, Arthur. I'm sure it's just normal soreness. I'll get your scheduled Tylenol."
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Loud grunt, shakes head vigorously)"
-          }
-        ],
-        "sound_effects": "Rustling of bedsheets as the patient moves frantically.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 1,
-        "type": "false_choice"
-      }
-    },
-    {
-      "scene_id": 5,
-      "type": "narrative",
-      "scene_summary": "After Arthur's pain is managed, Sarah introduces physical therapy, which triggers an emotional barrier.",
-      "duration_seconds": 25,
-      "character_actions": "Sarah stands beside the bed holding a gait belt. Arthur looks at the belt, his eyes widen, and he immediately shakes his head 'no'. He tightly grips the bedrail with his left hand and looks down.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Arthur, your pain medication should be working now. The physical therapist wants us to try getting out of bed to walk a few steps."
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Shakes head rapidly, refusing to make eye contact)"
-          },
-          {
-            "character_id": "char_sarah",
-            "line": "You don't want to get up right now?"
-          }
-        ],
-        "sound_effects": "Clinking of the metal buckle on the gait belt.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 2,
-        "type": "introduction"
-      }
-    },
-    {
-      "scene_id": 6,
-      "type": "consequence",
-      "scene_summary": "Sarah gives unsolicited advice, causing Arthur to become defensive and angry.",
-      "duration_seconds": 15,
-      "character_actions": "Sarah puts her hands on her hips. Arthur glares at her, crosses his working arm over his chest, and leans back stiffly into the pillows.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "If it were me, I'd just do the therapy. You have to try, Arthur, or you're never going to get your strength back."
-          }
-        ],
-        "sound_effects": "Fabric shifting as Arthur crosses his arms.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 2,
-        "type": "false_choice"
-      }
-    },
-    {
-      "scene_id": 7,
-      "type": "consequence",
-      "scene_summary": "Sarah changes the subject, leaving Arthur feeling ignored and anxious.",
-      "duration_seconds": 15,
-      "character_actions": "Sarah waves her hand dismissively and points to the television. Arthur drops his hand from the bedrail, looking confused and defeated, his anxiety visibly unresolved.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "Well, let's not worry about therapy right now. What would you like to watch on TV this afternoon?"
-          }
-        ],
-        "sound_effects": "Click of a television remote.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 2,
-        "type": "false_choice"
-      }
-    },
-    {
-      "scene_id": 8,
-      "type": "resolution",
-      "scene_summary": "Sarah shares observations to address Arthur's fear, establishing a therapeutic connection.",
-      "duration_seconds": 20,
-      "character_actions": "Sarah leans in slightly, speaking softly. Arthur looks up, nods slowly, and mimics a falling motion with his hand. Sarah nods back reassuringly. Arthur gives a small smile and a thumbs up.",
-      "audio": {
-        "dialogue": [
-          {
-            "character_id": "char_sarah",
-            "line": "I notice you look very worried when I mention walking. Are you afraid of falling?"
-          },
-          {
-            "character_id": "char_arthur",
-            "line": "(Nods slowly, exhales a deep breath)"
-          },
-          {
-            "character_id": "char_sarah",
-            "line": "I understand. I will be right beside you holding this belt the entire time. We will only go at your pace."
-          }
-        ],
-        "sound_effects": "Soft rustling as Sarah steps closer to the bed.",
-        "ambience": "Low hum of hospital ventilation."
-      },
-      "routes_to": {
-        "decision_point_id": 2,
-        "type": "true_choice"
-      }
-    }
-  ],
-  "decision_points": [
-    {
-      "decision_point_id": 1,
-      "question_text": "Arthur is experiencing a physical barrier to communication due to expressive aphasia. How should Sarah assess his pain?",
-      "associated_introduction_scene_id": 1,
-      "choices": [
+      "background_furniture": [
         {
-          "choice_id": "A",
-          "text": "Use visual/referent communication, like a FACES pain scale, allowing Arthur to point to convey his message.",
-          "is_correct": true,
-          "misconception": null,
-          "routes_to_scene": 3
+          "name": "Hospital Bed",
+          "count": 1,
+          "description": "Adjustable bed with white linens, slightly elevated."
         },
         {
-          "choice_id": "B",
-          "text": "Ask \"why\" he is frustrated and use detailed medical terminology to see if he understands where the pain is.",
-          "is_correct": false,
-          "misconception": "Interrogating a patient with 'why' questions and using semantic noise (medical jargon) are nontherapeutic communication techniques that cause defensiveness and misunderstandings.",
-          "routes_to_scene": 2
+          "name": "Bedside Table",
+          "count": 1,
+          "description": "A small rolling table with a water pitcher and a cup."
         },
         {
-          "choice_id": "C",
-          "text": "Offer reassurance that the pain is normal and rely on providing his scheduled medications.",
-          "is_correct": false,
-          "misconception": "Giving false reassurance and automatic responses minimizes the patient's valid concerns and acts as a barrier to accurate clinical assessment.",
-          "routes_to_scene": 4
+          "name": "Guest Chair",
+          "count": 1,
+          "description": "A comfortable vinyl armchair near the window."
         }
-      ]
-    },
-    {
-      "decision_point_id": 2,
-      "question_text": "Arthur is displaying an emotional barrier (fear/anxiety) toward physical therapy. How should Sarah therapeutically respond to his reluctance?",
-      "associated_introduction_scene_id": 5,
-      "choices": [
+      ],
+      "background_equipment": [
         {
-          "choice_id": "A",
-          "text": "Share observations about his worried demeanor and clarify his specific fears about getting out of bed.",
-          "is_correct": true,
-          "misconception": null,
-          "routes_to_scene": 8
-        },
-        {
-          "choice_id": "B",
-          "text": "Provide advice on what she would do in his situation, emphasizing the negative consequences of skipping therapy.",
-          "is_correct": false,
-          "misconception": "Giving personal advice and making judgmental or threatening statements damages the nurse-patient relationship and prevents the patient from setting their own goals.",
-          "routes_to_scene": 6
-        },
-        {
-          "choice_id": "C",
-          "text": "Change the subject to a more pleasant topic, like television, to avoid escalating his anxiety.",
-          "is_correct": false,
-          "misconception": "Changing the subject is a nontherapeutic technique that makes the patient feel their concerns are unimportant, leaving the underlying emotional barrier unresolved.",
-          "routes_to_scene": 7
+          "name": "Vital Signs Monitor",
+          "count": 1,
+          "description": "Wall-mounted monitor, currently turned off."
         }
-      ]
-    }
-  ]
-}
+      ],
+      "camera": {
+        "angle": "Eye level",
+        "perspective": "Medium shot capturing both characters to show nonverbal interactions clearly."
+      }
+    },
+    "scenes": [
+      {
+        "scene_id": 1,
+        "type": "narrative",
+        "scene_summary": "Clara enters the room to find Arthur packing his belongings, displaying visible anxiety and acting on a dementia-related delusion.",
+        "duration_seconds": 20,
+        "character_actions": "Arthur is hurriedly stuffing a pair of socks into a small duffel bag on his bed. Clara walks in slowly, keeping her hands visible and her posture open.",
+        "initial_character_positions": [
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the side of the bed, facing the bag."
+          },
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near the doorway, observing Arthur."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Patient_Arthur",
+              "line": "I have to catch the bus. Buster hasn't eaten since this morning, and he gets scared when it's dark.",
+              "character_position": "Standing by the side of the bed, facing the bag."
+            }
+          ],
+          "sound_effects": "Rustling of fabric as Arthur packs.",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 2,
+        "type": "consequence",
+        "scene_summary": "Clara uses false reassurance, causing Arthur to feel misunderstood and more anxious.",
+        "duration_seconds": 15,
+        "character_actions": "Clara smiles broadly and waves a hand dismissively. Arthur turns to her, gripping his bag tightly, his face showing increased distress.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near the doorway."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "Don't worry, Mr. Vance, everything is perfectly fine. You can just relax in bed.",
+              "character_position": "Standing near the doorway."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "Nothing is fine! You don't understand me at all. I need to leave right now!",
+              "character_position": "Standing by the bed."
+            }
+          ],
+          "sound_effects": "Heavy sigh from Arthur.",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 3,
+        "type": "resolution",
+        "scene_summary": "Clara successfully uses therapeutic communication by sharing observations, prompting Arthur to open up.",
+        "duration_seconds": 15,
+        "character_actions": "Clara takes a step closer, maintaining gentle eye contact and a relaxed posture. Arthur stops packing and looks at her, his shoulders dropping slightly.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near the doorway."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "You seem very focused on packing, Mr. Vance. Are you worried about something?",
+              "character_position": "Moving slowly toward the center of the room."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "I am worried. Buster is all alone at home, and he needs his dinner.",
+              "character_position": "Standing by the bed, looking at Clara."
+            }
+          ],
+          "sound_effects": "",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "true_choice"
+        }
+      },
+      {
+        "scene_id": 4,
+        "type": "consequence",
+        "scene_summary": "Clara interrogates Arthur, causing him to become defensive.",
+        "duration_seconds": 15,
+        "character_actions": "Clara crosses her arms slightly. Arthur glares at her, his posture becoming rigid.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near the doorway."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "Why are you packing your bags, Mr. Vance? You know you aren't discharged yet.",
+              "character_position": "Standing near the doorway."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "Don't interrogate me! I'm leaving because I have responsibilities, unlike the people in this place!",
+              "character_position": "Standing by the bed."
+            }
+          ],
+          "sound_effects": "Bag zipper forcefully pulled.",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 5,
+        "type": "narrative",
+        "scene_summary": "Arthur continues to focus on his dog, Buster. Clara knows from the chart that Buster passed away years ago.",
+        "duration_seconds": 20,
+        "character_actions": "Arthur holds a pair of socks, looking down at them sadly. Clara is standing near him, listening attentively.",
+        "initial_character_positions": [
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          },
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing a few feet away from Arthur."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Patient_Arthur",
+              "line": "He's such a good dog, but he whines when he's hungry. I really have to get home to him.",
+              "character_position": "Standing by the bed."
+            }
+          ],
+          "sound_effects": "",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 6,
+        "type": "consequence",
+        "scene_summary": "Clara changes the subject, making Arthur feel ignored and distressed.",
+        "duration_seconds": 15,
+        "character_actions": "Clara points toward the bedside table. Arthur looks away from her, shaking his head in frustration.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near Arthur."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "Let's not worry about the dog right now. It's time to take your evening medication.",
+              "character_position": "Standing near Arthur."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "I don't want any medication! Are you even listening to me? My dog needs me!",
+              "character_position": "Standing by the bed, turning away."
+            }
+          ],
+          "sound_effects": "",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 7,
+        "type": "consequence",
+        "scene_summary": "Clara argues with Arthur by presenting harsh facts, causing severe agitation.",
+        "duration_seconds": 15,
+        "character_actions": "Clara shakes her head, speaking firmly. Arthur's eyes widen with anger and he points a finger at her.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near Arthur."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "Mr. Vance, your family told us Buster passed away five years ago. You are in the hospital.",
+              "character_position": "Standing near Arthur."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "You're lying! You're trying to keep me away from him! Get out of my room!",
+              "character_position": "Standing by the bed, raising his voice."
+            }
+          ],
+          "sound_effects": "",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 8,
+        "type": "resolution",
+        "scene_summary": "Clara uses empathy and active listening to validate Arthur's feelings, successfully calming him down.",
+        "duration_seconds": 20,
+        "character_actions": "Clara nods compassionately. Arthur's facial expression softens, and he places the socks down on the bed, looking warmly at Clara.",
+        "initial_character_positions": [
+          {
+            "character_id": "Nurse_Clara",
+            "position": "Standing near Arthur."
+          },
+          {
+            "character_id": "Patient_Arthur",
+            "position": "Standing by the bed."
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "Nurse_Clara",
+              "line": "It sounds like you take wonderful care of Buster. Tell me more about him.",
+              "character_position": "Standing near Arthur."
+            },
+            {
+              "character_id": "Patient_Arthur",
+              "line": "He's a golden retriever... he always waits for me right by the front door.",
+              "character_position": "Standing by the bed."
+            },
+            {
+              "character_id": "Nurse_Clara",
+              "line": "He sounds like a wonderful companion. Let's sit down in this chair, and you can tell me about his favorite treats.",
+              "character_position": "Gesturing gently toward the guest chair."
+            }
+          ],
+          "sound_effects": "Soft rustling as Arthur puts the bag down.",
+          "ambience": "Low hum of hospital ventilation."
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "true_choice"
+        }
+      }
+    ],
+    "decision_points": [
+      {
+        "decision_point_id": 1,
+        "question_text": "How should Nurse Clara initiate communication with Mr. Vance to address his anxiety?",
+        "associated_introduction_scene_id": 1,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Approach slowly and share observations: \"You seem very focused on packing, Mr. Vance. Are you worried about something?\"",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 3
+          },
+          {
+            "choice_id": "B",
+            "text": "Provide comfort through an automatic response: \"Don't worry, Mr. Vance, everything is perfectly fine. You can just relax in bed.\"",
+            "is_correct": false,
+            "misconception": "Giving false reassurance and automatic responses are nontherapeutic communication techniques that dismiss the patient's valid feelings and shut down communication.",
+            "routes_to_scene": 2
+          },
+          {
+            "choice_id": "C",
+            "text": "Ask for his reasoning: \"Why are you packing your bags, Mr. Vance? You know you aren't discharged yet.\"",
+            "is_correct": false,
+            "misconception": "Asking \"why\" questions acts as an interrogation, which is a nontherapeutic communication technique that often causes patients to become defensive.",
+            "routes_to_scene": 4
+          }
+        ]
+      },
+      {
+        "decision_point_id": 2,
+        "question_text": "How should Nurse Clara respond to Mr. Vance's distress about his deceased dog?",
+        "associated_introduction_scene_id": 5,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Share empathy and actively listen: \"It sounds like you take wonderful care of Buster. Tell me more about him.\"",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 8
+          },
+          {
+            "choice_id": "B",
+            "text": "Redirect him to the present: \"Let's not worry about the dog right now. It's time to take your evening medication.\"",
+            "is_correct": false,
+            "misconception": "Changing the subject is a nontherapeutic technique that makes the patient feel disrespected and ignored, damaging the nurse-patient relationship.",
+            "routes_to_scene": 6
+          },
+          {
+            "choice_id": "C",
+            "text": "Provide factual reality orientation: \"Mr. Vance, your family told us Buster passed away five years ago. You are in the hospital.\"",
+            "is_correct": false,
+            "misconception": "Arguing with or directly challenging a patient's reality, especially when they have cognitive impairments, is a nontherapeutic technique that causes anger and destroys trust.",
+            "routes_to_scene": 7
+          }
+        ]
+      }
+    ]
+  }

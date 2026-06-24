@@ -1,0 +1,503 @@
+{
+    "title": "Finding the Right Words: Communication in Complex Patient Care",
+    "learning_goal": "Apply therapeutic communication techniques, recognize communication barriers, and select appropriate communication strategies when caring for a patient whose condition impairs verbal expression.",
+    "target_audience": "Nursing students and early-career nurses learning foundational communication competencies in clinical practice.",
+    "total_duration_seconds": 285,
+    "visual_style": "2D semi-flat limited animation with clean linework and muted clinical color palette. Characters express emotion through head tilts, hand gestures, posture shifts, and facial expressions. Mouth movement suggests speech without phoneme-level lip sync. Consistent character proportions and clothing across all scenes.",
+    "characters": [
+      {
+        "character_id": "nurse_maya",
+        "name": "Maya",
+        "role": "Registered Nurse",
+        "appearance": {
+          "skin_tone": "Medium-deep warm brown",
+          "hair": "Black, pulled back in a low bun, with small gold stud earrings",
+          "build": "Average height, medium build",
+          "uniform": "Navy blue scrub top and pants, hospital ID badge clipped to left chest, white sneakers",
+          "distinguishing_features": "Thin-framed rectangular glasses, calm and attentive expression as baseline"
+        },
+        "emotional_baseline": "Professional, attentive, and composed"
+      },
+      {
+        "character_id": "patient_harold",
+        "name": "Harold",
+        "role": "Patient, 71-year-old male, post-stroke with expressive aphasia",
+        "appearance": {
+          "skin_tone": "Light peachy beige",
+          "hair": "Short white hair, slightly disheveled",
+          "build": "Slightly heavyset, average height, seated in hospital bed",
+          "uniform": "Light blue hospital gown, thin blanket over lap",
+          "distinguishing_features": "Mild right-sided facial droop, uses left hand predominantly, frustrated expression when unable to communicate"
+        },
+        "emotional_baseline": "Anxious, frustrated, and eager to be understood"
+      },
+      {
+        "character_id": "charge_nurse_deb",
+        "name": "Deb",
+        "role": "Charge Nurse",
+        "appearance": {
+          "skin_tone": "Fair with light pink undertones",
+          "hair": "Short auburn bob, no accessories",
+          "build": "Tall and lean",
+          "uniform": "Dark teal scrub top and pants, hospital ID badge, white clogs",
+          "distinguishing_features": "Reading glasses pushed up on forehead, clipboard in hand"
+        },
+        "emotional_baseline": "Experienced, direct, and supportive"
+      }
+    ],
+    "setting": {
+      "location": "Medical-surgical unit, private patient room, mid-sized hospital",
+      "scene_description": "A single-occupancy hospital room with a bed centered against the back wall. There is a bedside table to the right of the bed with a water pitcher, a call button, and a small whiteboard mounted on the wall beside the bed with dry-erase markers. A visitor chair sits to the left. A wall-mounted monitor displays vitals. The doorway to the corridor is on the left side of the room. The room is clean, functional, and modest in detail.",
+      "lighting": {
+        "source": "Overhead fluorescent ceiling panels supplemented by soft natural light from a frosted window on the right wall",
+        "time_of_day": "Mid-morning"
+      },
+      "background_furniture": [
+        {
+          "name": "Hospital bed",
+          "count": 1,
+          "description": "Standard electric hospital bed with adjustable head raised to about 45 degrees, white linens, side rails up"
+        },
+        {
+          "name": "Bedside table",
+          "count": 1,
+          "description": "Rolling overbed table positioned beside the bed, holding a water pitcher and a small cup"
+        },
+        {
+          "name": "Visitor chair",
+          "count": 1,
+          "description": "Padded chair with wooden arms, positioned to the left of the bed"
+        },
+        {
+          "name": "Whiteboard",
+          "count": 1,
+          "description": "Small dry-erase whiteboard mounted on the wall next to the bed, partially filled with care notes and a simple drawn pain scale"
+        }
+      ],
+      "background_equipment": [
+        {
+          "name": "Vital signs monitor",
+          "count": 1,
+          "description": "Wall-mounted monitor showing heart rate, blood pressure, and oxygen saturation readings"
+        },
+        {
+          "name": "IV pole",
+          "count": 1,
+          "description": "Rolling IV pole with one bag of clear fluid and tubing connected to the patient's left arm"
+        },
+        {
+          "name": "Call light",
+          "count": 1,
+          "description": "Handheld call button resting on the bed rail near the patient's left hand"
+        }
+      ],
+      "camera": {
+        "angle": "Slight downward angle for wide shots of the room; eye-level medium shots for dialogue exchanges between nurse and patient",
+        "perspective": "Third-person observational, positioned near the foot of the bed or the doorway"
+      }
+    },
+    "scenes": [
+      {
+        "scene_id": 1,
+        "type": "narrative",
+        "scene_summary": "Nurse Maya enters Harold's room for a morning assessment. Harold had a stroke three days ago and has expressive aphasia — he understands speech but cannot reliably produce words. He becomes visibly frustrated, attempting to speak but producing only fragmented sounds. Maya must decide how to begin communicating effectively with him.",
+        "duration_seconds": 28,
+        "character_actions": "Maya enters the room holding a small tablet and a pen. She approaches the bed, smiling gently. Harold turns his head toward her, raises his left hand in a partial wave, then opens his mouth. He produces a strained, broken syllable — not a word — and his expression shifts to frustration. He looks away and grips the bed rail.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Entering through the doorway on the left, walking toward the foot of the bed"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "Seated upright in the hospital bed, slightly turned toward the door"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Good morning, Mr. Harold. I'm Maya, your nurse today. I'm here to check in with you and see how you're feeling.",
+              "character_position": "Standing at the foot of the bed, making eye contact with Harold"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "I— I— ngh... I wan— I—",
+              "character_position": "In the bed, leaning slightly forward, face tightening with effort and frustration"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "Take your time. I'm not in a rush, and I want to understand you.",
+              "character_position": "Moving to the left side of the bed, maintaining calm eye contact"
+            }
+          ],
+          "sound_effects": "Soft footsteps on linoleum; faint monitor beeping in the background",
+          "ambience": "Low ambient hospital hum, distant corridor sounds"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 2,
+        "type": "consequence",
+        "scene_summary": "Maya asks Harold a series of open-ended verbal questions, expecting him to respond in full sentences. Because Harold has expressive aphasia, this approach produces only escalating frustration. He cannot generate the verbal output being requested, and the interaction breaks down.",
+        "duration_seconds": 18,
+        "character_actions": "Maya holds her tablet and reads questions from it, looking up at Harold expectantly after each one. Harold attempts to answer, producing fragmented sounds. His left hand moves in an agitated gesture. He turns his head away from Maya and closes his eyes. Maya pauses, visibly uncertain about how to proceed.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Standing at the left side of the bed, holding tablet at chest level"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, head tilting forward with effort, then turning away"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Can you tell me what's bothering you most right now? And how would you describe your pain?",
+              "character_position": "Standing beside the bed, looking at Harold with a focused expression"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "I— the— ngh...",
+              "character_position": "In the bed, straining with effort, then going still and turning his head away"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "I'm sorry, I think I need to try a different approach to help us communicate better.",
+              "character_position": "Standing at the bedside, lowering the tablet slightly"
+            }
+          ],
+          "sound_effects": "Monitor beeping continues; brief silence after Harold goes quiet",
+          "ambience": "Low ambient hospital hum"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 3,
+        "type": "resolution",
+        "scene_summary": "Maya uses closed-ended yes/no questions along with the whiteboard pain scale and simple gesture cues, adapting her communication to match Harold's actual ability to respond. Harold is able to indicate his pain level and nod or shake his head, and his posture visibly relaxes.",
+        "duration_seconds": 18,
+        "character_actions": "Maya steps to the whiteboard, points to the simple drawn faces on the pain scale, then holds up one finger and nods, demonstrating a yes gesture. She uses calm, short questions. Harold watches attentively and uses a head nod and a left-hand thumbs-up. His facial expression eases from frustration to a more settled look. Maya nods in return and makes a note on her tablet.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Standing at the left side of the bed, angled slightly toward the whiteboard"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, head turned toward Maya and the whiteboard"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Let me make this easier. I'll ask you simple questions — just nod for yes, or shake your head for no. Can you show me on this scale where your pain is?",
+              "character_position": "Standing beside the bed, pointing to the whiteboard pain scale"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "[nods, then points left hand toward the middle of the pain scale]",
+              "character_position": "In the bed, leaning slightly forward, expression more relaxed"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "Good, that helps me a lot. We'll work together like this, and I'll make sure everyone on your team knows what works for you.",
+              "character_position": "Standing at the bedside, noting on tablet, offering a small reassuring nod"
+            }
+          ],
+          "sound_effects": "Soft dry-erase marker sound as Maya gestures near the board; monitor beeping continues",
+          "ambience": "Low ambient hospital hum"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "true_choice"
+        }
+      },
+      {
+        "scene_id": 4,
+        "type": "consequence",
+        "scene_summary": "Maya, interpreting Harold's frustration as emotional distress rather than a communication barrier, calls the charge nurse to intervene with counseling. Charge nurse Deb arrives, realizes the root issue is Harold's expressive aphasia rather than an emotional crisis, and redirects the situation.",
+        "duration_seconds": 17,
+        "character_actions": "Maya steps back from the bed and moves toward the door, speaking quietly into the hallway. Deb enters shortly after, holding her clipboard. Deb looks at Harold, then at Maya. She gestures gently toward the whiteboard. Maya's expression shows that she understands she misidentified the barrier.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Near the doorway, speaking toward the hallway"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, watching the doorway with a tired expression"
+          },
+          {
+            "character_id": "charge_nurse_deb",
+            "position": "Entering through the doorway, clipboard in hand"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "charge_nurse_deb",
+              "line": "I got your message. What's going on, Maya?",
+              "character_position": "Standing just inside the doorway, glancing between Maya and Harold"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "He seems really upset and won't respond to me. I thought he might need emotional support.",
+              "character_position": "Near the doorway, keeping her voice low"
+            },
+            {
+              "character_id": "charge_nurse_deb",
+              "line": "His aphasia means he can't produce words — his understanding is intact. Try the whiteboard and yes/no questions. That's the communication barrier here.",
+              "character_position": "Stepping toward the bed, gesturing toward the whiteboard on the wall"
+            }
+          ],
+          "sound_effects": "Soft footsteps as Deb enters; monitor beeping continues",
+          "ambience": "Low ambient hospital hum"
+        },
+        "routes_to": {
+          "decision_point_id": 1,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 5,
+        "type": "narrative",
+        "scene_summary": "Later in the morning, Maya is preparing to provide medication education for Harold's newly prescribed blood pressure medication. Harold's son left a note stating the family would like to be present for all teaching. Harold's son is not currently in the room. Maya must decide how to handle the teaching moment.",
+        "duration_seconds": 25,
+        "character_actions": "Maya enters the room holding a printed medication sheet. She sees the handwritten note on the bedside table. She reads it, glances at Harold, and then looks at the medication sheet. Harold watches her, his left hand resting on his lap, his expression attentive and expectant.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Entering from the doorway, moving to the bedside table to review the note"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, head turned toward Maya, watching"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "Mr. Harold, I have information about your new blood pressure medication I'd like to go over with you.",
+              "character_position": "Standing at the bedside table, holding the printed medication sheet"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "I see your son left a note asking to be here for any teaching. He's not in the room right now.",
+              "character_position": "Standing at the bedside, looking from the note to Harold"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "[nods slowly, then points to the note and holds up one finger as if to say 'wait']",
+              "character_position": "In the bed, gesturing deliberately toward the note"
+            }
+          ],
+          "sound_effects": "Paper rustle as Maya holds the medication sheet; soft monitor beeping",
+          "ambience": "Low ambient hospital hum, a distant cart rolling in the hallway"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "introduction"
+        }
+      },
+      {
+        "scene_id": 6,
+        "type": "consequence",
+        "scene_summary": "Maya proceeds with the full verbal medication education without waiting for Harold's son and without providing written materials. Because Harold cannot verbally confirm understanding and has no written reference, the information is not retained and the son arrives to find no teaching has been documented or reinforced.",
+        "duration_seconds": 17,
+        "character_actions": "Maya begins reading the medication information aloud from the sheet. Harold listens but cannot ask questions or respond verbally. Maya finishes, sets the sheet face-down on the table, and turns to leave. A moment later, Harold's son steps in, looks at his father, then at the table, and asks Maya a question. Maya pauses, looking uncertain.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Standing at the left side of the bed, holding the medication sheet"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, watching Maya, expression neutral but slightly passive"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "I'll go ahead and walk you through it now. This medication lowers your blood pressure and should be taken once daily in the morning.",
+              "character_position": "Standing at the bedside, reading from the sheet"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "Do you have any questions? — I know that's hard to answer right now. I'll leave this here.",
+              "character_position": "Setting the sheet face-down on the table, preparing to leave"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "I should have waited and also given him something written to follow along. Let me come back and do this properly with you both.",
+              "character_position": "Pausing near the doorway after Harold's son enters, turning back to the room"
+            }
+          ],
+          "sound_effects": "Paper placed on table; footsteps near the door",
+          "ambience": "Low ambient hospital hum"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 7,
+        "type": "consequence",
+        "scene_summary": "Maya decides to postpone all teaching entirely and documents that teaching was deferred, without providing Harold any introductory information or written materials in the meantime. When Deb reviews the chart later, she notes the missed teaching opportunity and follows up with Maya.",
+        "duration_seconds": 17,
+        "character_actions": "Maya sets the medication sheet back in her folder and steps toward the door. Harold looks at her with a questioning tilt of his head. Later, Deb is seen in the hallway looking at a tablet. She flags down Maya with a calm but direct expression.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Near the doorway, folder in hand"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, watching Maya leave with a slightly puzzled expression"
+          },
+          {
+            "character_id": "charge_nurse_deb",
+            "position": "In the hallway just outside the room, appearing after a scene cut"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "I'll hold off on teaching until his son is here. I'll mark it as deferred.",
+              "character_position": "Near the doorway, speaking quietly to herself as she notes on the tablet"
+            },
+            {
+              "character_id": "charge_nurse_deb",
+              "line": "Maya, I see teaching for Mr. Harold was fully deferred. Did you leave him anything written in the meantime?",
+              "character_position": "In the hallway, tablet in hand, tone professional and curious"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "No, I didn't. I see now I could have given him the handout and introduced the key points, even without his son present.",
+              "character_position": "In the hallway, facing Deb, expression reflective"
+            }
+          ],
+          "sound_effects": "Soft footsteps in the hallway; ambient corridor sounds",
+          "ambience": "Brighter hallway ambient sound, slightly busier than the room"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "false_choice"
+        }
+      },
+      {
+        "scene_id": 8,
+        "type": "resolution",
+        "scene_summary": "Maya honors Harold's request to wait, provides him the printed medication sheet to review independently using visual communication, and documents the plan to complete teaching with his son present. When the son arrives shortly after, Maya conducts the teaching using multiple communication forms and confirms understanding through return demonstration with the son.",
+        "duration_seconds": 20,
+        "character_actions": "Maya holds the medication sheet up so Harold can see it clearly, points to the key sections, and places it on his bedside table within reach. She writes a brief note on the whiteboard: 'Teaching with son — soon.' Harold nods and gives a thumbs-up with his left hand. His son arrives at the doorway. Maya turns toward him, gestures welcomingly, and the three of them engage in a brief, calm teaching session. Maya concludes by asking the son to summarize the key point back to her.",
+        "initial_character_positions": [
+          {
+            "character_id": "nurse_maya",
+            "position": "Standing at the left side of the bed, holding the medication sheet toward Harold"
+          },
+          {
+            "character_id": "patient_harold",
+            "position": "In the bed, looking at the sheet, expression attentive and settled"
+          }
+        ],
+        "audio": {
+          "dialogue": [
+            {
+              "character_id": "nurse_maya",
+              "line": "I understand — we'll wait for your son. Here's the information sheet so you can look it over. I'll note our plan on the board.",
+              "character_position": "Standing at the bedside, placing the sheet on the table and stepping to the whiteboard"
+            },
+            {
+              "character_id": "patient_harold",
+              "line": "[nods and gives a thumbs-up with left hand]",
+              "character_position": "In the bed, visibly more at ease, glancing at the medication sheet"
+            },
+            {
+              "character_id": "nurse_maya",
+              "line": "Great — I'll be back once he arrives and we'll go through everything together. Can you tell me back the one thing you want to make sure we cover?",
+              "character_position": "Turning toward the doorway as Harold's son appears, welcoming him into the room"
+            }
+          ],
+          "sound_effects": "Dry-erase marker sound at whiteboard; soft footsteps as son enters",
+          "ambience": "Low ambient hospital hum; calm, quiet room"
+        },
+        "routes_to": {
+          "decision_point_id": 2,
+          "type": "true_choice"
+        }
+      }
+    ],
+    "decision_points": [
+      {
+        "decision_point_id": 1,
+        "question_text": "Harold has expressive aphasia following his stroke — he understands what is said to him, but he cannot reliably produce words. He is showing clear signs of frustration. What is the most appropriate communication approach for Maya to use right now?",
+        "associated_introduction_scene_id": 1,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Shift to closed-ended yes/no questions and use the whiteboard pain scale with visual cues, adapting communication to match Harold's actual ability to respond.",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 3
+          },
+          {
+            "choice_id": "B",
+            "text": "Continue asking open-ended verbal questions and give Harold more time to formulate his answers, since encouraging verbal attempts will help him practice speech.",
+            "is_correct": false,
+            "misconception": "Confuses the communication barrier created by expressive aphasia with a need for more time. Open-ended verbal questions place demands on a patient who cannot produce language, escalating frustration rather than facilitating communication. Adjusting the form and structure of questions is the appropriate response.",
+            "routes_to_scene": 2
+          },
+          {
+            "choice_id": "C",
+            "text": "Call the charge nurse to come provide emotional support counseling, since Harold's frustration suggests he may be experiencing a psychological crisis.",
+            "is_correct": false,
+            "misconception": "Misidentifies the primary barrier as emotional or psychological rather than recognizing it as a physical and linguistic communication barrier caused by the patient's neurological condition. Expressive aphasia requires adapted communication strategies, not crisis counseling.",
+            "routes_to_scene": 4
+          }
+        ]
+      },
+      {
+        "decision_point_id": 2,
+        "question_text": "Harold has communicated through gesture that he would like his son present for the medication teaching. His son is not currently in the room. What should Maya do?",
+        "associated_introduction_scene_id": 5,
+        "choices": [
+          {
+            "choice_id": "A",
+            "text": "Honor Harold's request, give him the printed medication sheet to review as a visual reference, note the teaching plan on the whiteboard, and return to conduct the full teaching session with his son present.",
+            "is_correct": true,
+            "misconception": null,
+            "routes_to_scene": 8
+          },
+          {
+            "choice_id": "B",
+            "text": "Proceed with the full verbal teaching session now since Harold is awake and alert, to ensure the information is not delayed.",
+            "is_correct": false,
+            "misconception": "Overlooks the patient's expressed preference and the importance of using multiple communication forms. A patient with expressive aphasia cannot ask clarifying questions during verbal-only teaching, and proceeding without a support person or written materials reduces the effectiveness of the education and disregards the patient's wishes.",
+            "routes_to_scene": 6
+          },
+          {
+            "choice_id": "C",
+            "text": "Defer all teaching entirely and document it as postponed, to avoid giving Harold incomplete information.",
+            "is_correct": false,
+            "misconception": "Fails to recognize that patient teaching should be ongoing and that providing a written reference and introducing key points is both appropriate and beneficial in the interim. Completely deferring without any educational support misses a teaching opportunity and may delay the patient's understanding of their care.",
+            "routes_to_scene": 7
+          }
+        ]
+      }
+    ]
+  }

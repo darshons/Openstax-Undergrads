@@ -52,11 +52,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -73,11 +78,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -94,11 +104,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -115,11 +130,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -136,11 +156,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -157,11 +182,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -178,11 +208,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",
@@ -199,11 +234,16 @@
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
+      "initial_character_positions": [{
+        "character_id": "",
+        "position": ""
+      }],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
-            "line": ""
+            "line": "",
+            "character_position" : ""
           }
         ],
         "sound_effects": "",

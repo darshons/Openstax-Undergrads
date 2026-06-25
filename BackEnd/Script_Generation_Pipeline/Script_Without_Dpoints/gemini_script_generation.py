@@ -58,16 +58,27 @@ config = types.GenerateContentConfig(
 )
 
 # MARKDOWN
-md_file_paths = ["/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.2.md", 
-                 "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.3.md",
-                 "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.4.md"]
+md_file_paths = [
+    "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.2.md",
+    "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.3.md",
+    "/Users/youssef/Desktop/work/Openstax-Undergrads/textbook-content/psychology-chapter-4.4.md",
+]
 
-md_file_names = ["psychology-chapter-4.2", "psychology-chapter-4.3", "psychology-chapter-4.4"]
+md_file_names = [
+    "psychology-chapter-4.2",
+    "psychology-chapter-4.3",
+    "psychology-chapter-4.4",
+]
 
 uploaded_md_files = []
 
 for md_file_path, md_file_name in zip(md_file_paths, md_file_names):
-    uploaded_md = client.files.upload(file=md_file_path, config=types.UploadFileConfig(display_name=md_file_name, mime_type="text/markdown")) # switch to text/pdf for PDF files
+    uploaded_md = client.files.upload(
+        file=md_file_path,
+        config=types.UploadFileConfig(
+            display_name=md_file_name, mime_type="text/markdown"
+        ),
+    )  # switch to text/pdf for PDF files
     uploaded_md_files.append(uploaded_md)
 
 # uploaded_md = client.files.get(name="files/brjip1ecdqph")
@@ -76,7 +87,12 @@ for md_file_path, md_file_name in zip(md_file_paths, md_file_names):
 # JSON File Template
 json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/Script_Generation_Pipeline/JSON_Templates/script_gen_without_dpoints.json"
 
-uploaded_json = client.files.upload(file=json_file_path, config=types.UploadFileConfig(display_name="script_gen_without_decision_points", mime_type="application/json"))
+uploaded_json = client.files.upload(
+    file=json_file_path,
+    config=types.UploadFileConfig(
+        display_name="script_gen_without_decision_points", mime_type="application/json"
+    ),
+)
 
 # Make the request
 user_query = """
@@ -84,9 +100,7 @@ Generate a branching scenario script about a psychiatrist helping a patient diag
 """
 
 response = client.models.generate_content(
-    model=MODEL,
-    contents=[user_query, *uploaded_md_files, uploaded_json],
-    config=config
+    model=MODEL, contents=[user_query, *uploaded_md_files, uploaded_json], config=config
 )
 
 # Write the response to a JSON file
@@ -103,8 +117,8 @@ print("Scenario script generated and saved to:", output_json_path)
 #     print(f"  File ID: {file.name}") # Will look like 'files/abc123xyz...'
 #     print(f"  Mime Type:    {file.mime_type}")
 #     print(f"  URI:          {file.uri}")
-    
-    
+
+
 # client.files.delete(name=uploaded_md.name)
 for file_id in uploaded_md_files:
     client.files.delete(name=file_id.name)

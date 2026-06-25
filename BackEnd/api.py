@@ -16,6 +16,7 @@ class SceneInformation(BaseModel):
     page_num: str | None = None
     user_query: str
     model_choice: str
+    video_type: str = "scenario"
     
 class ModifiedScript(BaseModel):
     script: dict[str, Any]

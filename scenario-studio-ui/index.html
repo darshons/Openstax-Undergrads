@@ -601,7 +601,7 @@ function lookupSection(id){
 /* Build the /api/initial_script request from the section the user selected
    first. The backend takes one (book_title, unit_num) at a time; if multiple
    sections are picked we use the first and let chapter/page narrow it. */
-function buildGenerateRequest({selected, model, userQuery}){
+function buildGenerateRequest({selected, model, videoType, userQuery}){
   const firstId = Array.from(selected)[0];
   const hit = firstId && lookupSection(firstId);
   if (!hit) return null;
@@ -612,6 +612,7 @@ function buildGenerateRequest({selected, model, userQuery}){
     page_num: hit.secN,
     user_query: userQuery,
     model_choice: model,
+    video_type: videoType,
   };
 }
 
@@ -765,7 +766,8 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
 
 /* ─── Sidebar footer · just context pills + generate ─── */
 function GeneratePanel({selected, removeSec, onGenerate, busy, hasScript,
-                        model, setModel, userQuery, setUserQuery, genError}){
+                        model, setModel, videoType, setVideoType,
+                        userQuery, setUserQuery, genError}){
   const pillsArr = Array.from(selected);
   const queryReady = userQuery.trim().length > 0;
   const canRun = selected.size>0 && queryReady && !busy;
@@ -797,6 +799,20 @@ function GeneratePanel({selected, removeSec, onGenerate, busy, hasScript,
       <textarea className="gp-textarea" value={userQuery}
         onChange={e=>setUserQuery(e.target.value)}
         placeholder="What scenario should the script dramatize? e.g. A nursing student watches a patient's glucose metabolism in real time."/>
+
+      <label className="gp-label">Video type</label>
+      <div className="gp-models">
+        <button type="button" className={`gp-model ${videoType==="scenario"?"on":""}`}
+          onClick={()=>setVideoType("scenario")}>
+          <span style={{display:"block",fontSize:"1.1em",marginBottom:2}}>🎬</span>
+          Veo · Scenario
+        </button>
+        <button type="button" className={`gp-model ${videoType==="manim"?"on":""}`}
+          onClick={()=>setVideoType("manim")}>
+          <span style={{display:"block",fontSize:"1.1em",marginBottom:2}}>📊</span>
+          Manim · Graphics
+        </button>
+      </div>
 
       <label className="gp-label">Model</label>
       <div className="gp-models">
@@ -1403,6 +1419,7 @@ function App(){
 
   // Generate-panel form state
   const [model, setModel] = useState("anthropic");
+  const [videoType, setVideoType] = useState("scenario");
   const [userQuery, setUserQuery] = useState("");
   const [genError, setGenError] = useState(null);
 
@@ -1432,7 +1449,7 @@ function App(){
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
   const runGenerate = async () => {
-    const req = buildGenerateRequest({selected, model, userQuery: userQuery.trim()});
+    const req = buildGenerateRequest({selected, model, videoType, userQuery: userQuery.trim()});
     if (!req) {
       setGenError("Pick at least one section from a known textbook.");
       return;
@@ -1552,6 +1569,7 @@ function App(){
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}
+            videoType={videoType} setVideoType={setVideoType}
             userQuery={userQuery} setUserQuery={setUserQuery}
             genError={genError}/>
         </div>

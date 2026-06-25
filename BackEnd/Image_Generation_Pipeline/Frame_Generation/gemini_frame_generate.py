@@ -1,17 +1,27 @@
-from Image_Generation_Pipeline.JSON_Processing.scene_processing import process_scene_json
+from Image_Generation_Pipeline.JSON_Processing.scene_processing import (
+    process_scene_json,
+)
 from google import genai
 from google.genai import types
-from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation import setup_gemini_client
+from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation import (
+    setup_gemini_client,
+)
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
 import os
 
 
-def generate_frames(json_script, character_image_file_mapping, background_image_file_path):
+def generate_frames(
+    json_script,
+    character_image_file_mapping,
+    background_image_file_path,
+    request_id,
+    scene_id: str | None = None,
+) -> tuple[dict[str, str], list[str | None], list[Path]]:
     # Set up Gemini client
     client = setup_gemini_client()
-    
+
     # Define system prompts for opening and ending frame generation
     opening_frame_system_prompt = """
     You are generating an opening scene image for an interactive training simulation.
@@ -118,18 +128,18 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
 
     The resulting image should function as an establishing shot for the scenario, providing a clear visual introduction to the scene and its initial state before the main events occur.
     """
-    
+
     # ending_frame_system_prompt = """
     # You are generating an ending scene image for an interactive training simulation.
-    
+
     # Your task is to create exactly one high-quality still image that represents the final moment of the scene described in the provided JSON input.
-    
+
     # The purpose of this image is to serve as the scene's ending frame. It should depict the state of the scenario immediately before the learner is prompted to make a decision or proceed to the next segment. The image should clearly communicate the outcome of the events that have occurred within the scene and present all relevant visual information available at that moment.
-    
+
     # The user prompt will provide:
     # • Character reference images that define the appearance of all characters.
     # • Background reference image that defines the appearance of all relevant environmental elements.
-    # • A JSON object detailing the scene description and character information. 
+    # • A JSON object detailing the scene description and character information.
     # • An opening frame image generated for the same scene, which visually represents the initial state of the scenario.
 
     # The JSON object will have the following structure:
@@ -177,7 +187,7 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
     #     "emotional_baseline": ""
     #     }
     # ],
-    # "scene": 
+    # "scene":
     #     {
     #     "scene_id": 1,
     #     "type": "narrative",
@@ -202,7 +212,7 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
     #     }
     #     }
     # }
-     
+
     # Image Generation Instructions:
     # • Generate exactly one image.
     # • Depict only the ending moment of the scene.
@@ -211,7 +221,7 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
     # • Do not depict events, outcomes, consequences, or information that occur after the scene ends.
     # • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, and overall visual presentation.
     # • Include all important characters, objects, and environmental details that would be visible at the end of the scene.
-    # • Focus exclusively on visual content. 
+    # • Focus exclusively on visual content.
     # • Do not include dialogue, narration, captions, subtitles, labels, or text within the image under any circumstances.
     # • Ensure the image clearly establishes the final state of the situation
 
@@ -246,67 +256,95 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
 
     # The resulting ending frame image should function as a concluding keyframe for the scenario, providing a clear visual representation of the scene's final state and all information available to the learner immediately before the next interaction point.
     # """
-    
+
     # Define the model to use for image generation
     MODEL = "gemini-3.1-flash-image"
-    
+
     # Configure content generation settings for opening and ending frames
     opening_frame_config = types.GenerateContentConfig(
         system_instruction=opening_frame_system_prompt,
-        response_modalities=["IMAGE"],    
+        response_modalities=["IMAGE"],
     )
-    
+
     # ending_frame_config = types.GenerateContentConfig(
     #     system_instruction=ending_frame_system_prompt,
-    #     response_modalities=["IMAGE"],    
+    #     response_modalities=["IMAGE"],
     # )
-    
+
     # Process the JSON to create individual JSON files for each scene -> Mapping of scene_id to local JSON file path
-    scene_json_file_mapping = process_scene_json(json_script, character_image_file_mapping)
-    
+    scene_json_file_mapping = process_scene_json(
+        json_script, character_image_file_mapping, scene_id=scene_id
+    )
+
     # Path setup for saving generated images
     PROJECT_DIR = Path(__file__).resolve().parents[1]
-    
+
     dir_path = PROJECT_DIR / "Frame_Image_Output"
 
-    # Mapping to keep track of uploaded character images (character_id to uploaded file name and file object) 
+    # Mapping to keep track of uploaded character images (character_id to uploaded file name and file object)
     uploaded_character_image_mapping = {}
-    
+
     # Mapping to keep track of uploaded scene JSON files (scene_id to uploaded file name and file object)
     uploaded_scene_json_mapping = {}
-    
+
     # Mapping to keep track of uploaded opening frame images (scene_id to uploaded file name and file object) - needed for reference in ending frame generation prompts
     # uploaded_opening_frame_mapping = {}
-    
+
     # Mappings to keep track of generated opening and ending frame file paths (scene_id to local file path)
     opening_scene_frame_file_mapping = {}
-    
+
     # ending_scene_frame_file_mapping = {}
-    
+
     # Upload the background reference image to Gemini and store its uploaded file name for reference in prompts
-    uploaded_background_image = client.files.upload(file=background_image_file_path, config=types.UploadFileConfig(display_name="background_reference_image", mime_type="image/png"))
-    
+    uploaded_background_image = client.files.upload(
+        file=background_image_file_path,
+        config=types.UploadFileConfig(
+            display_name="background_reference_image", mime_type="image/png"
+        ),
+    )
+
     # Upload character reference images and scene JSON files to Gemini and store their uploaded file names for reference in prompts
     for character_id, character_image_file_path in character_image_file_mapping.items():
-            
-        uploaded_character_image = client.files.upload(file=character_image_file_path, config=types.UploadFileConfig(display_name=f"character_reference_image_{character_id}", mime_type="image/png"))
-        
-        uploaded_character_image_mapping[character_id] = (uploaded_character_image.name, uploaded_character_image)
-    
+
+        uploaded_character_image = client.files.upload(
+            file=character_image_file_path,
+            config=types.UploadFileConfig(
+                display_name=f"character_reference_image_{character_id}",
+                mime_type="image/png",
+            ),
+        )
+
+        uploaded_character_image_mapping[character_id] = (
+            uploaded_character_image.name,
+            uploaded_character_image,
+        )
+
     for scene_id, scene_json_file_path in scene_json_file_mapping.items():
-        
-        uploaded_json = client.files.upload(file=scene_json_file_path, config=types.UploadFileConfig(display_name=f"scene_description_{scene_id}", mime_type="application/json"))
-        
+
+        uploaded_json = client.files.upload(
+            file=scene_json_file_path,
+            config=types.UploadFileConfig(
+                display_name=f"scene_description_{scene_id}",
+                mime_type="application/json",
+            ),
+        )
+
         uploaded_scene_json_mapping[scene_id] = (uploaded_json.name, uploaded_json)
-        
-    # For each scene, the opening and ending frame generation prompts will reference the corresponding uploaded JSON file and all uploaded character reference images to ensure the generated frames are consistent with the scene description and character appearances. 
+
+    # For each scene, the opening and ending frame generation prompts will reference the corresponding uploaded JSON file and all uploaded character reference images to ensure the generated frames are consistent with the scene description and character appearances.
     character_references = "\n".join(
-    f"- Character ID {character_id}: uploaded image file {uploaded_file_name}"
-    for character_id, (uploaded_file_name, _) in uploaded_character_image_mapping.items()
-    )    
-    
-    for scene_id, (uploaded_json_name, uploaded_json) in uploaded_scene_json_mapping.items():
-        
+        f"- Character ID {character_id}: uploaded image file {uploaded_file_name}"
+        for character_id, (
+            uploaded_file_name,
+            _,
+        ) in uploaded_character_image_mapping.items()
+    )
+
+    for scene_id, (
+        uploaded_json_name,
+        uploaded_json,
+    ) in uploaded_scene_json_mapping.items():
+
         # OPENING FRAME GENERATION
         opening_frame_user_query = f"""
         Generate an opening scene frame image based on the uploaded JSON file:
@@ -320,24 +358,34 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
         Background reference image:
         {uploaded_background_image.name}
         """
-        
+
         response = client.models.generate_content(
             model=MODEL,
-            contents=[opening_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_background_image],
-            config=opening_frame_config
-        )
-        
+            contents=[
+                opening_frame_user_query,
+                uploaded_json,
+                *[
+                    uploaded_character_image
+                    for _, uploaded_character_image in uploaded_character_image_mapping.values()
+                ],
+                uploaded_background_image,
+            ],
+            config=opening_frame_config,
+        )            
+
         for part in response.candidates[0].content.parts:
             if part.inline_data:
                 image = Image.open(BytesIO(part.inline_data.data))
-                image.save(dir_path / f"{scene_id}_opening_frame.png")
-        
-        opening_scene_frame_file_mapping[scene_id] = str(dir_path / f"{scene_id}_opening_frame.png")
-        
-        # uploaded_opening_frame = client.files.upload(file=dir_path / f"{scene_id}_opening_frame.png", config=types.UploadFileConfig(display_name=f"opening_frame_{scene_id}", mime_type="image/png"))
-        
+                image.save(dir_path / f"{request_id}_{scene_id}_opening_frame.png")
+
+        opening_scene_frame_file_mapping[scene_id] = str(
+            dir_path / f"{request_id}_{scene_id}_opening_frame.png"
+        )
+
+        # uploaded_opening_frame = client.files.upload(file=dir_path / f"{request_id}_{scene_id}_opening_frame.png", config=types.UploadFileConfig(display_name=f"opening_frame_{scene_id}", mime_type="image/png"))
+
         # uploaded_opening_frame_mapping[scene_id] = (uploaded_opening_frame.name, uploaded_opening_frame)
-        
+
         # ENDING FRAME GENERATION
         # ending_frame_user_query = f"""
         # Generate an ending scene frame image based on the uploaded JSON file:
@@ -347,59 +395,72 @@ def generate_frames(json_script, character_image_file_mapping, background_image_
 
         # Character reference images:
         # {character_references}
-        
+
         # Background reference image:
         # {uploaded_background_image.name}
-        
+
         # Opening Frame Image:
         # {uploaded_opening_frame_mapping[scene_id][0]}
         # """
-        
+
         # response = client.models.generate_content(
         #     model=MODEL,
         #     contents=[ending_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_background_image, uploaded_opening_frame_mapping[scene_id][1]],
         #     config=ending_frame_config
         # )
-        
+
         # for part in response.candidates[0].content.parts:
         #     if part.inline_data:
         #         image = Image.open(BytesIO(part.inline_data.data))
-        #         image.save(dir_path / f"{scene_id}_ending_frame.png")
-        
-        # ending_scene_frame_file_mapping[scene_id] = str(dir_path / f"{scene_id}_ending_frame.png")
-    
+        #         image.save(dir_path / f"{request_id}_{scene_id}_ending_frame.png")
+
+        # ending_scene_frame_file_mapping[scene_id] = str(dir_path / f"{request_id}_{scene_id}_ending_frame.png")
+
     # Compile a list of all uploaded file names to facilitate cleanup after generation
     # uploaded_file_names = [uploaded_json_name for uploaded_json_name, _ in uploaded_scene_json_mapping.values()] + [uploaded_character_image_name for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()] + [uploaded_opening_frame_name for uploaded_opening_frame_name, _ in uploaded_opening_frame_mapping.values()] + [uploaded_background_image.name]
-    
-    uploaded_file_names = [uploaded_json_name for uploaded_json_name, _ in uploaded_scene_json_mapping.values()] + [uploaded_character_image_name for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()] + [uploaded_background_image.name]
-        
-    return opening_scene_frame_file_mapping, uploaded_file_names, list(scene_json_file_mapping.values())
 
-def delete_local_files(file_paths):
-    for file_path in file_paths:
-        os.remove(file_path)
-        
-def delete_uploaded_files(client, file_names):
-    for file in file_names:
-        client.files.delete(name=file)
+    uploaded_file_names = (
+        [
+            uploaded_json_name
+            for uploaded_json_name, _ in uploaded_scene_json_mapping.values()
+        ]
+        + [
+            uploaded_character_image_name
+            for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()
+        ]
+        + [uploaded_background_image.name]
+    )
 
-if __name__ == "__main__":
-    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
+    return (
+        opening_scene_frame_file_mapping,
+        uploaded_file_names,
+        list(scene_json_file_mapping.values()),
+    )
 
-    with open(json_file_path, "r") as f:
-        json_script = f.read()
-    
-    character_image_file_mapping = {'Nurse_Clara': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/Nurse_Clara_reference_image.png', 
-                                    'Patient_Arthur': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/Patient_Arthur_reference_image.png'}
-    
-    background_image_file_path = '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Background_Image_Output/background_reference_image.png'
-    
-    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = generate_frames(json_script, character_image_file_mapping, background_image_file_path)
-    
-    delete_local_files(scene_json_file_paths)
-    
-    delete_uploaded_files(setup_gemini_client(), uploaded_file_names)
-    
-    print("done!")
-    
 
+# def delete_local_files(file_paths):
+#     for file_path in file_paths:
+#         os.remove(file_path)
+
+# def delete_uploaded_files(client, file_names):
+#     for file in file_names:
+#         client.files.delete(name=file)
+
+# if __name__ == "__main__":
+#     json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
+
+#     with open(json_file_path, "r") as f:
+#         json_script = f.read()
+
+#     character_image_file_mapping = {'Nurse_Clara': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/Nurse_Clara_reference_image.png',
+#                                     'Patient_Arthur': '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Character_Image_Output/Patient_Arthur_reference_image.png'}
+
+#     background_image_file_path = '/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Image_Generation_Pipeline/Background_Image_Output/background_reference_image.png'
+
+#     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = generate_frames(json_script, character_image_file_mapping, background_image_file_path)
+
+#     delete_local_files(scene_json_file_paths)
+
+#     delete_uploaded_files(setup_gemini_client(), uploaded_file_names)
+
+#     print("done!")

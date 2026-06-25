@@ -12,13 +12,17 @@ def setup_anthropic_client():
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
 
+
 def setup_async_anthropic_client():
     env_path = Path(__file__).resolve().parents[2] / "backend.env"
     load_dotenv(env_path)
     client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
 
-def generate_script_with_decision_points(markdown_file_path, user_query) -> tuple[dict, list]:
+
+def generate_script_with_decision_points(
+    markdown_file_path, user_query
+) -> tuple[dict, list]:
 
     client = setup_anthropic_client()
 
@@ -67,24 +71,42 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     MODEL = "claude-sonnet-4-6"
 
     TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens
-    
-    uploaded_md = client.beta.files.upload(file=("textbook_content", open(markdown_file_path, "rb"), "text/plain"))
-        
+
+    uploaded_md = client.beta.files.upload(
+        file=("textbook_content", open(markdown_file_path, "rb"), "text/plain")
+    )
+
     # JSON File Template
     PROJECT_DIR = Path(__file__).resolve().parents[1]
-    
+
     json_file_path = PROJECT_DIR / "JSON_Templates" / "script_gen_with_dpoints.json"
 
-    uploaded_json = client.beta.files.upload(file=("script_gen_with_decision_points", open(json_file_path, "rb"), "text/plain"))
+    uploaded_json = client.beta.files.upload(
+        file=(
+            "script_gen_with_decision_points",
+            open(json_file_path, "rb"),
+            "text/plain",
+        )
+    )
 
     # Make the request
     user_query = user_query.strip()
 
     content = [
-        {"type": "document", "source": {"type": "file", "file_id": uploaded_md.id}, "title": "Textbook Chapter"}
+        {
+            "type": "document",
+            "source": {"type": "file", "file_id": uploaded_md.id},
+            "title": "Textbook Chapter",
+        }
     ]
 
-    content.append({"type": "document", "source": {"type": "file", "file_id": uploaded_json.id}, "title": "JSON Script Template"})
+    content.append(
+        {
+            "type": "document",
+            "source": {"type": "file", "file_id": uploaded_json.id},
+            "title": "JSON Script Template",
+        }
+    )
 
     content.append({"type": "text", "text": user_query})
 
@@ -92,24 +114,29 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     with client.beta.messages.stream(
         model=MODEL,
         max_tokens=TOKEN_LIMIT,
-        betas=["files-api-2025-04-14"], # Use the beta version of the files API to access the uploaded file
-        system=system_prompt, # System prompt to guide the model's behavior
+        betas=[
+            "files-api-2025-04-14"
+        ],  # Use the beta version of the files API to access the uploaded file
+        system=system_prompt,  # System prompt to guide the model's behavior
         messages=[{"role": "user", "content": content}],
     ) as stream:
         response = stream.get_final_message()
-    
+
     output_json = response.content[0].text
-    output_json = output_json.strip('```json').strip('```')
-    output_json = output_json.strip() 
-    
+    output_json = output_json.strip("```json").strip("```")
+    output_json = output_json.strip()
+
     output_json = json.loads(output_json)
-    
+
     return output_json, [uploaded_md.id, uploaded_json.id]
-    
+
+
 async def delete_uploaded_files(file_ids: list):
     client = setup_async_anthropic_client()
-    await asyncio.gather(*(delete_uploaded_file(client, file_id) for file_id in file_ids))
-    
+    await asyncio.gather(
+        *(delete_uploaded_file(client, file_id) for file_id in file_ids)
+    )
+
 
 async def delete_uploaded_file(client, file_id: str):
     for attempt in range(3):
@@ -121,4 +148,6 @@ async def delete_uploaded_file(client, file_id: str):
             if attempt == 2:
                 print(f"Failed to delete {file_id}: {e}")
             else:
-                await asyncio.sleep(2 ** attempt)  # non-blocking # sleep for 1, 2, then 4 seconds before retrying
+                await asyncio.sleep(
+                    2**attempt
+                )  # non-blocking # sleep for 1, 2, then 4 seconds before retrying

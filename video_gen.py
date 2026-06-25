@@ -105,8 +105,8 @@ def build_veo_prompt(scene: dict, characters: list, visual_style: str) -> str:
     prompt += """\n\nCharacter reference images are provided. Maya is the nurse in blue scrubs. Carl is the patient in the hospital gown. Maintain exact character appearance from the first frame to the last. 
     Maya always wears light blue scrubs. Carl always wears a light green hospital gown. 
     No changes to their clothing, hair, skin tone, or facial features at any point. Do not introduce any additional characters into frame.
+    Never swap Maya and Carl's roles or voices."""
     
-    Maya speaks first. Carl responds. Never swap their roles or voices."""
     prompt += "\n\nDo not include any text overlays, captions, subtitles, or on-screen text in the video."
     
     return prompt.strip()
@@ -380,7 +380,6 @@ def generate_video(
         )
     
 #CLI STUFF
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Generate nursing scenario videos using Veo."

@@ -246,7 +246,9 @@ def retry_generate_background_image(
             image_retry_request.image_request, background_tasks
         )
     else:
-        return {}  # Implement logic to handle user feedback and retry background image generation
+        return (
+            {}
+        )  # Implement logic to handle user feedback and retry background image generation
 
 
 @api_router.post("/retry_generate_character_image")
@@ -260,7 +262,9 @@ def retry_generate_character_image(
             character_id=image_retry_request.image_id,
         )
     else:
-        return {}  # Implement logic to handle user feedback and retry character image generation
+        return (
+            {}
+        )  # Implement logic to handle user feedback and retry character image generation
 
 
 @api_router.post("/retry_generate_opening_frames")
@@ -274,5 +278,6 @@ def retry_generate_opening_frames(
             scene_id=image_retry_request.image_id,
         )
     else:
-        return {}  # Implement logic to handle user feedback and retry opening frame generation
-    
+        return (
+            {}
+        )  # Implement logic to handle user feedback and retry opening frame generation

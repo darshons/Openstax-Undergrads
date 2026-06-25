@@ -371,7 +371,7 @@ def generate_frames(
                 uploaded_background_image,
             ],
             config=opening_frame_config,
-        )            
+        )
 
         for part in response.candidates[0].content.parts:
             if part.inline_data:

@@ -86,9 +86,11 @@ def generate_first_clip(client, prompt, clip_index=1, reference_images=None, dur
 def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
     """
     Extend the previous Veo video by one ~7s hop. Duration is NOT configurable on
-    extension - the API returns a fixed ~7s continuation - so the clip's content
-    must be written to fill ~7s. Continuity comes from the prior clip's final
-    second, so no reference images here.
+    extension — the API returns a fixed ~7s continuation.
+
+    The Veo API rejects reference_images when video= (extension mode) is also provided —
+    the two are mutually exclusive. Character consistency on extension clips is enforced
+    through the is_continuation text anchor in build_veo_prompt instead.
     """
     from google.genai import types
 
@@ -117,6 +119,16 @@ def _poll_until_done(client, operation):
         operation = client.operations.get(operation)
         print(".", end="", flush=True)
     print(" done!")
+
+    #done=True does not mean success — Veo sets error on the operation when generation fails
+    #(content policy, transient error, etc.) and leaves response=None
+    if getattr(operation, "error", None):
+        raise RuntimeError(f"Veo generation failed: {operation.error}")
+    if not getattr(operation, "response", None) or not getattr(operation.response, "generated_videos", None):
+        raise RuntimeError(
+            "Veo returned no videos — operation completed but response is empty. "
+            "Possible causes: content policy rejection, API quota, or transient generation failure."
+        )
     return operation
 
 
@@ -146,23 +158,29 @@ def build_clip_prompts(scene, characters, visual_style):
     shared_audio = scene.get("audio", {})
     prompts = []
     for i, clip in enumerate(clips):
+        #camera: use per-clip override if present, otherwise fall back to scene-level and warn
+        clip_camera = clip.get("camera")
+        if clip_camera is None:
+            print(f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera.")
+            clip_camera = scene.get("camera", {})
+
         #per-clip mini-scene: shared fields, clip overrides where present, this clip's dialogue only
         clip_scene = {
             "scene_id": scene.get("scene_id"),
-            "setting": scene.get("setting", ""),
+            "setting": clip.get("setting", scene.get("setting", "")),
             "character_actions": clip.get("character_actions", scene.get("character_actions", "")),
-            "camera": clip.get("camera", scene.get("camera", {})),
+            "camera": clip_camera,
             "audio": {
-                "dialogue": clip.get("dialogue", []),          #the repetition fix
-                "sound_effects": shared_audio.get("sound_effects", "none"),
-                "ambience": shared_audio.get("ambience", "none"),
+                "dialogue": clip.get("dialogue", []),
+                "sound_effects": clip.get("sound_effects", shared_audio.get("sound_effects", "none")),
+                "ambience": clip.get("ambience", shared_audio.get("ambience", "none")),
             },
         }
         #on_screen_text is an "at end" overlay - only the final clip carries it
         if i == len(clips) - 1 and scene.get("on_screen_text"):
             clip_scene["on_screen_text"] = scene["on_screen_text"]
 
-        prompts.append(build_veo_prompt(clip_scene, characters, visual_style))
+        prompts.append(build_veo_prompt(clip_scene, characters, visual_style, is_continuation=(i > 0)))
 
     return prompts
 

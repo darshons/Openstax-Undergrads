@@ -44,9 +44,11 @@ LOG_FILE = OUTPUT_DIR / "generation_log.json"
 
 #PROMPT
 
-def build_veo_prompt(scene: dict, characters: list, visual_style: str) -> str:
+def build_veo_prompt(scene: dict, characters: list, visual_style: str, is_continuation: bool = False) -> str:
     """
-    Converts scene, character descriptions, and visual style from  JSON into a prompt to feed into model.
+    Converts scene, character descriptions, and visual style from JSON into a prompt for Veo.
+
+    is_continuation: set True for extension clips to anchor visual continuity explicitly.
     """
 
     #character block
@@ -61,13 +63,23 @@ def build_veo_prompt(scene: dict, characters: list, visual_style: str) -> str:
         )
     character_block = " | ".join(char_lines)
 
-    #dialogue block
+    #dialogue block — numbered list with explicit speaker-order lock to prevent Veo from swapping voices
+    dialogue_entries = scene.get("audio", {}).get("dialogue", [])
     dialogue_lines = []
-    for line in scene.get("audio", {}).get("dialogue", []):
+    for idx, line in enumerate(dialogue_entries, start=1):
         char = char_lookup.get(line["character_id"])
         name = char["name"] if char else line["character_id"]
-        dialogue_lines.append(f'{name}: "{line["line"]}"')
-    dialogue_block = " / ".join(dialogue_lines)
+        dialogue_lines.append(f'{idx}. {name}: "{line["line"]}"')
+
+    if dialogue_lines:
+        dialogue_block = (
+            "Spoken in this exact order — each character delivers only their own numbered line:\n    "
+            + "\n    ".join(dialogue_lines)
+            + "\n    Do not swap, merge, or reorder lines between characters."
+        )
+    else:
+        #Problem 6: explicitly suppress speech when a clip has no dialogue, so Veo does not invent lines
+        dialogue_block = "None — no spoken words in this clip. All characters act and react silently."
 
     #camera block
     cam = scene.get("camera", {})
@@ -102,12 +114,35 @@ def build_veo_prompt(scene: dict, characters: list, visual_style: str) -> str:
     #on-screen text if present
     if scene.get("on_screen_text"):
         prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
-    prompt += """\n\nCharacter reference images are provided. Maya is the nurse in blue scrubs. Carl is the patient in the hospital gown. Maintain exact character appearance from the first frame to the last. 
-    Maya always wears light blue scrubs. Carl always wears a light green hospital gown. 
-    No changes to their clothing, hair, skin tone, or facial features at any point. Do not introduce any additional characters into frame.
-    Never swap Maya and Carl's roles or voices."""
-    
-    prompt += "\n\nDo not include any text overlays, captions, subtitles, or on-screen text in the video."
+
+    #character consistency block — built dynamically from JSON, not hardcoded to any specific character
+    consistency_lines = []
+    for char in characters:
+        a = char["appearance"]
+        consistency_lines.append(
+            f"{char['name']} always wears {a['uniform']}; "
+            f"{a['skin_tone']} skin, {a['hair']}. "
+            f"Do not change {char['name']}'s clothing, hair, skin tone, or facial features at any point."
+        )
+    prompt += (
+        "\n\nCharacter reference images are provided. "
+        + " ".join(consistency_lines)
+        + " Do not introduce any additional characters into frame."
+    )
+
+    #continuation anchor — extension clips must not visually reset anything established in the prior clip
+    if is_continuation:
+        prompt += (
+            "\n\nThis clip is a direct continuation of the previous clip. "
+            "All visual elements — character appearances, clothing, lighting, room layout, and environment — "
+            "must remain exactly as established in the prior clip. Do not reset, alter, or reintroduce any visual element."
+        )
+
+    #text overlay instruction — allow on_screen_text only where explicitly specified, suppress everything else
+    if scene.get("on_screen_text"):
+        prompt += "\n\nDo not include any other text overlays, captions, or subtitles beyond the specified on-screen text at the end."
+    else:
+        prompt += "\n\nDo not include any text overlays, captions, subtitles, or on-screen text in the video."
     
     return prompt.strip()
 

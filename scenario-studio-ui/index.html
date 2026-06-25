@@ -194,7 +194,7 @@
     background:
       radial-gradient(circle, #d8dde5 1px, transparent 1px) 0 0 / 22px 22px,
       var(--os-bg-2)}
-  .canvas-inner{padding:40px 52px 200px;min-width:2400px;transform-origin:top left;transition:transform .2s}
+  .canvas-inner{padding:40px 52px 200px;min-width:3200px;transform-origin:top left;transition:transform .2s}
 
   /* Empty state */
   .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -462,9 +462,25 @@
     border-radius:8px;background:var(--os-bg-2)}
   .dp-choice.is-correct{border-color:var(--os-green);background:#f6fbe9}
   .dp-choice-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--os-ink-2)}
+  .dp-choice-letter{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+    border-radius:50%;background:var(--os-navy);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+  .dp-reorder{display:flex;flex-direction:column;gap:1px}
+  .dp-reorder button{background:none;border:1px solid var(--os-line);border-radius:3px;padding:1px 5px;
+    font-size:11px;cursor:pointer;line-height:1;color:var(--os-ink-2)}
+  .dp-reorder button:disabled{opacity:.3;cursor:default}
+  .dp-reorder button:not(:disabled):hover{border-color:var(--os-navy);color:var(--os-navy)}
+  .dp-correct-label{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--os-ink-2);
+    font-weight:600;margin-left:auto;padding:3px 8px;border-radius:5px;border:1px solid var(--os-line);
+    cursor:pointer;background:#fff}
+  .dp-correct-label.is-correct{border-color:var(--os-green);background:#f0fce0;color:#2d6a0e}
+  .dp-correct-label input{margin:0}
   .dp-choice-hd label{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--os-ink-2);font-weight:600;margin-left:auto}
   .dp-choice select{padding:4px 8px;border:1px solid var(--os-line);border-radius:5px;
     background:#fff;font-size:13px;color:var(--os-ink);outline:none;font-family:inherit}
+  .scene-cols{display:flex;gap:18px;flex:1;min-height:0}
+  .scene-col-main{flex:3;min-width:0}
+  .scene-col-side{flex:2;min-width:0;display:flex;flex-direction:column;gap:12px;
+    border-left:1px solid var(--os-line);padding-left:18px}
 
   /* ─── Scene-card edit-mode subsections ─── */
   .edit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
@@ -508,6 +524,8 @@
   .choice-text{font-size:15px;line-height:1.4}
   .correct-pill{background:#eef7df;color:#4d6e1d;border:1.5px solid #9ccb3b}
   .wrong-pill{background:#fff4d1;color:#6b5200;border:1.5px solid #e0b400}
+  .choice-pill-toggle.wrong-pill:hover{background:#ffe9a0;border-color:#c89600;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateY(-1px);transition:all .12s}
 
   .retry-badge{font-size:13px;font-weight:600;color:var(--os-ink-3);
     background:var(--os-bg-3);border:1px solid var(--os-line-strong);
@@ -879,7 +897,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
   if (isEditing) {
     return (
       <div style={{position:"relative"}}>
-        <article className="scene editing" style={{width: density==="compact"?640:780}}
+        <article className="scene editing" style={{width: density==="compact"?840:1040}}
           onClick={e=>e.stopPropagation()}>
           <div className="edit-banner">
             <span className="dot"/>
@@ -986,38 +1004,44 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
   return (
     <div style={{position:"relative"}}>
       <article className="scene"
-        style={{width: density==="compact"?600:740}}>
+        style={{width: density==="compact"?800:980}}>
         <div className="scene-hd">
           <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
-        <div className="scene-body" style={{padding,gap:density==="compact"?12:14}}>
+        <div className="scene-body" style={{padding,gap:density==="compact"?10:12}}>
           <h3 className="scene-title">{s.scene_summary}</h3>
 
-          <div className="scene-block narr">
-            <div className="scene-block-lbl">Dialogue</div>
-            {dialogue.length === 0 ? (
-              <p style={{color:"var(--os-ink-3)",fontStyle:"normal"}}>(no dialogue)</p>
-            ) : dialogue.map((row, i) => (
-              <p key={i} style={{margin:i>0?"4px 0 0":0}}>
-                <b style={{fontStyle:"normal",color:"var(--os-navy)",marginRight:6}}>{characterName(characters, row.character_id)}:</b>
-                "{row.line}"
-              </p>
-            ))}
-          </div>
+          <div className="scene-cols">
+            <div className="scene-col-main">
+              <div className="scene-block narr">
+                <div className="scene-block-lbl">Dialogue</div>
+                {dialogue.length === 0 ? (
+                  <p style={{color:"var(--os-ink-3)",fontStyle:"normal"}}>(no dialogue)</p>
+                ) : dialogue.map((row, i) => (
+                  <p key={i} style={{margin:i>0?"4px 0 0":0}}>
+                    <b style={{fontStyle:"normal",color:"var(--os-navy)",marginRight:6}}>{characterName(characters, row.character_id)}:</b>
+                    "{row.line}"
+                  </p>
+                ))}
+              </div>
+            </div>
 
-          <div className="scene-block visual">
-            <div className="scene-block-lbl">Setting · Action</div>
-            <p>{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
-          </div>
+            <div className="scene-col-side">
+              <div className="scene-block visual">
+                <div className="scene-block-lbl">Setting · Action</div>
+                <p>{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
+              </div>
 
-          <div className="scene-block onscreen">
-            <div className="scene-block-lbl">Audio</div>
-            <p>
-              {s.audio?.sound_effects && <Fragment>FX: {s.audio.sound_effects}<br/></Fragment>}
-              {s.audio?.ambience && <Fragment>Ambient: {s.audio.ambience}</Fragment>}
-              {!s.audio?.sound_effects && !s.audio?.ambience && <span style={{color:"var(--os-ink-3)"}}>(none)</span>}
-            </p>
+              <div className="scene-block onscreen">
+                <div className="scene-block-lbl">Audio</div>
+                <p>
+                  {s.audio?.sound_effects && <Fragment>FX: {s.audio.sound_effects}<br/></Fragment>}
+                  {s.audio?.ambience && <Fragment>Ambient: {s.audio.ambience}</Fragment>}
+                  {!s.audio?.sound_effects && !s.audio?.ambience && <span style={{color:"var(--os-ink-3)"}}>(none)</span>}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         <div className="scene-foot">
@@ -1135,6 +1159,13 @@ function DecisionPointCard({dp, scenes, onChange}){
     ...dp,
     choices: dp.choices.map((c,i) => ({...c, is_correct: i===idx}))
   });
+  const moveChoice = (idx, dir) => {
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= (dp.choices||[]).length) return;
+    const choices = [...dp.choices];
+    [choices[idx], choices[newIdx]] = [choices[newIdx], choices[idx]];
+    onChange({...dp, choices});
+  };
   return (
     <div className="dp-card">
       <div className="dp-id">DP {dp.decision_point_id} · intro scene {dp.associated_introduction_scene_id ?? "—"}</div>
@@ -1142,10 +1173,14 @@ function DecisionPointCard({dp, scenes, onChange}){
       {(dp.choices || []).map((c, i) => (
         <div key={c.choice_id || i} className={`dp-choice ${c.is_correct?"is-correct":""}`}>
           <div className="dp-choice-hd">
-            <span>Choice {c.choice_id || String.fromCharCode(65+i)}</span>
-            <label>
+            <div className="dp-reorder">
+              <button type="button" onClick={()=>moveChoice(i,-1)} disabled={i===0} title="Move up">↑</button>
+              <button type="button" onClick={()=>moveChoice(i,1)} disabled={i===(dp.choices.length-1)} title="Move down">↓</button>
+            </div>
+            <span className="dp-choice-letter">{String.fromCharCode(65+i)}</span>
+            <label className={`dp-correct-label ${c.is_correct?"is-correct":""}`}>
               <input type="radio" name={`dp-${dp.decision_point_id}-correct`} checked={!!c.is_correct} onChange={()=>setCorrect(i)}/>
-              correct
+              {c.is_correct ? "✓ Correct" : "Mark correct"}
             </label>
             <select value={c.routes_to_scene ?? ""}
               onChange={e=>updChoice(i, "routes_to_scene", e.target.value === "" ? null : Number(e.target.value))}>
@@ -1230,12 +1265,18 @@ function buildTreeSegments(scenes, decisionPoints) {
 }
 
 /* ─── Decision Tree View ─── */
-function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, duplicateScene}){
+function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, duplicateScene, updateDecisionPoint}){
   const scenes = script.scenes || [];
   const dps = script.decision_points || [];
   const characters = script.characters || [];
   const sceneIdxMap = new Map(scenes.map((s,i) => [s.scene_id, i]));
   const segments = buildTreeSegments(scenes, dps);
+  const setCorrectChoice = (dpId, choiceIdx) => {
+    const dpIdx = dps.findIndex(d => d.decision_point_id === dpId);
+    if (dpIdx < 0 || !updateDecisionPoint) return;
+    const dp = dps[dpIdx];
+    updateDecisionPoint(dpIdx, {...dp, choices: dp.choices.map((c,i) => ({...c, is_correct: i===choiceIdx}))});
+  };
 
   return (
     <div className="tree-view">
@@ -1279,9 +1320,14 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                   return (
                     <div key={b.choice.choice_id ?? bi} className="tree-branch-col">
                       <div className="tree-vline-sm"/>
-                      <div className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"}`}>
+                      <div
+                        className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"} choice-pill-toggle`}
+                        onClick={() => !b.choice.is_correct && setCorrectChoice(seg.dp.decision_point_id, bi)}
+                        title={b.choice.is_correct ? "This is the correct answer" : "Click to mark as correct answer"}
+                        style={{cursor: b.choice.is_correct ? "default" : "pointer"}}
+                      >
                         <span className="choice-letter">
-                          {b.choice.is_correct ? "✓ Correct" : "✗ Incorrect"} · {b.choice.choice_id}
+                          {b.choice.is_correct ? "✓ Correct" : "✗ Mark correct"} · {b.choice.choice_id}
                         </span>
                         <span className="choice-text">{b.choice.text}</span>
                       </div>
@@ -1426,6 +1472,7 @@ function App(){
   // Full backend script object: {title, learning_goal, target_audience,
   // total_duration_seconds, visual_style, characters[], scenes[], decision_points[]}
   const [script, setScript] = useState(null);
+  const [duplicateUndoStack, setDuplicateUndoStack] = useState([]);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -1459,6 +1506,7 @@ function App(){
     setBusy(true);
     setGenStep(0);
     setScript(null);
+    setDuplicateUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
 
@@ -1489,11 +1537,17 @@ function App(){
     setEditingSceneIdx(null);
   };
   const duplicateScene = (idx) => {
+    setDuplicateUndoStack(s => [...s, script]);
     setScript(curr => {
       const scenes = curr.scenes;
       const copy = {...scenes[idx], scene_id: (scenes[scenes.length-1].scene_id || scenes.length) + 1};
       return {...curr, scenes: [...scenes.slice(0,idx+1), copy, ...scenes.slice(idx+1)]};
     });
+  };
+  const undoDuplicate = () => {
+    if (duplicateUndoStack.length === 0) return;
+    setScript(duplicateUndoStack[duplicateUndoStack.length - 1]);
+    setDuplicateUndoStack(s => s.slice(0, -1));
   };
   const saveCharacterEdit = (idx, draft) => {
     setScript(curr => ({
@@ -1584,6 +1638,12 @@ function App(){
               </div>
             </div>
             <div className="stage-bar-r">
+              {duplicateUndoStack.length > 0 && (
+                <button className="btn btn-ghost btn-sm" onClick={undoDuplicate}
+                  title={`Undo last duplicate (${duplicateUndoStack.length} available)`}>
+                  ↩ Undo duplicate
+                </button>
+              )}
               <div className="zoom-ctl">
                 <button onClick={()=>setZoom(z=>Math.max(50,z-10))}>−</button>
                 <span className="zv">{zoom}%</span>

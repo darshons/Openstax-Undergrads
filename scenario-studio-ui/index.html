@@ -65,7 +65,7 @@
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
 
   /* ─── Main split ─── */
-  .main{display:grid;grid-template-columns:370px 1fr;min-height:0}
+  .main{display:grid;grid-template-columns:480px 1fr;min-height:0}
   .sidebar{background:#fff;border-right:1px solid var(--os-line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 
@@ -194,7 +194,7 @@
     background:
       radial-gradient(circle, #d8dde5 1px, transparent 1px) 0 0 / 22px 22px,
       var(--os-bg-2)}
-  .canvas-inner{padding:40px 52px 200px;min-width:1200px;transform-origin:top left;transition:transform .2s}
+  .canvas-inner{padding:40px 52px 200px;min-width:2400px;transform-origin:top left;transition:transform .2s}
 
   /* Empty state */
   .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -218,7 +218,7 @@
   .ribbon{display:flex;gap:24px;align-items:stretch;padding-bottom:24px}
 
   .scene{
-    flex-shrink:0;width:360px;background:#fff;border:1px solid var(--os-line);
+    flex-shrink:0;width:1000px;background:#fff;border:1px solid var(--os-line);
     border-radius:12px;box-shadow:var(--shadow-md);position:relative;
     transition:.18s;display:flex;flex-direction:column;cursor:default}
   .scene:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);border-color:var(--os-line-strong)}
@@ -231,16 +231,16 @@
     border-radius:6px;padding:6px 8px;font-family:inherit;font-size:inherit;line-height:inherit;
     color:inherit;outline:none;resize:none;transition:.12s}
   .edit-field:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
-  .edit-title{font-size:15px;font-weight:700;color:var(--os-ink);line-height:1.3;padding:7px 9px}
-  .edit-tag-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .edit-tag-row select,.edit-tag-row input{padding:4px 7px;font-size:10.5px;border-radius:5px;
+  .edit-title{font-size:19px;font-weight:700;color:var(--os-ink);line-height:1.3;padding:9px 11px}
+  .edit-tag-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .edit-tag-row select,.edit-tag-row input{padding:6px 10px;font-size:14px;border-radius:5px;
     border:1px solid var(--os-line);background:#fff;font-family:inherit;color:var(--os-ink);outline:none;font-weight:700;
-    letter-spacing:.04em;text-transform:uppercase}
-  .edit-tag-row input{width:96px;font-family:"JetBrains Mono",monospace;text-transform:none;letter-spacing:0;font-weight:500}
+    letter-spacing:.03em;text-transform:uppercase}
+  .edit-tag-row input{width:110px;font-family:"JetBrains Mono",monospace;text-transform:none;letter-spacing:0;font-weight:500}
   .edit-actions{display:flex;gap:6px}
-  .edit-banner{display:flex;align-items:center;gap:7px;padding:8px 14px;
+  .edit-banner{display:flex;align-items:center;gap:7px;padding:10px 16px;
     background:#eef3ff;color:var(--os-navy);border-bottom:1px solid #d9e2f7;
-    font-size:11px;font-weight:700;letter-spacing:.03em}
+    font-size:14px;font-weight:700;letter-spacing:.03em}
   .edit-banner .dot{width:6px;height:6px;border-radius:50%;background:var(--os-navy)}
   .scene.flagged::after{content:"";position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--os-orange);border:2px solid #fff;box-shadow:var(--shadow-sm)}
   .scene.regenerating{opacity:.55;pointer-events:none}
@@ -266,44 +266,44 @@
   .revise-pop .qs button:hover{background:#fff;border-color:var(--os-line-strong);color:var(--os-ink)}
   .revise-pop .actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
   .scene-hd{display:flex;align-items:center;justify-content:space-between;
-    padding:10px 14px;border-bottom:1px solid var(--os-line);
+    padding:14px 20px;border-bottom:1px solid var(--os-line);
     background:linear-gradient(180deg,#fff 0%, #fafbfc 100%);border-radius:12px 12px 0 0}
-  .scene-num{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+  .scene-num{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
     font-family:"JetBrains Mono",monospace}
   .scene-num b{color:var(--os-orange)}
-  .scene-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-    padding:2px 7px;border-radius:4px;background:#eef7df;color:#4d6e1d}
+  .scene-tag{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 10px;border-radius:4px;background:#eef7df;color:#4d6e1d}
   .scene-tag.hook,.scene-tag.narrative{background:#fde7d8;color:#a04412}
   .scene-tag.concept{background:#dbe6ff;color:#1a3a8c}
   .scene-tag.demo{background:#eef7df;color:#4d6e1d}
   .scene-tag.problem,.scene-tag.consequence{background:#fff4d1;color:#8a6b00}
   .scene-tag.recap,.scene-tag.resolution{background:#e8e9ed;color:#3d4452}
 
-  .scene-body{padding:14px;flex:1;display:flex;flex-direction:column;gap:10px}
-  .scene-title{font-size:16px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
+  .scene-body{padding:20px;flex:1;display:flex;flex-direction:column;gap:14px}
+  .scene-title{font-size:20px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
 
-  .scene-block{font-size:13.5px;line-height:1.5}
-  .scene-block-lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-    color:var(--os-ink-3);margin-bottom:4px;display:flex;align-items:center;gap:5px}
+  .scene-block{font-size:16px;line-height:1.55}
+  .scene-block-lbl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--os-ink-3);margin-bottom:5px;display:flex;align-items:center;gap:5px}
   .scene-block-lbl::before{content:"";width:10px;height:1px;background:var(--os-line-strong)}
-  .scene-block.narr p{margin:0;color:var(--os-ink);font-style:italic;font-size:14px;line-height:1.55}
-  .scene-block.visual p{margin:0;color:var(--os-ink-2);font-size:13px;line-height:1.5}
-  .scene-block.onscreen p{margin:0;color:var(--os-ink-2);font-size:13px;line-height:1.5}
+  .scene-block.narr p{margin:0;color:var(--os-ink);font-style:italic;font-size:17px;line-height:1.6}
+  .scene-block.visual p{margin:0;color:var(--os-ink-2);font-size:16px;line-height:1.55}
+  .scene-block.onscreen p{margin:0;color:var(--os-ink-2);font-size:16px;line-height:1.55}
   .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
-    font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--os-navy)}
+    font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--os-navy)}
 
   .scene-foot{display:flex;align-items:center;justify-content:space-between;
-    padding:8px 14px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
-  .scene-foot-l{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--os-ink-3)}
+    padding:12px 20px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
+  .scene-foot-l{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--os-ink-3)}
   .scene-foot-l b{color:var(--os-ink-2);font-weight:600;font-variant-numeric:tabular-nums}
-  .scene-foot-r{display:flex;gap:2px}
-  .icon-btn{width:24px;height:24px;border-radius:5px;color:var(--os-ink-3);
+  .scene-foot-r{display:flex;gap:4px}
+  .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
 
   /* Connector arrow between scenes */
   .connector{display:flex;align-items:center;flex-shrink:0;color:var(--os-line-strong);position:relative}
-  .connector::before{content:"";position:absolute;left:-2px;top:50%;width:6px;height:6px;
+  .connector::before{content:"";position:absolute;left:-2px;top:50%;width:8px;height:8px;
     border-radius:50%;background:var(--os-line-strong);transform:translateY(-50%)}
   .connector svg{display:block}
 
@@ -387,70 +387,92 @@
 
   /* ─── Overview header (editable script.title / learning_goal / target_audience) ─── */
   .overview{background:#fff;border:1px solid var(--os-line);border-radius:12px;
-    padding:18px 22px;margin-bottom:22px;box-shadow:var(--shadow-sm)}
-  .overview-title{font-size:24px;font-weight:900;color:var(--os-ink);margin:0 0 4px;
+    padding:24px 28px;margin-bottom:28px;box-shadow:var(--shadow-sm)}
+  .overview-title{font-size:30px;font-weight:900;color:var(--os-ink);margin:0 0 6px;
     letter-spacing:-.015em;line-height:1.2;width:100%;border:0;background:transparent;
     outline:none;font-family:inherit;padding:0}
   .overview-title:focus{box-shadow:0 2px 0 var(--os-orange)}
-  .overview-meta{display:flex;flex-wrap:wrap;gap:18px;font-size:12px;color:var(--os-ink-2);margin-top:8px}
+  .overview-meta{display:flex;flex-wrap:wrap;gap:20px;font-size:15px;color:var(--os-ink-2);margin-top:10px}
   .overview-meta b{color:var(--os-ink);font-weight:700}
-  .overview-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-  .overview-field{display:flex;flex-direction:column;gap:4px}
-  .overview-field label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--os-ink-3)}
-  .overview-field textarea{width:100%;min-height:50px;padding:8px 10px;border:1px solid var(--os-line);
-    border-radius:7px;background:var(--os-bg-2);font-size:12.5px;line-height:1.5;resize:vertical;
+  .overview-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .overview-field{display:flex;flex-direction:column;gap:5px}
+  .overview-field label{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--os-ink-3)}
+  .overview-field textarea{width:100%;min-height:60px;padding:10px 12px;border:1px solid var(--os-line);
+    border-radius:7px;background:var(--os-bg-2);font-size:15px;line-height:1.5;resize:vertical;
     outline:none;font-family:inherit;color:var(--os-ink)}
   .overview-field textarea:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
 
   /* ─── Section header (Characters / Decision points) ─── */
-  .section-hd{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
-  .section-hd h2{font-size:14px;font-weight:700;color:var(--os-ink);margin:0;letter-spacing:.005em}
-  .section-hd em{font-style:normal;color:var(--os-ink-3);font-weight:400;font-size:12px;margin-left:8px}
-  .strip{display:flex;gap:14px;align-items:stretch;padding-bottom:12px;overflow-x:auto}
+  .section-hd{display:flex;align-items:baseline;justify-content:space-between;margin:28px 0 14px}
+  .section-hd h2{font-size:18px;font-weight:700;color:var(--os-ink);margin:0;letter-spacing:.005em}
+  .section-hd em{font-style:normal;color:var(--os-ink-3);font-weight:400;font-size:15px;margin-left:8px}
+  .strip{display:flex;gap:18px;align-items:stretch;padding-bottom:12px;overflow-x:auto}
 
   /* ─── Character card ─── */
-  .char-card{flex-shrink:0;width:240px;background:#fff;border:1px solid var(--os-line);
-    border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-sm)}
-  .char-card .char-id{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+  .char-card{flex-shrink:0;width:300px;background:#fff;border:1px solid var(--os-line);
+    border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-sm)}
+  .char-card .char-id{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
     font-family:"JetBrains Mono",monospace}
-  .char-card .char-name{font-size:14px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
-  .char-card .char-role{font-size:11.5px;color:var(--os-ink-2);font-style:italic}
-  .char-card .char-detail{font-size:11.5px;color:var(--os-ink-2);line-height:1.45}
+  .char-card .char-name{font-size:17px;font-weight:700;color:var(--os-ink);margin:0;line-height:1.3}
+  .char-card .char-role{font-size:14px;color:var(--os-ink-2);font-style:italic}
+  .char-card .char-detail{font-size:14px;color:var(--os-ink-2);line-height:1.45}
   .char-card .char-detail b{color:var(--os-ink);font-weight:600}
-  .char-card input,.char-card textarea{width:100%;padding:6px 8px;border:1px solid var(--os-line);
-    border-radius:6px;background:var(--os-bg-2);font-size:12px;line-height:1.4;outline:none;
+  .char-card input,.char-card textarea{width:100%;padding:7px 9px;border:1px solid var(--os-line);
+    border-radius:6px;background:var(--os-bg-2);font-size:14px;line-height:1.4;outline:none;
     font-family:inherit;color:inherit;resize:vertical}
   .char-card input:focus,.char-card textarea:focus{border-color:var(--os-navy);background:#fff;
     box-shadow:0 0 0 3px rgba(0,37,105,.08)}
-  .char-card .char-appearance{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px}
-  .char-card .char-foot{display:flex;justify-content:flex-end;gap:5px;margin-top:6px}
+  .char-card .char-appearance{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+  .char-card .char-foot{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}
+
+  /* ─── Setting card ─── */
+  .setting-card{flex-shrink:0;width:460px;background:#fff;border:1px solid var(--os-line);
+    border-left:4px solid var(--os-navy);border-radius:10px;padding:16px 18px;
+    display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-sm)}
+  .setting-id{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--os-navy);
+    text-transform:uppercase;font-family:"JetBrains Mono",monospace}
+  .setting-name-input{font-size:17px;font-weight:700;color:var(--os-ink);width:100%;
+    border:0;border-bottom:1.5px solid var(--os-line);background:transparent;
+    outline:none;font-family:inherit;padding:2px 0 6px;line-height:1.3}
+  .setting-name-input:focus{border-bottom-color:var(--os-navy)}
+  .setting-name-input::placeholder{color:var(--os-ink-3);font-weight:400}
+  .setting-desc{width:100%;min-height:72px;padding:9px 11px;border:1px solid var(--os-line);
+    border-radius:6px;background:var(--os-bg-2);font-size:14px;line-height:1.5;resize:vertical;
+    outline:none;font-family:inherit;color:var(--os-ink)}
+  .setting-desc:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
+  .setting-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .setting-field{display:flex;flex-direction:column;gap:4px}
+  .setting-field label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--os-ink-3)}
+  .setting-field input{padding:7px 9px;border:1px solid var(--os-line);border-radius:6px;
+    background:var(--os-bg-2);font-size:14px;outline:none;font-family:inherit;color:var(--os-ink)}
+  .setting-field input:focus{border-color:var(--os-navy);background:#fff;box-shadow:0 0 0 3px rgba(0,37,105,.08)}
 
   /* ─── Decision-point card ─── */
-  .dp-card{flex-shrink:0;width:340px;background:#fff;border:1px solid var(--os-line);
-    border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow-sm)}
-  .dp-id{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
+  .dp-card{flex-shrink:0;width:440px;background:#fff;border:1px solid var(--os-line);
+    border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-sm)}
+  .dp-id{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--os-ink-3);
     font-family:"JetBrains Mono",monospace}
-  .dp-card textarea,.dp-card input{width:100%;padding:7px 9px;border:1px solid var(--os-line);
-    border-radius:6px;background:var(--os-bg-2);font-size:12.5px;line-height:1.45;outline:none;
+  .dp-card textarea,.dp-card input{width:100%;padding:9px 11px;border:1px solid var(--os-line);
+    border-radius:6px;background:var(--os-bg-2);font-size:15px;line-height:1.45;outline:none;
     font-family:inherit;color:inherit;resize:vertical}
   .dp-card textarea:focus,.dp-card input:focus{border-color:var(--os-navy);background:#fff;
     box-shadow:0 0 0 3px rgba(0,37,105,.08)}
-  .dp-q{font-weight:600;color:var(--os-ink);min-height:42px}
-  .dp-choice{display:flex;flex-direction:column;gap:5px;padding:9px;border:1px solid var(--os-line);
+  .dp-q{font-weight:600;color:var(--os-ink);min-height:52px}
+  .dp-choice{display:flex;flex-direction:column;gap:7px;padding:12px;border:1px solid var(--os-line);
     border-radius:8px;background:var(--os-bg-2)}
   .dp-choice.is-correct{border-color:var(--os-green);background:#f6fbe9}
-  .dp-choice-hd{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--os-ink-2)}
-  .dp-choice-hd label{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--os-ink-2);font-weight:600;margin-left:auto}
-  .dp-choice select{padding:3px 6px;border:1px solid var(--os-line);border-radius:5px;
-    background:#fff;font-size:11px;color:var(--os-ink);outline:none;font-family:inherit}
+  .dp-choice-hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--os-ink-2)}
+  .dp-choice-hd label{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--os-ink-2);font-weight:600;margin-left:auto}
+  .dp-choice select{padding:4px 8px;border:1px solid var(--os-line);border-radius:5px;
+    background:#fff;font-size:13px;color:var(--os-ink);outline:none;font-family:inherit}
 
   /* ─── Scene-card edit-mode subsections ─── */
   .edit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
   .dialogue-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:5px}
-  .dialogue-row select{padding:5px 7px;border:1px solid var(--os-line);border-radius:5px;
-    background:#fff;font-size:11px;color:var(--os-ink);outline:none;font-family:inherit;flex-shrink:0;width:64px}
-  .dialogue-row textarea{flex:1;min-height:42px;font-size:12px}
-  .dialogue-row button{padding:3px 6px;font-size:10px;color:var(--os-ink-3);border:1px solid var(--os-line);border-radius:5px;background:#fff;flex-shrink:0}
+  .dialogue-row select{padding:7px 9px;border:1px solid var(--os-line);border-radius:5px;
+    background:#fff;font-size:15px;color:var(--os-ink);outline:none;font-family:inherit;flex-shrink:0;width:86px}
+  .dialogue-row textarea{flex:1;min-height:56px;font-size:16px}
+  .dialogue-row button{padding:5px 9px;font-size:14px;color:var(--os-ink-3);border:1px solid var(--os-line);border-radius:5px;background:#fff;flex-shrink:0}
   .dialogue-row button:hover{color:var(--os-ink);background:var(--os-bg-3)}
 
   /* ─── Save/submit banner ─── */
@@ -461,6 +483,40 @@
   /* ─── Generate-side error banner ─── */
   .gen-error{margin-top:8px;padding:8px 10px;border-radius:7px;font-size:11.5px;font-weight:600;
     background:#fde7d8;color:#a04412;border:1px solid #f5c79b;line-height:1.4}
+
+  /* ─── Decision Tree Layout ─── */
+  .tree-view{display:flex;flex-direction:column;align-items:center;width:100%;gap:0}
+  .tree-node{display:flex;flex-direction:column;align-items:center}
+  .tree-vline{width:2px;height:22px;background:var(--os-line-strong);border-radius:1px;flex-shrink:0}
+  .tree-vline-sm{width:2px;height:14px;background:var(--os-line-strong);border-radius:1px;flex-shrink:0}
+
+  .tree-dp-node{background:var(--os-navy);color:#fff;border-radius:14px;padding:22px 52px;
+    text-align:center;box-shadow:var(--shadow-md);min-width:700px;max-width:1100px}
+  .tree-dp-badge{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:rgba(255,255,255,.5);margin-bottom:6px;font-family:"JetBrains Mono",monospace}
+  .tree-dp-question{font-size:20px;font-weight:700;line-height:1.35}
+
+  .tree-branch-frame{display:flex;flex-direction:column;align-items:center;gap:0}
+  .tree-branch-row{display:flex;align-items:flex-start;border-top:2px solid var(--os-line-strong);
+    gap:0;width:fit-content}
+  .tree-branch-col{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 28px}
+
+  .choice-pill{padding:12px 22px;border-radius:12px;font-weight:700;text-align:center;
+    min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:4px}
+  .choice-letter{font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    font-family:"JetBrains Mono",monospace;opacity:.7}
+  .choice-text{font-size:15px;line-height:1.4}
+  .correct-pill{background:#eef7df;color:#4d6e1d;border:1.5px solid #9ccb3b}
+  .wrong-pill{background:#fff4d1;color:#6b5200;border:1.5px solid #e0b400}
+
+  .retry-badge{font-size:13px;font-weight:600;color:var(--os-ink-3);
+    background:var(--os-bg-3);border:1px solid var(--os-line-strong);
+    border-radius:999px;padding:5px 16px;
+    display:inline-flex;align-items:center;gap:4px}
+  .continues-badge{font-size:13px;font-weight:600;color:#4d6e1d;
+    background:#eef7df;border:1px solid #9ccb3b;
+    border-radius:999px;padding:5px 16px;
+    display:inline-flex;align-items:center;gap:4px}
 </style>
 
 <script type="application/json" id="TWEAK_DEFAULTS">{"accent":"orange","showCitations":true,"density":"comfy","sceneStyle":"narrated"}</script>
@@ -783,7 +839,7 @@ function characterName(characters, id){
 
 function SceneCard({s, characters, decisionPoints, density, isEditing,
                     onStartEdit, onSaveEdit, onCancelEdit, onDuplicate}){
-  const padding = density==="compact" ? 10 : density==="comfy" ? 14 : 12;
+  const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
 
   useEffect(() => { if (isEditing) setDraft(s); }, [isEditing, s]);
@@ -807,7 +863,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
   if (isEditing) {
     return (
       <div style={{position:"relative"}}>
-        <article className="scene editing" style={{width: density==="compact"?320:380}}
+        <article className="scene editing" style={{width: density==="compact"?640:780}}
           onClick={e=>e.stopPropagation()}>
           <div className="edit-banner">
             <span className="dot"/>
@@ -831,13 +887,13 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
             <div className="scene-block">
               <div className="scene-block-lbl">Setting</div>
               <textarea className="edit-field" value={draft.setting || ""}
-                onChange={e=>upd("setting", e.target.value)} style={{minHeight:48,fontSize:12}}/>
+                onChange={e=>upd("setting", e.target.value)} style={{minHeight:64,fontSize:16}}/>
             </div>
 
             <div className="scene-block">
               <div className="scene-block-lbl">Character actions</div>
               <textarea className="edit-field" value={draft.character_actions || ""}
-                onChange={e=>upd("character_actions", e.target.value)} style={{minHeight:48,fontSize:12}}/>
+                onChange={e=>upd("character_actions", e.target.value)} style={{minHeight:64,fontSize:16}}/>
             </div>
 
             <div className="scene-block">
@@ -856,7 +912,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
               <div className="scene-block-lbl" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <span>Dialogue</span>
                 <button type="button" onClick={addDialogueLine}
-                  style={{fontSize:10,fontWeight:600,color:"var(--os-navy)",letterSpacing:".04em"}}>+ ADD LINE</button>
+                  style={{fontSize:14,fontWeight:600,color:"var(--os-navy)",letterSpacing:".03em"}}>+ ADD LINE</button>
               </div>
               {(draft.audio?.dialogue || []).map((row, i) => (
                 <div key={i} className="dialogue-row">
@@ -914,12 +970,12 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
   return (
     <div style={{position:"relative"}}>
       <article className="scene"
-        style={{width: density==="compact"?280:320}}>
+        style={{width: density==="compact"?600:740}}>
         <div className="scene-hd">
           <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
-        <div className="scene-body" style={{padding,gap:density==="compact"?7:10}}>
+        <div className="scene-body" style={{padding,gap:density==="compact"?12:14}}>
           <h3 className="scene-title">{s.scene_summary}</h3>
 
           <div className="scene-block narr">
@@ -1011,6 +1067,47 @@ function CharacterCard({c, isEditing, onStartEdit, onSaveEdit, onCancelEdit}){
   );
 }
 
+/* ─── Setting / Background card ─── */
+function SettingCard({setting, onChange}){
+  const upd = (k, v) => onChange({...(setting||{}), [k]: v});
+  const s = setting || {};
+  return (
+    <div className="setting-card">
+      <div className="setting-id">Scene Setting &amp; Background</div>
+      <input className="setting-name-input"
+        value={s.location || ""}
+        onChange={e=>upd("location", e.target.value)}
+        placeholder="Location name — e.g. Hospital Room 204, Lecture Hall B"/>
+      <textarea className="setting-desc"
+        value={s.description || ""}
+        onChange={e=>upd("description", e.target.value)}
+        placeholder="Describe the overall environment: layout, furniture, props, anything visible on screen…"/>
+      <div className="setting-grid">
+        <div className="setting-field">
+          <label>Lighting</label>
+          <input value={s.lighting || ""} onChange={e=>upd("lighting", e.target.value)}
+            placeholder="e.g. fluorescent overhead, warm lamp"/>
+        </div>
+        <div className="setting-field">
+          <label>Time of day</label>
+          <input value={s.time_of_day || ""} onChange={e=>upd("time_of_day", e.target.value)}
+            placeholder="e.g. morning, early afternoon"/>
+        </div>
+        <div className="setting-field">
+          <label>Camera angles</label>
+          <input value={s.camera_notes || ""} onChange={e=>upd("camera_notes", e.target.value)}
+            placeholder="e.g. medium shots, occasional close-up"/>
+        </div>
+        <div className="setting-field">
+          <label>Atmosphere / mood</label>
+          <input value={s.atmosphere || ""} onChange={e=>upd("atmosphere", e.target.value)}
+            placeholder="e.g. clinical but warm, tense"/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Decision-point card ─── */
 function DecisionPointCard({dp, scenes, onChange}){
   const updQ = (v) => onChange({...dp, question_text: v});
@@ -1042,10 +1139,163 @@ function DecisionPointCard({dp, scenes, onChange}){
           </div>
           <textarea value={c.text || ""} onChange={e=>updChoice(i, "text", e.target.value)} placeholder="Choice text"/>
           {!c.is_correct && (
-            <textarea value={c.misconception || ""} onChange={e=>updChoice(i, "misconception", e.target.value)} placeholder="Misconception this choice represents (optional)" style={{fontSize:11.5,minHeight:32}}/>
+            <textarea value={c.misconception || ""} onChange={e=>updChoice(i, "misconception", e.target.value)} placeholder="Misconception this choice represents (optional)" style={{fontSize:14,minHeight:44}}/>
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ─── Build tree segments from flat scenes + decision points ─── */
+function buildTreeSegments(scenes, decisionPoints) {
+  if (!scenes || scenes.length === 0) return [];
+  const dps = decisionPoints || [];
+  const dpMap = new Map(dps.map(dp => [dp.decision_point_id, dp]));
+  const sceneMap = new Map(scenes.map(s => [s.scene_id, s]));
+
+  // Scenes that are direct targets of DP choices are "branch" scenes, not trunk
+  const branchSceneIds = new Set(
+    dps.flatMap(dp => (dp.choices || []).map(c => c.routes_to_scene).filter(x => x != null))
+  );
+  const trunk = scenes.filter(s => !branchSceneIds.has(s.scene_id));
+
+  const dpIntroCount = {};
+  for (const s of trunk) {
+    const id = s.routes_to?.decision_point_id;
+    if (id != null) dpIntroCount[id] = (dpIntroCount[id] || 0) + 1;
+  }
+
+  const visited = new Set();
+  const addedDps = new Set();
+  const dpIntroSeen = {};
+  const rawSegs = [];
+
+  for (const scene of trunk) {
+    if (visited.has(scene.scene_id)) continue;
+    rawSegs.push({kind:"scene", scene});
+    visited.add(scene.scene_id);
+
+    const dpId = scene.routes_to?.decision_point_id;
+    if (dpId != null && !addedDps.has(dpId)) {
+      dpIntroSeen[dpId] = (dpIntroSeen[dpId] || 0) + 1;
+      if (dpIntroSeen[dpId] >= (dpIntroCount[dpId] || 1)) {
+        const dp = dpMap.get(dpId);
+        if (dp) {
+          addedDps.add(dpId);
+          const branches = (dp.choices || []).map(c => ({
+            choice: c,
+            scene: c.routes_to_scene != null ? sceneMap.get(c.routes_to_scene) : null,
+          }));
+          branches.forEach(b => { if (b.scene) visited.add(b.scene.scene_id); });
+          rawSegs.push({kind:"branch", dp, branches});
+        }
+      }
+    }
+  }
+
+  for (const scene of scenes) {
+    if (!visited.has(scene.scene_id)) rawSegs.push({kind:"scene", scene});
+  }
+
+  // Group consecutive trunk scenes into horizontal rows
+  const segments = [];
+  let trunkGroup = null;
+  for (const seg of rawSegs) {
+    if (seg.kind === "scene") {
+      if (!trunkGroup) { trunkGroup = {kind:"trunk", scenes:[]}; segments.push(trunkGroup); }
+      trunkGroup.scenes.push(seg.scene);
+    } else {
+      trunkGroup = null;
+      segments.push(seg);
+    }
+  }
+  return segments;
+}
+
+/* ─── Decision Tree View ─── */
+function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, duplicateScene}){
+  const scenes = script.scenes || [];
+  const dps = script.decision_points || [];
+  const characters = script.characters || [];
+  const sceneIdxMap = new Map(scenes.map((s,i) => [s.scene_id, i]));
+  const segments = buildTreeSegments(scenes, dps);
+
+  return (
+    <div className="tree-view">
+      {segments.map((seg, si) => {
+        if (seg.kind === "trunk") {
+          return (
+            <div key={`trunk-${si}`} className="tree-node">
+              {si > 0 && <div className="tree-vline"/>}
+              <div className="ribbon" style={{flexWrap:"wrap",justifyContent:"center",paddingBottom:0}}>
+                {seg.scenes.map((s, i) => {
+                  const idx = sceneIdxMap.get(s.scene_id) ?? -1;
+                  return (
+                    <Fragment key={s.scene_id ?? i}>
+                      {i > 0 && <div className="connector">{I.arrow}</div>}
+                      <SceneCard s={s} characters={characters} decisionPoints={dps}
+                        density={density}
+                        isEditing={editingSceneIdx===idx}
+                        onStartEdit={()=>setEditingSceneIdx(idx)}
+                        onCancelEdit={()=>setEditingSceneIdx(null)}
+                        onSaveEdit={(draft)=>saveSceneEdit(idx, draft)}
+                        onDuplicate={()=>duplicateScene(idx)}/>
+                    </Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+
+        if (seg.kind === "branch") {
+          return (
+            <div key={`dp-${seg.dp.decision_point_id}`} className="tree-branch-frame">
+              <div className="tree-vline"/>
+              <div className="tree-dp-node">
+                <div className="tree-dp-badge">Decision Point {seg.dp.decision_point_id}</div>
+                <div className="tree-dp-question">{seg.dp.question_text}</div>
+              </div>
+              <div className="tree-branch-row">
+                {seg.branches.map((b, bi) => {
+                  const i = b.scene ? (sceneIdxMap.get(b.scene.scene_id) ?? -1) : -1;
+                  return (
+                    <div key={b.choice.choice_id ?? bi} className="tree-branch-col">
+                      <div className="tree-vline-sm"/>
+                      <div className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"}`}>
+                        <span className="choice-letter">
+                          {b.choice.is_correct ? "✓ Correct" : "✗ Incorrect"} · {b.choice.choice_id}
+                        </span>
+                        <span className="choice-text">{b.choice.text}</span>
+                      </div>
+                      {b.scene ? (
+                        <>
+                          <div className="tree-vline-sm"/>
+                          <SceneCard s={b.scene} characters={characters} decisionPoints={dps}
+                            density="compact"
+                            isEditing={editingSceneIdx===i}
+                            onStartEdit={()=>setEditingSceneIdx(i)}
+                            onCancelEdit={()=>setEditingSceneIdx(null)}
+                            onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
+                            onDuplicate={()=>duplicateScene(i)}/>
+                          {b.choice.is_correct
+                            ? <div className="continues-badge">↓ continues</div>
+                            : <div className="retry-badge">↺ returns to decision point</div>}
+                        </>
+                      ) : (
+                        <div style={{fontSize:11,color:"var(--os-ink-3)",fontStyle:"italic",padding:"10px 0"}}>no scene linked</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+
+        return null;
+      })}
     </div>
   );
 }
@@ -1366,9 +1616,12 @@ function App(){
                   </div>
 
                   <div className="section-hd">
-                    <h2>Characters <em>{(script.characters||[]).length}</em></h2>
+                    <h2>Characters &amp; Setting <em>{(script.characters||[]).length} character{(script.characters||[]).length===1?"":"s"}</em></h2>
                   </div>
                   <div className="strip">
+                    <SettingCard
+                      setting={script.setting}
+                      onChange={(s)=>updateScriptField("setting", s)}/>
                     {(script.characters || []).map((c, i) => (
                       <CharacterCard key={c.character_id || i} c={c}
                         isEditing={editingCharacterIdx===i}
@@ -1377,34 +1630,27 @@ function App(){
                         onSaveEdit={(draft)=>saveCharacterEdit(i, draft)}/>
                     ))}
                     {(script.characters||[]).length === 0 && (
-                      <div style={{padding:14,color:"var(--os-ink-3)",fontSize:12.5,fontStyle:"italic"}}>No characters defined.</div>
+                      <div style={{padding:14,color:"var(--os-ink-3)",fontSize:14,fontStyle:"italic"}}>No characters defined.</div>
                     )}
                   </div>
 
                   <div className="section-hd">
-                    <h2>Scenes <em>{sceneCount}</em></h2>
+                    <h2>Script flow <em>{sceneCount} scene{sceneCount===1?"":"s"}{(script.decision_points||[]).length > 0 ? ` · ${script.decision_points.length} decision point${script.decision_points.length===1?"":"s"}` : ""}</em></h2>
                   </div>
-                  <div className="ribbon">
-                    {(script.scenes || []).map((s, i) => (
-                      <Fragment key={s.scene_id ?? i}>
-                        <SceneCard s={s} characters={script.characters} decisionPoints={script.decision_points}
-                          density={t.density}
-                          isEditing={editingSceneIdx===i}
-                          onStartEdit={()=>setEditingSceneIdx(i)}
-                          onCancelEdit={()=>setEditingSceneIdx(null)}
-                          onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
-                          onDuplicate={()=>duplicateScene(i)}/>
-                        {i < (script.scenes.length - 1) && (
-                          <div className="connector">{I.arrow}</div>
-                        )}
-                      </Fragment>
-                    ))}
-                  </div>
+                  <TreeView
+                    script={script}
+                    density={t.density}
+                    editingSceneIdx={editingSceneIdx}
+                    setEditingSceneIdx={setEditingSceneIdx}
+                    saveSceneEdit={saveSceneEdit}
+                    duplicateScene={duplicateScene}
+                    updateDecisionPoint={updateDecisionPoint}
+                  />
 
                   {(script.decision_points || []).length > 0 && (
                     <>
-                      <div className="section-hd">
-                        <h2>Decision points <em>{script.decision_points.length}</em></h2>
+                      <div className="section-hd" style={{marginTop:32}}>
+                        <h2>Decision points <em>{script.decision_points.length} — edit choices &amp; routing below</em></h2>
                       </div>
                       <div className="strip">
                         {script.decision_points.map((dp, i) => (

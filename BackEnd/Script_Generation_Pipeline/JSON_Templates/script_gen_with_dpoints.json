@@ -4,6 +4,14 @@
   "target_audience": "",
   "total_duration_seconds": 0,
   "visual_style": "",
+  "setting": {
+    "location": "",
+    "description": "",
+    "lighting": "",
+    "time_of_day": "",
+    "camera_notes": "",
+    "atmosphere": ""
+  },
   "characters": [
     {
       "character_id": "",

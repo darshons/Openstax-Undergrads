@@ -554,54 +554,193 @@ const {useState, useEffect, useRef, useMemo, Fragment} = React;
    the OpenStax ABL entry). `unit` on each chapter is what gets sent as
    unit_num — the crawler needs it and section IDs don't encode it. */
 const CATALOG = [
+  // ─── Life Sciences ───
   {
     id:"biology2e", title:"Biology 2e", sub:"Clark · Douglas · Choi", color:"#9ccb3b",
     bookTitle:"Biology 2e",
     chapters:[
-      {n:"01", unit:1, name:"The Study of Life",
-       secs:[{n:"1.1",t:"The Science of Biology"},{n:"1.2",t:"Themes and Concepts of Biology"}]},
-      {n:"02", unit:1, name:"The Chemical Foundation of Life",
-       secs:[{n:"2.1",t:"Atoms, Isotopes, Ions, and Molecules"},{n:"2.2",t:"Water"},{n:"2.3",t:"Carbon"}]},
-      {n:"05", unit:2, name:"Structure and Function of Plasma Membranes",
-       secs:[{n:"5.1",t:"Components and Structure"},{n:"5.2",t:"Passive Transport"},{n:"5.3",t:"Active Transport"},{n:"5.4",t:"Bulk Transport"}]},
-      {n:"09", unit:2, name:"Cellular Respiration",
-       secs:[{n:"9.1",t:"Energy in Living Systems"},{n:"9.2",t:"Glycolysis"},{n:"9.3",t:"Citric Acid Cycle"},{n:"9.4",t:"Oxidative Phosphorylation"}]},
+      {n:"01", unit:1, name:"The Study of Life", secs:[{n:"1.1",t:"The Science of Biology"},{n:"1.2",t:"Themes and Concepts of Biology"}]},
+      {n:"02", unit:1, name:"The Chemical Foundation of Life", secs:[{n:"2.1",t:"Atoms, Isotopes, Ions, and Molecules"},{n:"2.2",t:"Water"},{n:"2.3",t:"Carbon"}]},
+      {n:"03", unit:1, name:"Biological Macromolecules", secs:[{n:"3.1",t:"Synthesis of Biological Macromolecules"},{n:"3.2",t:"Carbohydrates"},{n:"3.3",t:"Lipids"},{n:"3.4",t:"Proteins"},{n:"3.5",t:"Nucleic Acids"}]},
+      {n:"05", unit:2, name:"Structure and Function of Plasma Membranes", secs:[{n:"5.1",t:"Components and Structure"},{n:"5.2",t:"Passive Transport"},{n:"5.3",t:"Active Transport"},{n:"5.4",t:"Bulk Transport"}]},
+      {n:"09", unit:2, name:"Cellular Respiration", secs:[{n:"9.1",t:"Energy in Living Systems"},{n:"9.2",t:"Glycolysis"},{n:"9.3",t:"Citric Acid Cycle"},{n:"9.4",t:"Oxidative Phosphorylation"}]},
+      {n:"10", unit:2, name:"Photosynthesis", secs:[{n:"10.1",t:"Overview of Photosynthesis"},{n:"10.2",t:"The Light-Dependent Reactions"},{n:"10.3",t:"Using Light Energy to Make Organic Molecules"}]},
+      {n:"11", unit:3, name:"Meiosis and Sexual Reproduction", secs:[{n:"11.1",t:"The Process of Meiosis"},{n:"11.2",t:"Sexual Reproduction"}]},
+      {n:"14", unit:3, name:"DNA Structure and Function", secs:[{n:"14.1",t:"Historical Basis of Modern Understanding"},{n:"14.2",t:"DNA Structure and Sequencing"},{n:"14.3",t:"Basics of DNA Replication"},{n:"14.4",t:"DNA Replication in Prokaryotes"},{n:"14.5",t:"DNA Replication in Eukaryotes"},{n:"14.6",t:"DNA Repair"}]},
     ]
   },
+  {
+    id:"anatomy", title:"Anatomy and Physiology 2e", sub:"Betts · Young · Wise", color:"#e74c3c",
+    bookTitle:"Anatomy and Physiology 2e",
+    chapters:[
+      {n:"01", unit:1, name:"An Introduction to the Human Body", secs:[{n:"1.1",t:"Overview of Anatomy and Physiology"},{n:"1.2",t:"Structural Organization of the Human Body"},{n:"1.3",t:"Functions of Human Life"},{n:"1.5",t:"Homeostasis"},{n:"1.6",t:"Anatomical Terminology"}]},
+      {n:"02", unit:1, name:"The Chemical Level of Organization", secs:[{n:"2.1",t:"Elements and Atoms: The Building Blocks of Matter"},{n:"2.2",t:"Chemical Bonds"},{n:"2.3",t:"Chemical Reactions"},{n:"2.4",t:"Inorganic Compounds Essential to Human Functioning"},{n:"2.5",t:"Organic Compounds Essential to Human Functioning"}]},
+      {n:"03", unit:1, name:"The Cellular Level of Organization", secs:[{n:"3.1",t:"The Cell Membrane"},{n:"3.2",t:"The Cytoplasm and Cellular Organelles"},{n:"3.3",t:"The Nucleus and DNA Replication"},{n:"3.4",t:"Protein Synthesis"},{n:"3.5",t:"Cell Growth and Division"}]},
+      {n:"06", unit:2, name:"Bone Tissue and the Skeletal System", secs:[{n:"6.1",t:"The Functions of the Skeletal System"},{n:"6.2",t:"Bone Classification"},{n:"6.3",t:"Bone Structure"},{n:"6.4",t:"Bone Formation and Development"},{n:"6.5",t:"Fractures: Bone Repair"}]},
+      {n:"12", unit:3, name:"The Nervous System and Nervous Tissue", secs:[{n:"12.1",t:"Basic Structure and Function of the Nervous System"},{n:"12.2",t:"Nervous Tissue"},{n:"12.3",t:"The Function of Nervous Tissue"},{n:"12.4",t:"The Action Potential"},{n:"12.5",t:"Communication Between Neurons"}]},
+      {n:"17", unit:3, name:"The Endocrine System", secs:[{n:"17.1",t:"An Overview of the Endocrine System"},{n:"17.2",t:"Hormones"},{n:"17.3",t:"The Pituitary Gland and Hypothalamus"},{n:"17.4",t:"The Thyroid Gland"},{n:"17.5",t:"The Adrenal Glands"}]},
+      {n:"18", unit:4, name:"The Cardiovascular System: Blood", secs:[{n:"18.1",t:"An Overview of Blood"},{n:"18.2",t:"Production of the Formed Elements"},{n:"18.3",t:"Erythrocytes"},{n:"18.4",t:"Leukocytes and Platelets"},{n:"18.5",t:"Hemostasis"}]},
+      {n:"22", unit:5, name:"The Respiratory System", secs:[{n:"22.1",t:"Organs and Structures of the Respiratory System"},{n:"22.2",t:"The Lungs"},{n:"22.3",t:"The Process of Breathing"},{n:"22.4",t:"Gas Exchange"},{n:"22.5",t:"Transport of Gases"}]},
+    ]
+  },
+  {
+    id:"microbio", title:"Microbiology", sub:"Parker · Schneegurt · Thi Tu", color:"#27ae60",
+    bookTitle:"Microbiology",
+    chapters:[
+      {n:"01", unit:1, name:"An Invisible World", secs:[{n:"1.1",t:"A Invisible World"},{n:"1.2",t:"A Brief History of Microbiology"},{n:"1.3",t:"Types of Microorganisms"}]},
+      {n:"03", unit:1, name:"The Cell", secs:[{n:"3.1",t:"Spontaneous Generation"},{n:"3.2",t:"Foundations of Modern Cell Theory"},{n:"3.3",t:"Unique Characteristics of Prokaryotic Cells"},{n:"3.4",t:"Unique Characteristics of Eukaryotic Cells"}]},
+      {n:"09", unit:3, name:"Microbial Growth", secs:[{n:"9.1",t:"How Microbes Grow"},{n:"9.2",t:"Oxygen Requirements for Microbial Growth"},{n:"9.3",t:"The Effects of pH on Microbial Growth"},{n:"9.4",t:"Temperature and Microbial Growth"}]},
+      {n:"13", unit:4, name:"Control of Microbial Growth", secs:[{n:"13.1",t:"Controlling Microbial Growth"},{n:"13.2",t:"Using Physical Methods to Control Microorganisms"},{n:"13.3",t:"Using Chemicals to Control Microorganisms"},{n:"13.4",t:"Testing the Effectiveness of Antiseptics and Disinfectants"}]},
+      {n:"15", unit:5, name:"Microbial Mechanisms of Pathogenicity", secs:[{n:"15.1",t:"Characteristics of Infectious Disease"},{n:"15.2",t:"How Pathogens Cause Disease"},{n:"15.3",t:"Virulence Factors of Bacterial and Viral Pathogens"},{n:"15.4",t:"Virulence Factors of Eukaryotic Animal Pathogens"}]},
+    ]
+  },
+  {
+    id:"conceptsbio", title:"Concepts of Biology", sub:"Fowler · Roush · Wise", color:"#52be80",
+    bookTitle:"Concepts of Biology",
+    chapters:[
+      {n:"01", unit:1, name:"Introduction to Biology", secs:[{n:"1.1",t:"Themes and Concepts of Biology"},{n:"1.2",t:"The Process of Science"},{n:"1.3",t:"The Diversity of Life"}]},
+      {n:"03", unit:2, name:"Cell Structure and Function", secs:[{n:"3.1",t:"How Cells Are Studied"},{n:"3.2",t:"Comparing Prokaryotic and Eukaryotic Cells"},{n:"3.3",t:"Eukaryotic Cells"},{n:"3.4",t:"The Cell Membrane"},{n:"3.5",t:"Passive Transport"},{n:"3.6",t:"Active Transport"}]},
+      {n:"04", unit:2, name:"How Cells Obtain Energy", secs:[{n:"4.1",t:"Energy and Metabolism"},{n:"4.2",t:"Glycolysis"},{n:"4.3",t:"Citric Acid Cycle and Oxidative Phosphorylation"},{n:"4.4",t:"Fermentation"},{n:"4.5",t:"Connections to Other Metabolic Pathways"}]},
+    ]
+  },
+
+  // ─── Physical Sciences ───
   {
     id:"chem2e", title:"Chemistry 2e", sub:"Flowers · Theopold · Langley", color:"#f36f21",
     bookTitle:"Chemistry 2e",
     chapters:[
-      {n:"03", unit:1, name:"Composition of Substances",
-       secs:[{n:"3.1",t:"Formula Mass and the Mole"},{n:"3.2",t:"Determining Empirical and Molecular Formulas"}]},
-      {n:"04", unit:1, name:"Stoichiometry of Chemical Reactions",
-       secs:[{n:"4.1",t:"Writing and Balancing Chemical Equations"},{n:"4.2",t:"Classifying Chemical Reactions"},{n:"4.3",t:"Reaction Stoichiometry"}]},
+      {n:"01", unit:1, name:"Essential Ideas", secs:[{n:"1.1",t:"Chemistry in Context"},{n:"1.2",t:"Phases and Classification of Matter"},{n:"1.3",t:"Physical and Chemical Properties"},{n:"1.4",t:"Measurements"},{n:"1.5",t:"Measurement Uncertainty, Accuracy, and Precision"}]},
+      {n:"03", unit:1, name:"Composition of Substances and Solutions", secs:[{n:"3.1",t:"Formula Mass and the Mole Concept"},{n:"3.2",t:"Determining Empirical and Molecular Formulas"},{n:"3.3",t:"Molarity"},{n:"3.4",t:"Other Units for Solution Concentrations"}]},
+      {n:"04", unit:1, name:"Stoichiometry of Chemical Reactions", secs:[{n:"4.1",t:"Writing and Balancing Chemical Equations"},{n:"4.2",t:"Classifying Chemical Reactions"},{n:"4.3",t:"Reaction Stoichiometry"},{n:"4.4",t:"Reaction Yields"},{n:"4.5",t:"Quantitative Chemical Analysis"}]},
+      {n:"07", unit:2, name:"Chemical Bonding and Molecular Geometry", secs:[{n:"7.1",t:"Ionic Bonding"},{n:"7.2",t:"Covalent Bonding"},{n:"7.3",t:"Lewis Symbols and Structures"},{n:"7.4",t:"Formal Charges and Resonance"},{n:"7.5",t:"Strengths of Ionic and Covalent Bonds"}]},
+      {n:"12", unit:3, name:"Kinetics", secs:[{n:"12.1",t:"Chemical Reaction Rates"},{n:"12.2",t:"Factors Affecting Reaction Rates"},{n:"12.3",t:"Rate Laws"},{n:"12.4",t:"Integrated Rate Laws"},{n:"12.5",t:"Collision Theory"}]},
     ]
   },
   {
-    id:"physics", title:"University Physics Vol. 1", sub:"Ling · Sanny · Moebs", color:"#002569",
+    id:"physics1", title:"University Physics Vol. 1", sub:"Ling · Sanny · Moebs", color:"#002569",
     bookTitle:"University Physics Volume 1",
     chapters:[
-      {n:"02", unit:1, name:"Vectors",
-       secs:[{n:"2.1",t:"Scalars and Vectors"},{n:"2.2",t:"Coordinate Systems"},{n:"2.3",t:"Algebra of Vectors"}]},
-      {n:"06", unit:1, name:"Applications of Newton's Laws",
-       secs:[{n:"6.1",t:"Solving Problems with Newton's Laws"},{n:"6.2",t:"Friction"},{n:"6.3",t:"Centripetal Force"}]},
+      {n:"02", unit:1, name:"Vectors", secs:[{n:"2.1",t:"Scalars and Vectors"},{n:"2.2",t:"Coordinate Systems and Components of a Vector"},{n:"2.3",t:"Algebra of Vectors"},{n:"2.4",t:"Products of Vectors"}]},
+      {n:"03", unit:1, name:"Motion Along a Straight Line", secs:[{n:"3.1",t:"Position, Displacement, and Average Velocity"},{n:"3.2",t:"Instantaneous Velocity and Speed"},{n:"3.3",t:"Average and Instantaneous Acceleration"},{n:"3.4",t:"Motion with Constant Acceleration"},{n:"3.5",t:"Free Fall"}]},
+      {n:"05", unit:1, name:"Newton's Laws of Motion", secs:[{n:"5.1",t:"Forces"},{n:"5.2",t:"Newton's First Law"},{n:"5.3",t:"Newton's Second Law"},{n:"5.4",t:"Mass and Weight"},{n:"5.5",t:"Newton's Third Law"}]},
+      {n:"06", unit:1, name:"Applications of Newton's Laws", secs:[{n:"6.1",t:"Solving Problems with Newton's Laws"},{n:"6.2",t:"Friction"},{n:"6.3",t:"Centripetal Force"},{n:"6.4",t:"Drag Force and Terminal Velocity"}]},
+      {n:"08", unit:2, name:"Potential Energy and Conservation of Energy", secs:[{n:"8.1",t:"Potential Energy of a System"},{n:"8.2",t:"Conservative and Non-Conservative Forces"},{n:"8.3",t:"Conservation of Energy"},{n:"8.4",t:"Potential Energy Diagrams and Stability"}]},
     ]
   },
   {
-    id:"micro", title:"Principles of Microeconomics 3e", sub:"Greenlaw · Shapiro", color:"#f4c61f",
-    bookTitle:"Principles of Microeconomics 3e",
+    id:"physics2", title:"University Physics Vol. 2", sub:"Ling · Sanny · Moebs", color:"#1a4dbf",
+    bookTitle:"University Physics Volume 2",
     chapters:[
-      {n:"03", unit:1, name:"Demand and Supply",
-       secs:[{n:"3.1",t:"Demand, Supply, and Equilibrium in Markets"},{n:"3.2",t:"Shifts in Demand and Supply"},{n:"3.3",t:"Price Ceilings and Floors"}]},
+      {n:"01", unit:1, name:"Temperature and Heat", secs:[{n:"1.1",t:"Temperature and Thermal Equilibrium"},{n:"1.2",t:"Thermometers and Temperature Scales"},{n:"1.3",t:"Thermal Expansion"},{n:"1.4",t:"Heat Transfer, Specific Heat, and Calorimetry"},{n:"1.5",t:"Phase Changes"},{n:"1.6",t:"Mechanisms of Heat Transfer"}]},
+      {n:"03", unit:1, name:"The First Law of Thermodynamics", secs:[{n:"3.1",t:"Thermodynamic Systems"},{n:"3.2",t:"Work, Heat, and Internal Energy"},{n:"3.3",t:"First Law of Thermodynamics"},{n:"3.4",t:"Thermodynamic Processes"},{n:"3.5",t:"Heat Capacities of an Ideal Gas"}]},
+      {n:"05", unit:2, name:"Electric Charges and Fields", secs:[{n:"5.1",t:"Electric Charge"},{n:"5.2",t:"Conductors, Insulators, and Charging by Induction"},{n:"5.3",t:"Coulomb's Law"},{n:"5.4",t:"Electric Field"},{n:"5.5",t:"Calculating Electric Fields of Charge Distributions"}]},
+      {n:"10", unit:2, name:"Direct-Current Circuits", secs:[{n:"10.1",t:"Electromotive Force"},{n:"10.2",t:"Resistors in Series and Parallel"},{n:"10.3",t:"Kirchhoff's Rules"},{n:"10.4",t:"Electrical Measuring Instruments"},{n:"10.5",t:"RC Circuits"}]},
     ]
   },
+  {
+    id:"physics3", title:"University Physics Vol. 3", sub:"Ling · Sanny · Moebs", color:"#6c3483",
+    bookTitle:"University Physics Volume 3",
+    chapters:[
+      {n:"01", unit:1, name:"The Nature of Light", secs:[{n:"1.1",t:"The Propagation of Light"},{n:"1.2",t:"The Law of Reflection"},{n:"1.3",t:"Refraction"},{n:"1.4",t:"Total Internal Reflection"},{n:"1.5",t:"Dispersion"},{n:"1.6",t:"Huygens's Principle"}]},
+      {n:"02", unit:1, name:"Geometric Optics and Image Formation", secs:[{n:"2.1",t:"Images Formed by Plane Mirrors"},{n:"2.2",t:"Spherical Mirrors"},{n:"2.3",t:"Images Formed by Refraction"},{n:"2.4",t:"Thin Lenses"},{n:"2.5",t:"The Eye"},{n:"2.6",t:"The Camera"}]},
+      {n:"06", unit:2, name:"Photons and Matter Waves", secs:[{n:"6.1",t:"Blackbody Radiation"},{n:"6.2",t:"Photoelectric Effect"},{n:"6.3",t:"The Compton Effect"},{n:"6.4",t:"Bohr's Model of the Hydrogen Atom"},{n:"6.5",t:"De Broglie's Matter Waves"},{n:"6.6",t:"Wave-Particle Duality"}]},
+      {n:"08", unit:2, name:"Atomic Structure", secs:[{n:"8.1",t:"The Hydrogen Atom"},{n:"8.2",t:"Orbital Magnetic Dipole Moment of the Electron"},{n:"8.3",t:"Electron Spin"},{n:"8.4",t:"The Exclusion Principle and the Periodic Table"},{n:"8.5",t:"Atomic Spectra and X-rays"},{n:"8.6",t:"Lasers"}]},
+    ]
+  },
+  {
+    id:"collegephys", title:"College Physics 2e", sub:"Urone · Hinrichs", color:"#0097a7",
+    bookTitle:"College Physics 2e",
+    chapters:[
+      {n:"02", unit:1, name:"Kinematics", secs:[{n:"2.1",t:"Displacement"},{n:"2.2",t:"Vectors, Scalars, and Coordinate Systems"},{n:"2.3",t:"Time, Velocity, and Speed"},{n:"2.4",t:"Acceleration"},{n:"2.5",t:"Motion Equations for Constant Acceleration in a Straight Line"}]},
+      {n:"04", unit:1, name:"Dynamics: Force and Newton's Laws of Motion", secs:[{n:"4.1",t:"Development of Force Concept"},{n:"4.2",t:"Newton's First Law of Motion: Inertia"},{n:"4.3",t:"Newton's Second Law of Motion"},{n:"4.4",t:"Newton's Third Law of Motion"},{n:"4.5",t:"Normal, Tension, and Other Examples of Forces"}]},
+      {n:"18", unit:4, name:"Electric Charge and Electric Field", secs:[{n:"18.1",t:"Static Electricity and Charge: Conservation of Charge"},{n:"18.2",t:"Conductors and Insulators"},{n:"18.3",t:"Coulomb's Law"},{n:"18.4",t:"Electric Field: Concept of a Field Revisited"},{n:"18.5",t:"Electric Field Lines: Multiple Charges"}]},
+    ]
+  },
+  {
+    id:"astronomy", title:"Astronomy 2e", sub:"Fraknoi · Morrison · Wolff", color:"#1565c0",
+    bookTitle:"Astronomy 2e",
+    chapters:[
+      {n:"01", unit:1, name:"Science and the Universe: A Brief Tour", secs:[{n:"1.1",t:"The Nature of Astronomy"},{n:"1.2",t:"The Nature of Science"},{n:"1.3",t:"The Astronomical Perspective"},{n:"1.4",t:"Numbers in Astronomy"},{n:"1.5",t:"Consequences of Light Travel Time"}]},
+      {n:"04", unit:1, name:"Earth, Moon, and Sky", secs:[{n:"4.1",t:"Earth and Sky"},{n:"4.2",t:"The Seasons"},{n:"4.3",t:"Keeping Time"},{n:"4.4",t:"The Calendar"},{n:"4.5",t:"Phases and Motions of the Moon"},{n:"4.7",t:"Eclipses of the Sun and Moon"}]},
+      {n:"15", unit:3, name:"The Sun: A Garden-Variety Star", secs:[{n:"15.1",t:"The Structure and Composition of the Sun"},{n:"15.2",t:"The Solar Cycle"},{n:"15.3",t:"Solar Activity above the Photosphere"},{n:"15.4",t:"Space Weather"}]},
+    ]
+  },
+
+  // ─── Mathematics ───
+  {
+    id:"precalc", title:"Precalculus 2e", sub:"Abramson", color:"#16a085",
+    bookTitle:"Precalculus 2e",
+    chapters:[
+      {n:"01", unit:1, name:"Functions", secs:[{n:"1.1",t:"Functions and Function Notation"},{n:"1.2",t:"Domain and Range"},{n:"1.3",t:"Rates of Change and Behavior of Graphs"},{n:"1.4",t:"Composition of Functions"},{n:"1.5",t:"Transformation of Functions"},{n:"1.7",t:"Inverse Functions"}]},
+      {n:"05", unit:2, name:"Trigonometric Functions", secs:[{n:"5.1",t:"Angles"},{n:"5.2",t:"Unit Circle: Sine and Cosine Functions"},{n:"5.3",t:"The Other Trigonometric Functions"},{n:"5.4",t:"Right Triangle Trigonometry"}]},
+    ]
+  },
+  {
+    id:"calc1", title:"Calculus Volume 1", sub:"Strang · Herman", color:"#2c3e50",
+    bookTitle:"Calculus Volume 1",
+    chapters:[
+      {n:"02", unit:1, name:"Limits", secs:[{n:"2.1",t:"A Preview of Calculus"},{n:"2.2",t:"The Limit of a Function"},{n:"2.3",t:"The Limit Laws"},{n:"2.4",t:"Continuity"},{n:"2.5",t:"The Precise Definition of a Limit"}]},
+      {n:"03", unit:1, name:"Derivatives", secs:[{n:"3.1",t:"Defining the Derivative"},{n:"3.2",t:"The Derivative as a Function"},{n:"3.3",t:"Differentiation Rules"},{n:"3.4",t:"Derivatives as Rates of Change"},{n:"3.5",t:"Derivatives of Trigonometric Functions"},{n:"3.6",t:"The Chain Rule"}]},
+      {n:"05", unit:2, name:"Integration", secs:[{n:"5.1",t:"Approximating Areas"},{n:"5.2",t:"The Definite Integral"},{n:"5.3",t:"The Fundamental Theorem of Calculus"},{n:"5.4",t:"Integration Formulas and the Net Change Theorem"},{n:"5.5",t:"Substitution"}]},
+    ]
+  },
+  {
+    id:"stats", title:"Introductory Statistics 2e", sub:"OpenStax", color:"#c0392b",
+    bookTitle:"Introductory Statistics 2e",
+    chapters:[
+      {n:"01", unit:1, name:"Sampling and Data", secs:[{n:"1.1",t:"Definitions of Statistics, Probability, and Key Terms"},{n:"1.2",t:"Data, Sampling, and Variation in Data and Sampling"},{n:"1.3",t:"Frequency, Frequency Tables, and Levels of Measurement"},{n:"1.4",t:"Experimental Design and Ethics"}]},
+      {n:"04", unit:2, name:"Discrete Random Variables", secs:[{n:"4.1",t:"Probability Distribution Function (PDF) for a Discrete Random Variable"},{n:"4.2",t:"Mean or Expected Value and Standard Deviation"},{n:"4.3",t:"Binomial Distribution"},{n:"4.4",t:"Geometric Distribution"}]},
+      {n:"07", unit:3, name:"The Central Limit Theorem", secs:[{n:"7.1",t:"The Central Limit Theorem for Sample Means (Averages)"},{n:"7.2",t:"The Central Limit Theorem for Sums"},{n:"7.3",t:"Using the Central Limit Theorem"}]},
+    ]
+  },
+
+  // ─── Social Sciences ───
   {
     id:"psych2e", title:"Psychology 2e", sub:"Spielman · Jenkins · Lovett", color:"#5e6a71",
     bookTitle:"Psychology 2e",
     chapters:[
-      {n:"06", unit:2, name:"Learning",
-       secs:[{n:"6.1",t:"What is Learning?"},{n:"6.2",t:"Classical Conditioning"},{n:"6.3",t:"Operant Conditioning"}]},
+      {n:"03", unit:1, name:"Biopsychology", secs:[{n:"3.1",t:"Human Genetics"},{n:"3.2",t:"Cells of the Nervous System"},{n:"3.3",t:"Parts of the Nervous System"},{n:"3.4",t:"The Brain and Spinal Cord"},{n:"3.5",t:"The Endocrine System"}]},
+      {n:"05", unit:2, name:"Sensation and Perception", secs:[{n:"5.1",t:"Sensation versus Perception"},{n:"5.2",t:"Waves and Wavelengths"},{n:"5.3",t:"Vision"},{n:"5.4",t:"Hearing"},{n:"5.5",t:"The Other Senses"}]},
+      {n:"06", unit:2, name:"Learning", secs:[{n:"6.1",t:"What Is Learning?"},{n:"6.2",t:"Classical Conditioning"},{n:"6.3",t:"Operant Conditioning"},{n:"6.4",t:"Observational Learning (Modeling)"}]},
+      {n:"08", unit:3, name:"Memory", secs:[{n:"8.1",t:"How Memory Functions"},{n:"8.2",t:"Parts of the Brain Involved with Memory"},{n:"8.3",t:"Problems with Memory"},{n:"8.4",t:"Ways to Enhance Memory"}]},
+    ]
+  },
+  {
+    id:"sociology", title:"Introduction to Sociology 3e", sub:"Conerly · Holmes · Tamang", color:"#8e44ad",
+    bookTitle:"Introduction to Sociology 3e",
+    chapters:[
+      {n:"01", unit:1, name:"An Introduction to Sociology", secs:[{n:"1.1",t:"What Is Sociology?"},{n:"1.2",t:"The History of Sociology"},{n:"1.3",t:"Theoretical Perspectives in Sociology"},{n:"1.4",t:"Why Study Sociology?"}]},
+      {n:"03", unit:1, name:"Culture", secs:[{n:"3.1",t:"What Is Culture?"},{n:"3.2",t:"Elements of Culture"},{n:"3.3",t:"Pop Culture, Subculture, and Cultural Change"},{n:"3.4",t:"Theoretical Perspectives on Culture"}]},
+      {n:"05", unit:2, name:"Socialization", secs:[{n:"5.1",t:"Theories of Self-Development"},{n:"5.2",t:"Why Socialization Matters"},{n:"5.3",t:"Agents of Socialization"},{n:"5.4",t:"Socialization Across the Life Course"}]},
+    ]
+  },
+
+  // ─── Economics ───
+  {
+    id:"micro", title:"Principles of Microeconomics 3e", sub:"Greenlaw · Shapiro", color:"#f4c61f",
+    bookTitle:"Principles of Microeconomics 3e",
+    chapters:[
+      {n:"01", unit:1, name:"Welcome to Economics!", secs:[{n:"1.1",t:"What Is Economics, and Why Is It Important?"},{n:"1.2",t:"Microeconomics and Macroeconomics"},{n:"1.3",t:"How Economists Use Theories and Models"},{n:"1.4",t:"How To Organize Economies: An Overview of Economic Systems"}]},
+      {n:"03", unit:1, name:"Demand and Supply", secs:[{n:"3.1",t:"Demand, Supply, and Equilibrium in Markets for Goods and Services"},{n:"3.2",t:"Shifts in Demand and Supply for Goods and Services"},{n:"3.3",t:"Changes in Equilibrium Price and Quantity: The Four-Step Process"},{n:"3.4",t:"Price Ceilings and Price Floors"}]},
+      {n:"05", unit:2, name:"Elasticity", secs:[{n:"5.1",t:"Price Elasticity of Demand and Price Elasticity of Supply"},{n:"5.2",t:"Polar Cases of Elasticity and Constant Elasticity"},{n:"5.3",t:"Elasticity and Pricing"},{n:"5.4",t:"Elasticity in Areas Other Than Price"}]},
+    ]
+  },
+  {
+    id:"macro", title:"Principles of Macroeconomics 3e", sub:"Greenlaw · Shapiro", color:"#e67e22",
+    bookTitle:"Principles of Macroeconomics 3e",
+    chapters:[
+      {n:"06", unit:2, name:"The Macroeconomic Perspective", secs:[{n:"6.1",t:"Measuring the Size of the Economy: Gross Domestic Product"},{n:"6.2",t:"Adjusting Nominal Values to Real Values"},{n:"6.3",t:"Tracking Real GDP over Time"},{n:"6.4",t:"Comparing GDP among Countries"},{n:"6.5",t:"How Well GDP Measures the Well-Being of Society"}]},
+      {n:"10", unit:3, name:"The Aggregate Demand/Aggregate Supply Model", secs:[{n:"10.1",t:"Macroeconomic Perspectives on Demand and Supply"},{n:"10.2",t:"Building a Model of Aggregate Demand and Aggregate Supply"},{n:"10.3",t:"Shifts in Aggregate Supply"},{n:"10.4",t:"Shifts in Aggregate Demand"},{n:"10.5",t:"How the AD/AS Model Incorporates Growth, Unemployment, and Inflation"}]},
+    ]
+  },
+
+  // ─── Business ───
+  {
+    id:"introbiz", title:"Introduction to Business", sub:"Gitman · McDaniel", color:"#7f8c8d",
+    bookTitle:"Introduction to Business",
+    chapters:[
+      {n:"01", unit:1, name:"Understanding Economic Systems and Business", secs:[{n:"1.1",t:"The Nature of Business"},{n:"1.2",t:"Understanding the Business Environment"},{n:"1.3",t:"How Business and Economics Work"},{n:"1.4",t:"Macroeconomics: The Big Picture"},{n:"1.5",t:"Achieving Macroeconomic Goals"}]},
+      {n:"06", unit:2, name:"Management and Leadership in Today's Organizations", secs:[{n:"6.1",t:"The Role of Management"},{n:"6.2",t:"Planning"},{n:"6.3",t:"Organizing"},{n:"6.4",t:"Leading, Guiding, and Motivating Others"},{n:"6.5",t:"Controlling"}]},
     ]
   },
 ];
@@ -1725,20 +1864,6 @@ function App(){
                     updateDecisionPoint={updateDecisionPoint}
                   />
 
-                  {(script.decision_points || []).length > 0 && (
-                    <>
-                      <div className="section-hd" style={{marginTop:32}}>
-                        <h2>Decision points <em>{script.decision_points.length} — edit choices &amp; routing below</em></h2>
-                      </div>
-                      <div className="strip">
-                        {script.decision_points.map((dp, i) => (
-                          <DecisionPointCard key={dp.decision_point_id ?? i} dp={dp}
-                            scenes={script.scenes}
-                            onChange={(updated)=>updateDecisionPoint(i, updated)}/>
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </>
               ) : !busy && (
                 <div className="empty">

@@ -66,9 +66,13 @@
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
 
   /* ─── Main split ─── */
-  .main{display:grid;grid-template-columns:480px 1fr;min-height:0}
-  .sidebar{background:#fff;border-right:1px solid var(--os-line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
-  .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .main{display:flex;min-height:0}
+  .sidebar-wrap{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--os-line);background:#fff;overflow:hidden;width:360px;min-width:360px;transition:width .22s ease,min-width .22s ease;flex-shrink:0}
+  .main.sidebar-collapsed .sidebar-wrap{width:0;min-width:0;border-right:none}
+  .sidebar{background:#fff;display:flex;flex-direction:column;min-height:0;overflow:hidden;flex:1}
+  .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden;flex:1}
+  .sidebar-toggle{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;border:1px solid var(--os-line);background:#fff;cursor:pointer;font-size:11px;color:var(--os-ink-2);flex-shrink:0}
+  .sidebar-toggle:hover{background:var(--os-bg-3);color:var(--os-ink)}
 
   /* ─── Sidebar ─── */
   .sb-head{padding:18px 18px 12px}
@@ -1785,6 +1789,7 @@ function App(){
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
@@ -1930,8 +1935,8 @@ function App(){
         </div>
       </header>
 
-      <div className="main">
-        <div style={{display:"flex",flexDirection:"column",minHeight:0,borderRight:"1px solid var(--os-line)",background:"#fff"}}>
+      <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
+        <div className="sidebar-wrap">
           <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
@@ -1944,6 +1949,10 @@ function App(){
         <div className="stage">
           <div className="stage-bar">
             <div className="stage-bar-l">
+              <button className="sidebar-toggle" onClick={()=>setSidebarOpen(o=>!o)}
+                title={sidebarOpen?"Collapse sidebar":"Expand sidebar"}>
+                {sidebarOpen ? "‹" : "›"}
+              </button>
               <h2 className="stage-title">Storyboard canvas <em>{script ? `${sceneCount} scenes · ${runtimeLabel}` : "no script yet"}</em></h2>
               <div className={`stage-status ${busy?"busy":script?"ready":""}`}>
                 <span className="dot"/>

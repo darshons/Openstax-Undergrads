@@ -16,7 +16,7 @@ def setup_gemini_client():
 
 def generate_script_with_decision_points(
     markdown_file_path, user_query
-) -> tuple[dict, list[str]]:
+) -> tuple[dict | None, list[str | None]]:
     client = setup_gemini_client()
 
     system_prompt = """
@@ -98,6 +98,11 @@ def generate_script_with_decision_points(
         contents=[user_query, uploaded_md_file, uploaded_json],
         config=config,
     )
+
+    output_json = None
+
+    if not response or not response.text:
+        return output_json, [uploaded_md_file.name, uploaded_json.name]
 
     output_json = json.loads(response.text)
 

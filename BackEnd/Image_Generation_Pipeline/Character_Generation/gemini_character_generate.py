@@ -14,7 +14,7 @@ import os
 
 def generate_characters(
     json_script, request_id, character_id=None
-) -> tuple[list[Path], list[str], list[Path]]:
+) -> tuple[dict[str, str], list[str | None], list[str]]:
     client = setup_gemini_client()
 
     system_prompt = """
@@ -109,8 +109,20 @@ def generate_characters(
             model=MODEL, contents=[user_query, uploaded_json], config=config
         )
 
+        if (
+            not response.candidates
+            or not response.candidates[0]
+            or not response.candidates[0].content
+            or not response.candidates[0].content.parts
+        ):
+            return (
+                character_image_file_mapping,
+                uploaded_file_names,
+                list(characters_json_file_mapping.values()),
+            )
+
         for part in response.candidates[0].content.parts:
-            if part.inline_data:
+            if part.inline_data and part.inline_data.data:
                 image = Image.open(BytesIO(part.inline_data.data))
                 image.save(
                     dir_path / f"{request_id}_{character_id}_reference_image.png"

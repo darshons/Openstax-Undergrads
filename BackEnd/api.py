@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 
 from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
@@ -61,6 +61,7 @@ def generate_uuid():
     return str(uuid.uuid4())
 
 
+# API router instance to define the endpoints for the FastAPI application
 api_router = APIRouter()
 
 
@@ -132,6 +133,12 @@ def generate_initial_script(
 
     uuid = generate_uuid()
 
+    if initial_script is None or len(initial_script) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Initial script generation failed. No script was returned.",
+        )
+
     return {
         "message": "Initial script generation completed",
         "script": initial_script,
@@ -163,6 +170,12 @@ def generate_background_image(
         gemini_script_generation.delete_uploaded_files, uploaded_file_names_to_delete
     )
 
+    if background_image_file_path is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Background image generation failed. No image was returned.",
+        )
+
     return {
         "message": "Reference image generation completed",
         "background_image_file_path": background_image_file_path,
@@ -174,16 +187,13 @@ def generate_background_image(
 def generate_character_images(
     request: ImageGenerationRequest,
     background_tasks: BackgroundTasks,
-    character_id: str | None = None,
 ) -> dict:
 
     (
         character_image_file_mapping,
         character_uploaded_file_names,
         character_json_file_paths,
-    ) = gemini_character_generation.generate_characters(
-        request.script, request.request_id, character_id
-    )
+    ) = generate_character_images_impl(request.script, request.request_id)
 
     local_file_paths_to_delete = character_json_file_paths
 
@@ -195,10 +205,36 @@ def generate_character_images(
         gemini_script_generation.delete_uploaded_files, uploaded_file_names_to_delete
     )
 
+    if character_image_file_mapping is None or len(character_image_file_mapping) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Character image generation failed. No images were returned.",
+        )
+
     return {
         "message": "Reference image generation completed",
         "character_image_file_mapping": character_image_file_mapping,
     }
+
+
+# This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
+def generate_character_images_impl(
+    script: dict[str, Any], request_id: str, character_id: str | None = None
+) -> tuple[dict[str, str], list[str | None], list[str]]:
+
+    (
+        character_image_file_mapping,
+        character_uploaded_file_names,
+        character_json_file_paths,
+    ) = gemini_character_generation.generate_characters(
+        script, request_id, character_id
+    )
+
+    return (
+        character_image_file_mapping,
+        character_uploaded_file_names,
+        character_json_file_paths,
+    )
 
 
 # This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
@@ -206,16 +242,22 @@ def generate_character_images(
 def generate_opening_frames(
     request: ImageGenerationRequest,
     background_tasks: BackgroundTasks,
-    scene_id: str | None = None,
 ) -> dict:
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
+        )
 
     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        gemini_frame_generation.generate_frames(
+        generate_opening_frames_impl(
             request.script,
             request.background_image_path,
             request.character_image_file_mapping,
             request.request_id,
-            scene_id=scene_id,
         )
     )
 
@@ -225,10 +267,40 @@ def generate_opening_frames(
         gemini_script_generation.delete_uploaded_files, uploaded_file_names
     )
 
+    if (
+        opening_scene_frame_file_mapping is None
+        or len(opening_scene_frame_file_mapping) == 0
+    ):
+        raise HTTPException(
+            status_code=500,
+            detail="Opening frame generation failed. No images were returned.",
+        )
+
     return {
         "message": "Opening frame generation completed",
         "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
     }
+
+
+# This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
+def generate_opening_frames_impl(
+    script: dict[str, Any],
+    background_image_path: str,
+    character_image_file_mapping: dict[str, str],
+    request_id: str,
+    scene_id: str | None = None,
+) -> tuple[dict[str, str], list[str | None], list[str]]:
+    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
+        gemini_frame_generation.generate_frames(
+            script,
+            background_image_path,
+            character_image_file_mapping,
+            request_id,
+            scene_id=scene_id,
+        )
+    )
+
+    return opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths
 
 
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
@@ -237,6 +309,7 @@ def get_image(image_path: str):
     return FileResponse(image_path, media_type="image/png")
 
 
+# This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
 @api_router.post("/retry_generate_background_image")
 def retry_generate_background_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
@@ -251,32 +324,105 @@ def retry_generate_background_image(
         )  # Implement logic to handle user feedback and retry background image generation
 
 
+# This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided
 @api_router.post("/retry_generate_character_image")
 def retry_generate_character_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
     if image_retry_request.user_feedback is None:
-        return generate_character_images(
-            image_retry_request.image_request,
-            background_tasks,
+        (
+            character_image_file_mapping,
+            character_uploaded_file_names,
+            character_json_file_paths,
+        ) = generate_character_images_impl(
+            image_retry_request.image_request.script,
+            image_retry_request.image_request.request_id,
             character_id=image_retry_request.image_id,
         )
+
+        local_file_paths_to_delete = character_json_file_paths
+
+        background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+        uploaded_file_names_to_delete = character_uploaded_file_names
+
+        background_tasks.add_task(
+            gemini_script_generation.delete_uploaded_files,
+            uploaded_file_names_to_delete,
+        )
+
+        if (
+            character_image_file_mapping is None
+            or len(character_image_file_mapping) == 0
+        ):
+            raise HTTPException(
+                status_code=500,
+                detail="Character image generation failed. No images were returned.",
+            )
+
+        return {
+            "message": "Reference image generation completed",
+            "character_image_file_mapping": character_image_file_mapping,
+        }
+
     else:
         return (
             {}
         )  # Implement logic to handle user feedback and retry character image generation
 
 
+# This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
 @api_router.post("/retry_generate_opening_frames")
 def retry_generate_opening_frames(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
     if image_retry_request.user_feedback is None:
-        return generate_opening_frames(
-            image_retry_request.image_request,
-            background_tasks,
+
+        if (
+            image_retry_request.image_request.background_image_path is None
+            or image_retry_request.image_request.character_image_file_mapping is None
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
+            )
+
+        (
+            opening_scene_frame_file_mapping,
+            uploaded_file_names,
+            scene_json_file_paths,
+        ) = generate_opening_frames_impl(
+            image_retry_request.image_request.script,
+            image_retry_request.image_request.background_image_path,
+            image_retry_request.image_request.character_image_file_mapping,
+            image_retry_request.image_request.request_id,
             scene_id=image_retry_request.image_id,
         )
+
+        local_file_paths_to_delete = scene_json_file_paths
+
+        background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+        uploaded_file_names_to_delete = uploaded_file_names
+
+        background_tasks.add_task(
+            gemini_script_generation.delete_uploaded_files,
+            uploaded_file_names_to_delete,
+        )
+
+        if (
+            opening_scene_frame_file_mapping is None
+            or len(opening_scene_frame_file_mapping) == 0
+        ):
+            raise HTTPException(
+                status_code=500,
+                detail="Opening frame generation failed. No images were returned.",
+            )
+
+        return {
+            "message": "Opening frame generation completed",
+            "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
+        }
     else:
         return (
             {}

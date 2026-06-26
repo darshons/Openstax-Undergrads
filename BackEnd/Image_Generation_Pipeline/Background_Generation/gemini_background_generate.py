@@ -14,7 +14,7 @@ import os
 
 def generate_background(
     json_script, request_id
-) -> tuple[list[Path], list[str], list[Path]]:
+) -> tuple[str | None, list[str | None], list[str]]:
     client = setup_gemini_client()
 
     system_prompt = """
@@ -94,6 +94,8 @@ def generate_background(
         response_modalities=["IMAGE"],
     )
 
+    background_image_file_path = None
+
     background_json_path = process_background_json(json_script)
 
     PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -115,16 +117,23 @@ def generate_background(
         model=MODEL, contents=[user_query, uploaded_json], config=config
     )
 
+    if (
+        not response.candidates
+        or not response.candidates[0]
+        or not response.candidates[0].content
+        or not response.candidates[0].content.parts
+    ):
+        return background_image_file_path, uploaded_file_names, [background_json_path]
+
     for part in response.candidates[0].content.parts:
-        if part.inline_data:
+        if part.inline_data and part.inline_data.data:
             image = Image.open(BytesIO(part.inline_data.data))
-            image.save(dir_path / f"{request_id}_background_reference_image.png")
+            background_image_file_path = str(
+                dir_path / f"{request_id}_background_reference_image.png"
+            )
+            image.save(background_image_file_path)
 
     uploaded_file_names.append(uploaded_json.name)
-
-    background_image_file_path = str(
-        dir_path / f"{request_id}_background_reference_image.png"
-    )
 
     return background_image_file_path, uploaded_file_names, [background_json_path]
 

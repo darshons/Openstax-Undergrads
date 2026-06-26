@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import json
 import asyncio
+from anthropic.types.beta import BetaTextBlock
 
 
 def setup_anthropic_client():
@@ -22,7 +23,7 @@ def setup_async_anthropic_client():
 
 def generate_script_with_decision_points(
     markdown_file_path, user_query
-) -> tuple[dict, list]:
+) -> tuple[dict | None, list[str | None]]:
 
     client = setup_anthropic_client()
 
@@ -71,6 +72,8 @@ def generate_script_with_decision_points(
     MODEL = "claude-sonnet-4-6"
 
     TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens
+
+    assert TOKEN_LIMIT is not None, f"max_tokens is not available for model {MODEL}"
 
     uploaded_md = client.beta.files.upload(
         file=("textbook_content", open(markdown_file_path, "rb"), "text/plain")
@@ -122,10 +125,20 @@ def generate_script_with_decision_points(
     ) as stream:
         response = stream.get_final_message()
 
-    output_json = response.content[0].text
+    output_json = None
+
+    if not response or not response.content or not response.content[0]:
+        return output_json, [uploaded_md.id, uploaded_json.id]
+
+    output = response.content[0]
+
+    assert isinstance(
+        output, BetaTextBlock
+    ), f"Expected a BetaTextBlock, got {type(output).__name__}"
+
+    output_json = output.text
     output_json = output_json.strip("```json").strip("```")
     output_json = output_json.strip()
-
     output_json = json.loads(output_json)
 
     return output_json, [uploaded_md.id, uploaded_json.id]

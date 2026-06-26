@@ -18,7 +18,7 @@ def generate_frames(
     background_image_file_path,
     request_id,
     scene_id: str | None = None,
-) -> tuple[dict[str, str], list[str | None], list[Path]]:
+) -> tuple[dict[str, str], list[str | None], list[str]]:
     # Set up Gemini client
     client = setup_gemini_client()
 
@@ -331,6 +331,18 @@ def generate_frames(
 
         uploaded_scene_json_mapping[scene_id] = (uploaded_json.name, uploaded_json)
 
+    uploaded_file_names = (
+        [
+            uploaded_json_name
+            for uploaded_json_name, _ in uploaded_scene_json_mapping.values()
+        ]
+        + [
+            uploaded_character_image_name
+            for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()
+        ]
+        + [uploaded_background_image.name]
+    )
+
     # For each scene, the opening and ending frame generation prompts will reference the corresponding uploaded JSON file and all uploaded character reference images to ensure the generated frames are consistent with the scene description and character appearances.
     character_references = "\n".join(
         f"- Character ID {character_id}: uploaded image file {uploaded_file_name}"
@@ -373,8 +385,20 @@ def generate_frames(
             config=opening_frame_config,
         )
 
+        if (
+            not response.candidates
+            or not response.candidates[0]
+            or not response.candidates[0].content
+            or not response.candidates[0].content.parts
+        ):
+            return (
+                opening_scene_frame_file_mapping,
+                uploaded_file_names,
+                list(scene_json_file_mapping.values()),
+            )
+
         for part in response.candidates[0].content.parts:
-            if part.inline_data:
+            if part.inline_data and part.inline_data.data:
                 image = Image.open(BytesIO(part.inline_data.data))
                 image.save(dir_path / f"{request_id}_{scene_id}_opening_frame.png")
 
@@ -418,18 +442,6 @@ def generate_frames(
 
     # Compile a list of all uploaded file names to facilitate cleanup after generation
     # uploaded_file_names = [uploaded_json_name for uploaded_json_name, _ in uploaded_scene_json_mapping.values()] + [uploaded_character_image_name for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()] + [uploaded_opening_frame_name for uploaded_opening_frame_name, _ in uploaded_opening_frame_mapping.values()] + [uploaded_background_image.name]
-
-    uploaded_file_names = (
-        [
-            uploaded_json_name
-            for uploaded_json_name, _ in uploaded_scene_json_mapping.values()
-        ]
-        + [
-            uploaded_character_image_name
-            for uploaded_character_image_name, _ in uploaded_character_image_mapping.values()
-        ]
-        + [uploaded_background_image.name]
-    )
 
     return (
         opening_scene_frame_file_mapping,

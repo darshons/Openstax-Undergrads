@@ -3,7 +3,9 @@ import tempfile
 from pathlib import Path
 
 
-def process_character_json(json_script: str, character_id: str | None = None) -> dict:
+def process_character_json(
+    json_script: str, character_id: str | None = None
+) -> dict[str, str]:
     data = json.loads(json_script)
 
     characters_file_mapping = {}

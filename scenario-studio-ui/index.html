@@ -11,6 +11,7 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
 <style>
   :root{
@@ -495,6 +496,13 @@
   .save-banner{margin-left:8px;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600}
   .save-banner.success{background:#eef7df;color:#4d6e1d;border:1px solid #c9e08f}
   .save-banner.error{background:#fde7d8;color:#a04412;border:1px solid #f5c79b}
+  /* Export dropdown */
+  .export-wrap{position:relative}
+  .export-menu{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--os-line-strong);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.13);min-width:170px;padding:6px;z-index:200}
+  .export-menu button{display:flex;align-items:center;gap:9px;width:100%;padding:8px 12px;border:none;background:none;border-radius:7px;font-size:13px;font-weight:500;color:var(--os-ink);cursor:pointer;text-align:left}
+  .export-menu button:hover{background:var(--os-bg-3)}
+  .export-menu .exp-icon{font-size:15px;width:20px;text-align:center}
+  .export-menu hr{border:none;border-top:1px solid var(--os-line);margin:4px 0}
 
   /* ─── Generate-side error banner ─── */
   .gen-error{margin-top:8px;padding:8px 10px;border-radius:7px;font-size:11.5px;font-weight:600;
@@ -1615,6 +1623,149 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "accent": "green"
 }/*EDITMODE-END*/;
 
+/* ─── Export helpers ─── */
+function exportJSON(script) {
+  const blob = new Blob([JSON.stringify(script, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "scenario_script.json"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportMarkdown(script) {
+  const lines = [];
+  lines.push(`# ${script.title || "Untitled Script"}\n`);
+  lines.push(`**Scenes:** ${(script.scenes||[]).length} · **Characters:** ${(script.characters||[]).length} · **Decision Points:** ${(script.decision_points||[]).length}\n`);
+  if (script.learning_objective) lines.push(`**Learning Objective:** ${script.learning_objective}\n`);
+  lines.push("---\n");
+  (script.scenes || []).forEach((s, i) => {
+    lines.push(`## Scene ${i+1}: ${s.title || s.scene_id}`);
+    if (s.setting?.description) lines.push(`\n*Setting:* ${s.setting.description}`);
+    if (s.setting?.location) lines.push(`*Location:* ${s.setting.location}`);
+    lines.push("");
+    (s.audio?.dialogue || []).forEach(dl => {
+      lines.push(`**${dl.character_id}:** ${dl.line}`);
+    });
+    if (s.routes_to?.decision_point_id != null) lines.push(`\n*→ Routes to Decision Point ${s.routes_to.decision_point_id}*`);
+    lines.push("\n---\n");
+  });
+  if ((script.decision_points||[]).length > 0) {
+    lines.push("## Decision Points\n");
+    (script.decision_points).forEach(dp => {
+      lines.push(`### DP ${dp.decision_point_id}: ${dp.question_text}`);
+      (dp.choices||[]).forEach(c => {
+        lines.push(`- ${c.is_correct?"✓":"✗"} **${c.choice_id}:** ${c.text}`);
+      });
+      lines.push("");
+    });
+  }
+  const blob = new Blob([lines.join("\n")], {type:"text/markdown"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "scenario_script.md"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportPDF(script) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:"portrait", unit:"mm", format:"a4"});
+  const pageW = 210; const margin = 18; const usableW = pageW - margin * 2;
+  let y = margin;
+
+  const checkPage = (needed=10) => {
+    if (y + needed > 287) { doc.addPage(); y = margin; }
+  };
+  const writeLine = (text, size=10, style="normal", color=[30,35,48]) => {
+    doc.setFontSize(size); doc.setFont("helvetica", style); doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text, usableW);
+    checkPage(lines.length * (size * 0.4 + 1));
+    doc.text(lines, margin, y); y += lines.length * (size * 0.4 + 1) + 1;
+  };
+  const rule = () => { checkPage(4); doc.setDrawColor(200,205,215); doc.line(margin, y, pageW-margin, y); y += 5; };
+
+  // Header
+  doc.setFillColor(0, 37, 105);
+  doc.rect(0, 0, pageW, 28, "F");
+  doc.setFontSize(16); doc.setFont("helvetica","bold"); doc.setTextColor(255,255,255);
+  doc.text(script.title || "Untitled Script", margin, 13);
+  doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor(180,200,240);
+  const meta = `${(script.scenes||[]).length} scenes · ${(script.characters||[]).length} characters · ${(script.decision_points||[]).length} decision points`;
+  doc.text(meta, margin, 21);
+  y = 36;
+
+  if (script.learning_objective) {
+    writeLine("Learning Objective", 9, "bold", [100,110,130]);
+    writeLine(script.learning_objective, 10, "normal");
+    y += 3;
+  }
+
+  // Scenes
+  (script.scenes || []).forEach((s, i) => {
+    rule();
+    writeLine(`Scene ${i+1}: ${s.title || s.scene_id}`, 12, "bold", [0,37,105]);
+    if (s.setting?.description) writeLine(s.setting.description, 9, "italic", [90,100,115]);
+    y += 2;
+    (s.audio?.dialogue || []).forEach(dl => {
+      checkPage(8);
+      doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor(80,90,110);
+      doc.text(`${dl.character_id}:`, margin, y);
+      const nameW = doc.getTextWidth(`${dl.character_id}:`) + 3;
+      doc.setFont("helvetica","normal"); doc.setTextColor(30,35,48);
+      const spoken = doc.splitTextToSize(dl.line, usableW - nameW);
+      doc.text(spoken, margin + nameW, y);
+      y += spoken.length * 5 + 1;
+    });
+    if (s.routes_to?.decision_point_id != null) {
+      y += 1; writeLine(`→ Routes to Decision Point ${s.routes_to.decision_point_id}`, 8, "italic", [120,130,150]);
+    }
+  });
+
+  // Decision Points
+  if ((script.decision_points||[]).length > 0) {
+    rule();
+    writeLine("Decision Points", 13, "bold", [0,37,105]);
+    (script.decision_points).forEach(dp => {
+      y += 3; checkPage(12);
+      writeLine(`DP ${dp.decision_point_id}: ${dp.question_text}`, 10, "bold");
+      (dp.choices||[]).forEach(c => {
+        writeLine(`  ${c.is_correct?"✓":"○"} ${c.choice_id}: ${c.text}`, 9, c.is_correct?"bold":"normal",
+          c.is_correct?[40,120,40]:[60,70,85]);
+      });
+    });
+  }
+
+  doc.save("scenario_script.pdf");
+}
+
+function ExportMenu({script}) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+  return (
+    <div className="export-wrap" ref={ref}>
+      <button className="btn btn-ghost btn-sm" disabled={!script} onClick={()=>setOpen(o=>!o)}>
+        Export ▾
+      </button>
+      {open && (
+        <div className="export-menu">
+          <button onClick={()=>{exportJSON(script);setOpen(false);}}>
+            <span className="exp-icon">{ }</span> JSON
+          </button>
+          <button onClick={()=>{exportMarkdown(script);setOpen(false);}}>
+            <span className="exp-icon">＃</span> Markdown
+          </button>
+          <button onClick={()=>{exportPDF(script);setOpen(false);}}>
+            <span className="exp-icon">📄</span> PDF
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App(){
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [selected, setSelected] = useState(new Set(["biology2e:09:9.2"]));
@@ -1811,14 +1962,7 @@ function App(){
                 <span className="zv">{zoom}%</span>
                 <button onClick={()=>setZoom(z=>Math.min(150,z+10))}>+</button>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={()=>{
-                if (!script) return;
-                const blob = new Blob([JSON.stringify(script, null, 2)], {type:"application/json"});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url; a.download = "scenario_script.json"; a.click();
-                URL.revokeObjectURL(url);
-              }} disabled={!script}>Export script</button>
+              <ExportMenu script={script}/>
             </div>
           </div>
 

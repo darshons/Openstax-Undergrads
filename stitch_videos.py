@@ -32,6 +32,20 @@ MAX_CLIPS = 21
 #PROCESSING SETTLE - an extension's output isn't extend-eligible the instant the
 #operation reports done; let it finish before chaining the next hop
 EXTENSION_SETTLE_SECONDS = 15
+#TRANSIENT RETRY - Veo's code 13 INTERNAL ("Video generation failed due to an
+#internal server issue. Please try again in a few minutes.") is a documented,
+#server-side backend/capacity failure, not a problem with the request. It shows
+#up most on repeated extension hops. The API's own guidance is to wait and retry,
+#so we re-issue the same generate call with exponential backoff instead of
+#crashing and discarding the spent hops. RESOURCE_EXHAUSTED (8) and UNAVAILABLE
+#(14) are likewise transient and worth retrying.
+MAX_GENERATION_RETRIES = 4
+RETRY_BASE_DELAY_SECONDS = 30  # backoff: 30s, 60s, 120s, 240s
+RETRYABLE_ERROR_CODES = {8, 13, 14}
+
+
+class _VeoRetryableError(RuntimeError):
+    """A transient Veo failure (code 13 INTERNAL / overload) worth retrying."""
 
 #GENERATE FIRST CLIP
 def generate_first_clip(client, prompt, clip_index=1, reference_images=None, duration_seconds=8):
@@ -67,20 +81,22 @@ def generate_first_clip(client, prompt, clip_index=1, reference_images=None, dur
 
     print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s)...")
 
-    operation = client.models.generate_videos(
-        model=MODEL,
-        prompt=prompt,
-        config=types.GenerateVideosConfig(
-            aspect_ratio=ASPECT_RATIO,
-            resolution=RESOLUTION,
-            number_of_videos=1,
-            duration_seconds=duration_seconds,
-            reference_images=ref_image_configs if ref_image_configs else None,
-        ),
-    )
+    def _attempt():
+        operation = client.models.generate_videos(
+            model=MODEL,
+            prompt=prompt,
+            config=types.GenerateVideosConfig(
+                aspect_ratio=ASPECT_RATIO,
+                resolution=RESOLUTION,
+                number_of_videos=1,
+                duration_seconds=duration_seconds,
+                reference_images=ref_image_configs if ref_image_configs else None,
+            ),
+        )
+        operation = _poll_until_done(client, operation)
+        return operation.response.generated_videos[0].video
 
-    operation = _poll_until_done(client, operation)
-    return operation.response.generated_videos[0].video
+    return _generate_with_retry(_attempt, label=f"clip {clip_index}")
 
 #GENERATE EXTENSION CLIP
 def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
@@ -96,19 +112,68 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
 
     print(f"\n  Generating clip {clip_index} (extension, ~7s)...")
 
-    operation = client.models.generate_videos(
-        model=MODEL,
-        prompt=prompt,
-        video=previous_video_obj,
-        config=types.GenerateVideosConfig(
-            aspect_ratio=ASPECT_RATIO,
-            resolution=RESOLUTION,
-            number_of_videos=1,
-        ),
+    def _attempt():
+        operation = client.models.generate_videos(
+            model=MODEL,
+            prompt=prompt,
+            video=previous_video_obj,
+            config=types.GenerateVideosConfig(
+                aspect_ratio=ASPECT_RATIO,
+                resolution=RESOLUTION,
+                number_of_videos=1,
+            ),
+        )
+        operation = _poll_until_done(client, operation)
+        return operation.response.generated_videos[0].video
+
+    return _generate_with_retry(_attempt, label=f"clip {clip_index}")
+
+#TRANSIENT FAILURE HANDLING
+def _is_retryable_operation_error(error):
+    """True if a finished operation's error is a transient backend failure worth
+    retrying (code 13 INTERNAL, 8 RESOURCE_EXHAUSTED, 14 UNAVAILABLE, or an
+    'internal server issue' / 'try again' message)."""
+    if not error:
+        return False
+    if isinstance(error, dict):
+        code = error.get("code")
+        message = error.get("message", "") or ""
+    else:
+        code = getattr(error, "code", None)
+        message = getattr(error, "message", "") or ""
+    if code in RETRYABLE_ERROR_CODES:
+        return True
+    msg = message.lower()
+    return "internal server issue" in msg or "internal error" in msg or "try again" in msg
+
+
+def _generate_with_retry(generate_fn, label):
+    """Run a generate+poll thunk, retrying transient code 13 INTERNAL failures
+    with exponential backoff. generate_fn must (re)issue the generate_videos call
+    and return the polled-to-done video object. On a transient failure we wait and
+    re-issue the whole call (a fresh operation), per Veo's 'try again in a few
+    minutes' guidance. Non-transient errors (content policy, etc.) propagate
+    immediately."""
+    last_err = None
+    for attempt in range(1, MAX_GENERATION_RETRIES + 1):
+        try:
+            return generate_fn()
+        except _VeoRetryableError as e:
+            last_err = e
+            if attempt == MAX_GENERATION_RETRIES:
+                break
+            delay = RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1))
+            print(
+                f"\n  {label}: transient backend failure "
+                f"(attempt {attempt}/{MAX_GENERATION_RETRIES}). "
+                f"Waiting {delay}s before retrying...\n    [{e}]"
+            )
+            time.sleep(delay)
+    raise RuntimeError(
+        f"{label}: still failing after {MAX_GENERATION_RETRIES} attempts. "
+        f"Last error: {last_err}"
     )
 
-    operation = _poll_until_done(client, operation)
-    return operation.response.generated_videos[0].video
 
 #POLLING
 def _poll_until_done(client, operation):
@@ -123,6 +188,9 @@ def _poll_until_done(client, operation):
     #done=True does not mean success — Veo sets error on the operation when generation fails
     #(content policy, transient error, etc.) and leaves response=None
     if getattr(operation, "error", None):
+        if _is_retryable_operation_error(operation.error):
+            #transient backend failure (code 13 INTERNAL etc.) — caller retries with backoff
+            raise _VeoRetryableError(f"Veo generation failed (transient): {operation.error}")
         raise RuntimeError(f"Veo generation failed: {operation.error}")
     if not getattr(operation, "response", None) or not getattr(operation.response, "generated_videos", None):
         raise RuntimeError(

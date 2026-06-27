@@ -1,0 +1,91 @@
+{
+  "title": "Pulling the Perfect Shot",
+  "learning_goal": "Demonstrate the steps of dialing in an espresso shot — dosing, tamping, and reading extraction time — and reinforce calm coaching of a new trainee through encouragement rather than criticism.",
+  "target_audience": "New specialty-coffee baristas in their first week of training",
+  "total_duration_seconds": 29,
+  "visual_style": "3D soft-shaded stylized animation with warm, cozy lighting. Characters have rounded, friendly proportions, smooth matte surfaces, and gentle rim light. Emotional expression conveyed through eyebrow movement, shoulder posture, and hand gestures. Mouth movement suggests speech without precise phoneme sync. No photorealistic skin, no complex hair physics, no fast locomotion. All action stays at a single espresso bar made of warm reclaimed wood with a brushed-steel machine. Cups, bags, and machine displays are angled away from camera or left unlabeled, so no on-screen text needs to be rendered.",
+  "characters": [
+    {
+      "character_id": "barista_rosa",
+      "name": "Rosa",
+      "role": "Lead barista and trainer (on-screen mentor)",
+      "appearance": {
+        "skin_tone": "Deep brown",
+        "hair": "Black coily hair in a short afro, no loose strands",
+        "build": "Medium height, sturdy build",
+        "uniform": "Dark green canvas apron over a charcoal t-shirt, sleeves pushed up, a folded bar towel tucked at the waist"
+      },
+      "emotional_baseline": "Relaxed, encouraging, quietly confident"
+    },
+    {
+      "character_id": "trainee_devin",
+      "name": "Devin",
+      "role": "New barista trainee, first week on the job",
+      "appearance": {
+        "skin_tone": "Light tan",
+        "hair": "Sandy blond, short and slightly tousled",
+        "build": "Tall, lanky build",
+        "uniform": "Matching dark green apron over a white t-shirt, both hands free, standing at the bar"
+      },
+      "emotional_baseline": "Eager but nervous, watching closely"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "duration_seconds": 29,
+      "setting": "A small specialty-coffee bar, warm afternoon light. A brushed-steel espresso machine sits on a reclaimed-wood counter. A portafilter, a tamper, and a small dosing cup rest beside it. Quiet, no other customers in frame.",
+      "character_actions": "Rosa stands at the espresso machine and walks Devin through pulling a shot, her movements unhurried. Devin stands to her right, watching her hands closely and shifting his weight as he tries to follow along. By the end, Devin is leaning in, no longer hesitant.",
+      "camera": {
+        "angle": "Medium two-shot showing both characters at the bar, with closer framing on the hands during the demonstration.",
+        "movement": "Static cuts only.",
+        "lens_effect": "Warm, soft depth. No dramatic focus pulls."
+      },
+      "audio": {
+        "sound_effects": "Soft hum of the espresso machine. Faint clink of the portafilter against the counter.",
+        "ambience": "Quiet cafe, low warm tone."
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            { "character_id": "barista_rosa", "line": "Okay, first thing — we weigh the dose. Eighteen grams in the basket, level it off with your finger, like this." }
+          ],
+          "character_actions": "Rosa holds the portafilter under the grinder and levels the grounds with a slow swipe of her finger — the swipe still completing as she finishes speaking. Devin watches her hands, his own hands hovering near the counter, ready.",
+          "camera": { "angle": "Medium two-shot, then static cut to closer framing on Rosa's hands at the grinder.", "movement": "Static.", "lens_effect": "Warm, soft depth." }
+        },
+        {
+          "clip_id": 2,
+          "setting": "Same espresso bar, continuing from the previous clip.",
+          "dialogue": [
+            { "character_id": "trainee_devin", "line": "And how hard do I press when I tamp it? I keep worrying I'll do it wrong." }
+          ],
+          "character_actions": "Devin picks up the tamper and turns it over in his hand, his shoulders slightly raised with nerves — the turn of the tamper still in motion as he finishes asking. Rosa watches him without interrupting, a small patient nod beginning.",
+          "camera": { "angle": "Closer framing on Devin holding the tamper.", "movement": "Static.", "lens_effect": "Warm, soft depth." }
+        },
+        {
+          "clip_id": 3,
+          "setting": "Same espresso bar, continuing from the previous clip.",
+          "dialogue": [
+            { "character_id": "barista_rosa", "line": "Firm and level — about the weight of a handshake. You'll feel it settle. Honestly, you're already doing it right." }
+          ],
+          "character_actions": "Rosa places her hand lightly over Devin's on the tamper to guide the pressure, then lets go — her hand drawing back as she finishes speaking. Devin's shoulders are starting to drop, his grip steadying through the clip.",
+          "camera": { "angle": "Medium two-shot, then static cut to closer framing on both hands on the tamper, then static cut back to two-shot.", "movement": "Static.", "lens_effect": "Warm, soft depth." }
+        },
+        {
+          "clip_id": 4,
+          "setting": "Same espresso bar, continuing from the previous clip.",
+          "dialogue": [
+            { "character_id": "trainee_devin", "line": "Oh — that actually feels right." }
+          ],
+          "character_actions": "Devin locks the portafilter into the machine with a small confident twist, his nervous posture gone — standing taller, leaning in toward the machine. A quiet, settled beat as the machine begins to hum. Rosa holds a warm, approving expression beside him.",
+          "camera": { "angle": "Two-shot showing both characters, Devin now leaning in and engaged with the machine.", "movement": "Static.", "lens_effect": "Warm, soft depth." }
+        }
+      ],
+      "on_screen_text": null,
+      "routes_to": null
+    }
+  ],
+  "decision_points": []
+}

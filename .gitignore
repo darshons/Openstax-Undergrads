@@ -1,7 +1,5 @@
-# Environment
-*.env
-
 # Python
+.venv/
 venv/
 __pycache__/
 *.pyc
@@ -18,3 +16,29 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# Next.js
+.next/
+out/
+
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.*
+*.env
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS
+.DS_Store

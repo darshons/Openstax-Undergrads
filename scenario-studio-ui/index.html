@@ -66,11 +66,12 @@
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
 
   /* ─── Main split ─── */
-  .main{display:flex;min-height:0}
-  .sidebar-wrap{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--os-line);background:#fff;overflow:hidden;width:360px;min-width:360px;transition:width .22s ease,min-width .22s ease;flex-shrink:0}
-  .main.sidebar-collapsed .sidebar-wrap{width:0;min-width:0;border-right:none}
-  .sidebar{background:#fff;display:flex;flex-direction:column;min-height:0;overflow:hidden;flex:1}
-  .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden;flex:1}
+  .main{display:grid;grid-template-columns:360px 1fr;min-height:0;transition:grid-template-columns .22s ease}
+  .main.sidebar-collapsed{grid-template-columns:0px 1fr}
+  .sidebar-wrap{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-right:1px solid var(--os-line);background:#fff}
+  .main.sidebar-collapsed .sidebar-wrap{border-right:none}
+  .sidebar{background:#fff;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden}
   .sidebar-toggle{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;border:1px solid var(--os-line);background:#fff;cursor:pointer;font-size:11px;color:var(--os-ink-2);flex-shrink:0}
   .sidebar-toggle:hover{background:var(--os-bg-3);color:var(--os-ink)}
 
@@ -1993,6 +1994,17 @@ function App(){
           </div>
 
           <div className="canvas">
+            {!script && !busy && (
+              <div className="empty">
+                <div className="empty-card">
+                  <div className="empty-illust">
+                    <div/><div/><div/>
+                  </div>
+                  <h2>Your script will appear here as a storyboard</h2>
+                  <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{color:"var(--os-orange)"}}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
+                </div>
+              </div>
+            )}
             <div className="canvas-inner" style={{transform:`scale(${zoom/100})`}}>
               {script ? (
                 <>
@@ -2060,17 +2072,7 @@ function App(){
                   />
 
                 </>
-              ) : !busy && (
-                <div className="empty">
-                  <div className="empty-card">
-                    <div className="empty-illust">
-                      <div/><div/><div/>
-                    </div>
-                    <h2>Your script will appear here as a storyboard</h2>
-                    <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{color:"var(--os-orange)"}}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
-                  </div>
-                </div>
-              )}
+              ) : null}
             </div>
 
             {busy && <GenOverlay step={genStep}/>}

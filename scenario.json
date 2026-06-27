@@ -167,10 +167,10 @@
           "clip_id": 4,
           "setting": "Same hospital room, continuing from the previous clip.",
           "dialogue": [
-            { "character_id": "patient_carl", "line": "Yeah. That would actually help." }
+            { "character_id": "patient_carl", "line": "Right. Yeah. I know." }
           ],
-          "character_actions": "Carl's gaze has fully settled on Maya — no longer toward the window. His arms rest relaxed at his sides. As he speaks, a small exhale of relief is visible. Maya holds a calm, present expression. The quiet between them at the end of the clip is settled, not tense.",
-          "camera": { "angle": "Two-shot showing both characters, Carl now fully forward-facing and engaged with Maya.", "movement": "Static.", "lens_effect": "Same warm neutral. Slightly brighter feel." }
+          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl.",
+          "camera": { "angle": "Closer framing on Carl's closed posture, then static cut to medium two-shot.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         }
       ],
       "on_screen_text": null,

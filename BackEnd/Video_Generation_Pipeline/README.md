@@ -1,6 +1,6 @@
 # video_generator
 
-Generates MP4 videos from a scenario JSON file using Google Veo. Each scene in the scenario becomes one video clip — or a chain of extension clips for longer scenes — produced by the Veo API and saved locally.
+Generates MP4 videos from a scenario JSON file using Google Veo. Every scene is treated as a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene.
 
 ---
 
@@ -14,6 +14,9 @@ video_generator/
   pipeline.py          — scene and scenario orchestration
   logging_utils.py     — generation log, prompt saving, checkpoints
   cli.py               — argument parsing, entry point, caption burning
+
+reference_images/      — place character reference PNGs here
+output/                — generated videos and generation_log.json (created on first run)
 ```
 
 ---
@@ -25,43 +28,59 @@ cd backend/Video_Generation_Pipeline
 export GEMINI_API_KEY=your-key-here
 
 # Generate one scene
-python -m video_generator.cli --scenario scenario.json --scene-id 1
+python -m video_generator.cli --scenario scenario.json --scene-id 3
 
-# Preview the prompt without generating
-python -m video_generator.cli --scenario scenario.json --scene-id 1 --preview-prompt
+# Generate all scenes
+python -m video_generator.cli --scenario scenario.json
 
-# Generate all scenes with a specific model
-python -m video_generator.cli --scenario scenario.json --model veo-3.1-fast
+# Preview the per-clip prompts without generating
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --preview-prompt
 
-# Generate all scenes and burn captions
+# Generate and burn dialogue captions onto the output video
 python -m video_generator.cli --scenario scenario.json --add-captions
-
-# Run the same scene through every model (for comparison)
-python -m video_generator.cli --scenario scenario.json --scene-id 1 --compare-models
-
-# Pass reference images for character consistency (first clip only)
-python -m video_generator.cli --scenario scenario.json --reference-images maya.png carl.png
 ```
 
 Output videos are saved to `output/`. A generation log is written to `output/generation_log.json` after every run.
 
 ---
 
+## Configuration
+
+Model, resolution, aspect ratio, and reference images are set as constants at the top of `veo_api.py` — not as CLI flags.
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `MODEL` | `veo-3.1-generate-preview` | Veo model used for all clips |
+| `MODEL_KEY` | `veo-3.1` | Short key used for logging and cost lookup |
+| `RESOLUTION` | `720p` | `720p`, `1080p`, or `4k` |
+| `ASPECT_RATIO` | `16:9` | `16:9` or `9:16` |
+| `REFERENCE_IMAGES` | `[]` | Paths to character reference PNGs (first clip only) |
+| `MAX_CLIPS` | `21` | Hard ceiling on clips per scene (~148 s) |
+| `EXTENSION_SECONDS` | `7` | Duration added by each extension hop |
+| `EXTENSION_SETTLE_SECONDS` | `15` | Settle delay between consecutive extension calls |
+| `MAX_GENERATION_RETRIES` | `4` | Max retries on transient failures |
+
+### Reference images
+
+Drop PNG files in `reference_images/` and list them in `veo_api.py`:
+
+```python
+REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png"]
+```
+
+Reference images pin character appearance on the first clip only. Extension clips inherit appearance from the previous video.
+
+---
+
 ## CLI flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--scenario` | *(required)* | Path to the scenario JSON file |
-| `--scene-id` | all scenes | Generate only this scene ID |
-| `--model` | `veo-3.1` | Model key: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2` |
-| `--compare-models` | off | Run the same scene through all four models |
-| `--resolution` | `720p` | `720p`, `1080p`, or `4k` |
-| `--aspect-ratio` | `16:9` | `16:9` or `9:16` |
-| `--reference-images` | none | Paths to up to 3 PNG reference images for character appearance pinning |
-| `--prompt-override` | none | Use this string instead of the auto-built prompt |
-| `--preview-prompt` | off | Print the generated prompt; skip API call |
-| `--add-captions` | off | Burn dialogue captions onto the generated video (requires `moviepy`) |
-| `--api-key` | `$GEMINI_API_KEY` | Gemini API key |
+| Flag | Description |
+|------|-------------|
+| `--scenario` *(required)* | Path to the scenario JSON file |
+| `--scene-id` | Generate only this scene ID; omit to generate all scenes |
+| `--preview-prompt` | Print the per-clip prompts; skip API call |
+| `--add-captions` | Burn dialogue captions onto the generated video (requires `moviepy`) |
+| `--api-key` | Gemini API key (default: `$GEMINI_API_KEY`) |
 
 ---
 
@@ -101,6 +120,8 @@ The pipeline expects a JSON file with this top-level shape:
 
 ### Scenes
 
+Every scene must have a `clips` array. Each clip becomes one Veo API call.
+
 ```json
 {
   "scene_id": 1,
@@ -123,7 +144,7 @@ The pipeline expects a JSON file with this top-level shape:
 }
 ```
 
-**`clips`** — optional array. When present, the scene is generated as a chain of Veo extension clips rather than a single generation. Each clip has its own `dialogue`, `character_actions`, and `camera` override:
+Each clip carries its own `dialogue`, `character_actions`, and `camera` override:
 
 ```json
 {
@@ -136,7 +157,9 @@ The pipeline expects a JSON file with this top-level shape:
 }
 ```
 
-`on_screen_text` is placed only on the final clip of the scene. All other clips suppress text overlays.
+`on_screen_text` is placed only on the final clip. All other clips suppress text overlays.
+
+The first clip gets a full prompt (setting, characters, camera, dialogue). Extension clips get a compressed continuation prompt that instructs Veo not to reset any visual element.
 
 ### Decision points
 
@@ -163,7 +186,55 @@ The pipeline expects a JSON file with this top-level shape:
 }
 ```
 
-Decision points are used by the frontend for interactive branching; the video pipeline ignores them and generates all scenes independently.
+Decision points drive frontend branching; the video pipeline generates all scenes independently and ignores them.
+
+---
+
+## Generation pipeline
+
+```
+cli.main()
+  └─ pipeline.run_scenario_pipeline()        ← iterates all scenes
+       └─ pipeline.run_scene_pipeline()      ← one scene → one video
+            ├─ prompt_builder.build_clip_prompts()
+            ├─ veo_api.generate_first_clip()        ← clip 1 (4/6/8 s)
+            ├─ veo_api.generate_extension_clip()    ← clip 2 (~7 s)
+            ├─ veo_api.generate_extension_clip()    ← clip 3 (~7 s)  ...
+            └─ veo_api.download_video()             ← final combined video
+```
+
+If an extension fails mid-scene, the last successful combined video is saved as a checkpoint (`scene{N}_checkpoint_clip{K}_{ts}.mp4`) and logged so spent API calls are not lost.
+
+---
+
+## Generation log
+
+Every completed scene is appended to `output/generation_log.json`:
+
+```json
+{
+  "timestamp":              "2025-01-15T14:32:10.123",
+  "scene_id":               1,
+  "model":                  "veo-3.1",
+  "model_api_name":         "veo-3.1-generate-preview",
+  "resolution":             "720p",
+  "aspect_ratio":           "16:9",
+  "prompt":                 "Visual style: ...",
+  "prompt_char_count":      1842,
+  "reference_images_count": 2,
+  "output_file":            "output/scene1_final_sprites_20250115_143210.mp4",
+  "file_size_mb":           18.4,
+  "video_duration_seconds": 29.0,
+  "generation_time":        47.2,
+  "retry_count":            0,
+  "estimated_cost_usd":     11.6,
+  "success":                true,
+  "error":                  null,
+  "error_type":             null
+}
+```
+
+`estimated_cost_usd` uses the Video+Audio pricing tier (Veo 3.1 models generate audio by default). Pricing source: Google Cloud pricing page.
 
 ---
 
@@ -182,7 +253,7 @@ Decision points are used by the frontend for interactive branching; the video pi
 |----------|-------------|
 | `build_character_block(characters)` | Build the appearance + role string for all characters |
 | `build_dialogue_block(scene, char_lookup)` | Build the numbered dialogue list, or a silence instruction when there is none |
-| `build_veo_prompt(scene, characters, visual_style, is_continuation)` | Assemble the full Veo prompt; set `is_continuation=True` for extension clips |
+| `build_veo_prompt(scene, characters, visual_style, is_continuation)` | Assemble the full prompt; first clip gets full context, extension clips get a compressed continuation prompt |
 | `build_clip_prompts(scene, characters, visual_style)` | Return one prompt per clip for the stitching pipeline |
 
 ### `veo_api`
@@ -190,31 +261,20 @@ Decision points are used by the frontend for interactive branching; the video pi
 | Function | Description |
 |----------|-------------|
 | `create_reference_image_configs(reference_images)` | Convert PNG paths to `VideoGenerationReferenceImage` objects |
-| `generate_first_clip(client, prompt, ...)` | Generate the opening clip (4 / 6 / 8 s); reference images force 8 s |
-| `generate_extension_clip(client, prompt, previous_video_obj, clip_index)` | Extend the previous clip by ~7 s |
-| `poll_until_done(client, operation)` | Poll until the operation reaches a terminal state; raises on errors |
-| `generate_with_retry(generate_fn, label)` | Wrap a generate+poll thunk with exponential-backoff retry for transient errors |
+| `generate_first_clip(client, prompt, ...)` | Generate the opening clip (4 / 6 / 8 s); reference images force 8 s; returns `(video_obj, attempts_used)` |
+| `generate_extension_clip(client, prompt, previous_video_obj, clip_index)` | Extend the previous clip by ~7 s; returns `(video_obj, attempts_used)` |
+| `poll_until_done(client, operation)` | Poll until the operation reaches a terminal state; raises on permanent or transient errors |
+| `generate_with_retry(generate_fn, label)` | Wrap a generate+poll thunk with exponential-backoff retry; returns `(result, attempts_used)` |
 | `download_video(client, video_obj, output_file)` | Download the final combined video to disk |
-| `generate_video(client, prompt, scene_id, ...)` | Single-scene generation with logging; returns a log entry dict |
-
-**Constants** (override by editing `veo_api.py`):
-
-| Name | Default | Description |
-|------|---------|-------------|
-| `MODEL` | `veo-3.1-generate-preview` | Model used by the stitching pipeline |
-| `RESOLUTION` | `720p` | Resolution for stitching pipeline clips |
-| `ASPECT_RATIO` | `16:9` | Aspect ratio for stitching pipeline clips |
-| `MAX_CLIPS` | `21` | Hard ceiling on clips per scene (~148 s) |
-| `EXTENSION_SECONDS` | `7` | Duration added by each extension hop |
-| `EXTENSION_SETTLE_SECONDS` | `15` | Delay between consecutive extension calls |
-| `MAX_GENERATION_RETRIES` | `4` | Max retry attempts on transient failures |
+| `estimate_cost(model_key, resolution, duration_seconds)` | Return estimated USD cost for the generated video |
+| `get_video_duration(path)` | Read actual playback duration from the saved MP4 via moviepy |
 
 ### `pipeline`
 
 | Function | Description |
 |----------|-------------|
-| `run_scene_pipeline(client, scene_id, clip_prompts, ...)` | Generate one scene as a stitched multi-clip video; saves a checkpoint if an extension fails mid-way |
-| `run_scenario_pipeline(client, scenario, model_key, ...)` | Iterate all scenes and call `generate_video` for each; returns a list of log entries |
+| `run_scene_pipeline(client, scene_id, clip_prompts, ...)` | Generate one scene as a stitched multi-clip video; saves a checkpoint on partial failure |
+| `run_scenario_pipeline(client, scenario, reference_images)` | Iterate all scenes through the stitching pipeline; returns a list of `{scene_id, success, output_file, error}` dicts |
 
 ### `logging_utils`
 
@@ -238,38 +298,14 @@ Decision points are used by the frontend for interactive branching; the video pi
 
 ---
 
-## Two generation paths
-
-### Single-generation path (default)
-
-Used when a scene has no `clips` array, or when calling `generate_video` directly.
-
-```
-cli.main()
-  └─ pipeline.run_scenario_pipeline()
-       └─ veo_api.generate_video()   ← one Veo call per scene
-```
-
-### Stitching path (multi-clip scenes)
-
-Used when a scene has a `clips` array. Each clip is a separate Veo call; each call continues from the last frame of the previous one.
-
-```
-pipeline.run_scene_pipeline()
-  ├─ veo_api.generate_first_clip()        ← clip 1 (4/6/8 s)
-  ├─ veo_api.generate_extension_clip()    ← clip 2 (~7 s)
-  ├─ veo_api.generate_extension_clip()    ← clip 3 (~7 s)
-  └─ veo_api.download_video()             ← final combined video
-```
-
-If an extension fails, the last successful combined video is saved as a checkpoint (`scene{N}_checkpoint_clip{K}_{ts}.mp4`) so the completed hops are not lost.
-
----
-
 ## Testing prompts without API calls
 
 ```bash
+# Print per-clip prompts for all scenes
 python test_prompt.py
+
+# Print per-clip prompts for one scene via CLI
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --preview-prompt
 ```
 
-Prints the assembled prompt for every clip in every scene using the local `scenario.json`. No Veo API calls are made.
+No Veo API calls are made in either case.

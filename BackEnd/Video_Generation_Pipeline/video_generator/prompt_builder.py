@@ -25,14 +25,27 @@ def build_dialogue_block(scene: dict, char_lookup: dict) -> str:
             + "\n    ".join(dialogue_lines)
             + "\n    Do not swap, merge, or reorder lines between characters."
         )
-    return "None — no spoken words in this clip. All characters act and react silently."
+    return (
+        "None — no spoken words in this clip. "
+        "All characters act and react silently. Do not invent dialogue."
+    )
 
 
-def build_veo_prompt(scene: dict, characters: list, visual_style: str, is_continuation: bool = False) -> str:
+def build_veo_prompt(
+    scene: dict,
+    characters: list,
+    visual_style: str,
+    is_continuation: bool = False,
+) -> str:
     """
     Converts scene, character descriptions, and visual style from JSON into a prompt for Veo.
 
-    is_continuation: set True for extension clips to anchor visual continuity explicitly.
+    is_continuation:
+        False = first clip, reference images are passed.
+        True  = extension clip, previous video is passed instead of reference images.
+
+    Reference images are only available for the first clip. Extension clips should not
+    claim that reference images are provided.
     """
     char_lookup = {c["character_id"]: c for c in characters}
 
@@ -52,48 +65,81 @@ def build_veo_prompt(scene: dict, characters: list, visual_style: str, is_contin
         f"Ambience: {audio.get('ambience', 'none')}."
     )
 
-    prompt = f"""Visual style: {visual_style}
+    # Reference images are only passed for the first clip.
+    has_reference_images = not is_continuation
 
-    Characters: {character_block}
+    # ------------------------------------------------------------------
+    # First clip: full prompt
+    # ------------------------------------------------------------------
+    if not is_continuation:
+        prompt = f"""Visual style: {visual_style}
 
-    Setting: {scene.get('setting', '')}
+Characters: {character_block}
 
-    Character actions: {scene.get('character_actions', '')}
+Setting: {scene.get('setting', '')}
 
-    Camera: {camera_block}
+Character actions: {scene.get('character_actions', '')}
 
-    Dialogue: {dialogue_block}
+Camera: {camera_block}
 
-    Audio: {sound_block}"""
+Dialogue: {dialogue_block}
 
-    if scene.get("on_screen_text"):
-        prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+Audio: {sound_block}"""
 
-    consistency_lines = []
-    for char in characters:
-        a = char["appearance"]
-        consistency_lines.append(
-            f"{char['name']} always wears {a['uniform']}; "
-            f"{a['skin_tone']} skin, {a['hair']}. "
-            f"Do not change {char['name']}'s clothing, hair, skin tone, or facial features at any point."
-        )
-    prompt += (
-        "\n\nCharacter reference images are provided. "
-        + " ".join(consistency_lines)
-        + " Do not introduce any additional characters into frame."
-    )
+        if scene.get("on_screen_text"):
+            prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
 
-    if is_continuation:
+        consistency_lines = []
+        for char in characters:
+            a = char["appearance"]
+            consistency_lines.append(
+                f"{char['name']} always wears {a['uniform']}; "
+                f"{a['skin_tone']} skin, {a['hair']}. "
+                f"Do not change {char['name']}'s clothing, hair, skin tone, or facial features at any point."
+            )
+
+        if has_reference_images:
+            prompt += "\n\nCharacter reference images are provided. "
+
         prompt += (
-            "\n\nThis clip is a direct continuation of the previous clip. "
-            "All visual elements — character appearances, clothing, lighting, room layout, and environment — "
-            "must remain exactly as established in the prior clip. Do not reset, alter, or reintroduce any visual element."
+            " ".join(consistency_lines)
+            + " Do not introduce any additional characters into frame."
         )
 
-    if scene.get("on_screen_text"):
-        prompt += "\n\nDo not include any other text overlays, captions, or subtitles beyond the specified on-screen text at the end."
+    # ------------------------------------------------------------------
+    # Extension clips: compressed continuation prompt
+    # ------------------------------------------------------------------
     else:
-        prompt += "\n\nDo not include any text overlays, captions, subtitles, or on-screen text in the video."
+        prompt = f"""This clip is a direct continuation of the previous video. Do not reset the scene.
+
+Use the established character appearances from the previous video. Preserve the same clothing, hair, skin tone, facial features, lighting, room layout, environment, and overall visual style. Do not reintroduce or redesign any character or object.
+
+Current character actions: {scene.get('character_actions', '')}
+
+Camera: {camera_block}
+
+Dialogue: {dialogue_block}
+
+Audio: {sound_block}
+
+Do not introduce any additional characters into frame."""
+
+        if scene.get("on_screen_text"):
+            prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+
+    # ------------------------------------------------------------------
+    # Text overlay control
+    # ------------------------------------------------------------------
+    if scene.get("on_screen_text"):
+        prompt += (
+            "\n\nDo not include any other text overlays, captions, or subtitles "
+            "beyond the specified on-screen text at the end."
+        )
+    else:
+        prompt += (
+            "\n\nDo not include any text overlays, captions, subtitles, "
+            "or on-screen text in the video."
+        )
 
     return prompt.strip()
 

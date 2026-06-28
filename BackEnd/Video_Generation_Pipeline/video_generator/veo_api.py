@@ -13,10 +13,6 @@ VEO_MODELS = {
     "veo-2":        "veo-2.0-generate-001",
 }
 
-DEFAULT_MODEL = "veo-3.1"
-DEFAULT_RESOLUTION = "720p"
-DEFAULT_ASPECT = "16:9"
-
 #STITCH PIPELINE SETTINGS
 MODEL = "veo-3.1-generate-preview"
 MODEL_KEY = "veo-3.1"
@@ -24,16 +20,21 @@ RESOLUTION = "720p"
 ASPECT_RATIO = "16:9"
 POLL_INTERVAL = 10
 
+# Paths to reference image PNGs for character consistency (first clip only).
+# Place files in reference_images/ and list them here, e.g.:
+#   REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png"]
+REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png", "reference_images/background_reference_image.png"]
+
 #DURATION CONSTRAINTS
 VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
 EXTENSION_SECONDS = 7
 MAX_CLIPS = 21
 #PROCESSING SETTLE
-EXTENSION_SETTLE_SECONDS = 15
+EXTENSION_SETTLE_SECONDS = 30
 #TRANSIENT RETRY
 MAX_GENERATION_RETRIES = 4
 RETRY_BASE_DELAY_SECONDS = 30
-RETRYABLE_ERROR_CODES = {13}
+RETRYABLE_ERROR_CODES = {13}  # RESOURCE_EXHAUSTED, INTERNAL, UNAVAILABLE
 
 # $/second of output video. Veo 3.1 models generate audio by default → Video+Audio tier.
 # Source: https://cloud.google.com/generative-ai-studio/pricing
@@ -47,6 +48,15 @@ VEO_COST_PER_SECOND = {
 
 class _VeoRetryableError(RuntimeError):
     """A transient Veo failure (code 13 INTERNAL / overload) worth retrying."""
+
+
+class _VeoExhaustedError(RuntimeError):
+    """Raised when generate_with_retry exhausts all attempts. Carries attempts_used."""
+    def __init__(self, label: str, attempts_used: int, last_err: Exception):
+        super().__init__(
+            f"{label}: still failing after {attempts_used} attempts. Last error: {last_err}"
+        )
+        self.attempts_used = attempts_used
 
 
 def _is_retryable_operation_error(error):
@@ -160,10 +170,7 @@ def generate_with_retry(generate_fn, label):
                 f"Waiting {delay}s before retrying...\n    [{e}]"
             )
             time.sleep(delay)
-    raise RuntimeError(
-        f"{label}: still failing after {MAX_GENERATION_RETRIES} attempts. "
-        f"Last error: {last_err}"
-    )
+    raise _VeoExhaustedError(label, MAX_GENERATION_RETRIES, last_err)
 
 
 def generate_first_clip(client, prompt, clip_index=1, reference_images=None, duration_seconds=8):
@@ -249,114 +256,3 @@ def download_video(client, video_obj, output_file):
     return output_file
 
 
-def generate_video(
-    client,
-    prompt: str,
-    scene_id: int,
-    model_key: str = DEFAULT_MODEL,
-    resolution: str = DEFAULT_RESOLUTION,
-    aspect_ratio: str = DEFAULT_ASPECT,
-    prompt_override: str = None,
-    reference_images: list = None,
-    poll_interval: int = 10,
-) -> dict:
-    """
-    Generate a single video from a prompt using Veo.
-    Returns a log entry dict with results.
-    """
-    from google.genai import types
-
-    final_prompt = prompt_override if prompt_override else prompt
-
-    model_api_name = VEO_MODELS.get(model_key)
-    if not model_api_name:
-        raise ValueError(f"Unknown model key '{model_key}'. Choose from: {list(VEO_MODELS.keys())}")
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = str(OUTPUT_DIR / f"scene{scene_id}_{model_key}_{timestamp}.mp4")
-    ref_count = len(reference_images) if reference_images else 0
-
-    print(f"\n{'─'*60}")
-    print(f"  Scene:      {scene_id}")
-    print(f"  Model:      {model_key} ({model_api_name})")
-    print(f"  Resolution: {resolution}  |  Aspect: {aspect_ratio}")
-    print(f"  Output:     {output_file}")
-    print(f"{'─'*60}")
-    print(f"\nPrompt preview (first 300 chars):\n{final_prompt[:300]}...\n")
-
-    start_time = time.time()
-
-    try:
-        print("Submitting to Veo API...")
-        ref_image_configs = []
-        if reference_images:
-            ref_image_configs = create_reference_image_configs(reference_images)
-
-        operation = client.models.generate_videos(
-            model=model_api_name,
-            prompt=final_prompt,
-            config=types.GenerateVideosConfig(
-                aspect_ratio=aspect_ratio,
-                resolution=resolution,
-                number_of_videos=1,
-                reference_images=ref_image_configs if ref_image_configs else None,
-            ),
-        )
-
-        print("Waiting for generation to complete ", end="", flush=True)
-        while not operation.done:
-            time.sleep(poll_interval)
-            operation = client.operations.get(operation)
-            print(".", end="", flush=True)
-        print(" done!")
-
-        generated_videos = operation.response.generated_videos
-        if not generated_videos:
-            raise RuntimeError("Veo returned no videos — check your API quota and prompt.")
-
-        video_uri = generated_videos[0].video.uri
-        video_data = client.files.download(file=video_uri)
-        with open(output_file, "wb") as f:
-            f.write(video_data)
-
-        wall_time = time.time() - start_time
-        size_mb = round(os.path.getsize(output_file) / (1024 * 1024), 2)
-        vid_dur = get_video_duration(output_file)
-        cost = estimate_cost(model_key, resolution, vid_dur)
-        print(f"✓ Saved: {output_file} ({size_mb:.1f} MB) in {wall_time:.0f}s")
-
-        return log_generation(
-            scene_id=scene_id,
-            model_key=model_key,
-            prompt=final_prompt,
-            output_file=output_file,
-            duration_seconds=wall_time,
-            success=True,
-            model_api_name=model_api_name,
-            resolution=resolution,
-            aspect_ratio=aspect_ratio,
-            file_size_mb=size_mb,
-            video_duration_seconds=vid_dur,
-            reference_images_count=ref_count,
-            retry_count=0,
-            estimated_cost_usd=cost,
-        )
-
-    except Exception as e:
-        wall_time = time.time() - start_time
-        print(f"✗ Generation failed: {e}")
-        return log_generation(
-            scene_id=scene_id,
-            model_key=model_key,
-            prompt=final_prompt,
-            output_file=output_file,
-            duration_seconds=wall_time,
-            success=False,
-            error=str(e),
-            error_type=_classify_error(e),
-            model_api_name=model_api_name,
-            resolution=resolution,
-            aspect_ratio=aspect_ratio,
-            reference_images_count=ref_count,
-            retry_count=0,
-        )

@@ -11,6 +11,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+cleanup.py
 
 # macOS
 .DS_Store
@@ -18,3 +19,6 @@ build/
 # IDE
 .vscode/
 .idea/
+
+#Pyrefly
+pyrefly.toml

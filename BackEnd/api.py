@@ -89,8 +89,8 @@ def generate_final_script(modified_script: ModifiedScript) -> dict:
     return {"message": "Final script generation request received"}
 
 
-@api_router.get("/dummy_path")
-def get_dummy_path(target: str):
+@api_router.get("/dummy_paths")
+def get_dummy_paths(target: str):
     match target:
         case "script":
             return {"script_path": ""}

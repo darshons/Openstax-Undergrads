@@ -886,11 +886,12 @@ const CATALOG = [
 ];
 
 /* Look up the book + chapter for a section ID like "biology2e:09:9.1". */
-function lookupSection(id){
+function lookupSection(id, dynamicChapters={}){
   const [bookId, chapN, secN] = id.split(":");
   const book = CATALOG.find(b => b.id === bookId);
   if (!book) return null;
-  const chap = book.chapters.find(c => c.n === chapN);
+  const chapters = dynamicChapters[bookId] || book.chapters;
+  const chap = chapters.find(c => c.n === chapN);
   if (!chap) return null;
   return {book, chap, secN};
 }
@@ -898,9 +899,9 @@ function lookupSection(id){
 /* Build the /api/initial_script request from the section the user selected
    first. The backend takes one (book_title, unit_num) at a time; if multiple
    sections are picked we use the first and let chapter/page narrow it. */
-function buildGenerateRequest({selected, model, videoType, userQuery}){
+function buildGenerateRequest({selected, model, videoType, userQuery, dynamicChapters={}}){
   const firstId = Array.from(selected)[0];
-  const hit = firstId && lookupSection(firstId);
+  const hit = firstId && lookupSection(firstId, dynamicChapters);
   if (!hit) return null;
   return {
     book_title: hit.book.bookTitle,
@@ -1009,7 +1010,8 @@ function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, se
       <div className="sb-list">
         {CATALOG.map(book => {
           const open = openBooks[book.id];
-          const selCount = book.chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
+          const chapters = dynamicChapters[book.id] || book.chapters;
+          const selCount = chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
           return (
             <div key={book.id} className="book">
               <div className={`book-row ${open?"open":""}`} onClick={()=>setOpenBooks(o => ({...o,[book.id]:!o[book.id]}))}>
@@ -1018,13 +1020,13 @@ function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, se
                   <div className="book-title">{book.title}</div>
                   <div className="book-sub">{book.sub}</div>
                 </div>
-                <div className={`book-count ${selCount>0?"has":""}`}>{selCount>0?selCount:book.chapters.length}</div>
+                <div className={`book-count ${selCount>0?"has":""}`}>{selCount>0?selCount:chapters.length}</div>
                 <div className="book-caret">{I.caret}</div>
               </div>
 
               {open && (
                 <div className="chapters">
-                  {book.chapters.map(c => {
+                  {chapters.map(c => {
                     const key = `${book.id}:${c.n}`;
                     const chapOpen = openChaps[key];
                     const chapSel = c.secs.filter(s => selected.has(`${key}:${s.n}`)).length;
@@ -1978,6 +1980,21 @@ function App(){
   const [zoom, setZoom] = useState(100);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  const [dynamicChapters, setDynamicChapters] = useState({});
+
+  useEffect(() => {
+    const placeholder = (book) => book.chapters.every(c => c.secs.length === 1 && c.secs[0].t === "Overview");
+    CATALOG.filter(placeholder).forEach(book => {
+      fetch(`/toc?book_title=${encodeURIComponent(book.bookTitle)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.chapters?.length) {
+            setDynamicChapters(prev => ({...prev, [book.id]: data.chapters}));
+          }
+        })
+        .catch(() => {});
+    });
+  }, []);
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
 
@@ -2006,7 +2023,7 @@ function App(){
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
   const runGenerate = async () => {
-    const req = buildGenerateRequest({selected, model, videoType, userQuery: userQuery.trim()});
+    const req = buildGenerateRequest({selected, model, videoType, userQuery: userQuery.trim(), dynamicChapters});
     if (!req) {
       setGenError("Pick at least one section from a known textbook.");
       return;

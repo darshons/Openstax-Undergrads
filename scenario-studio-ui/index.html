@@ -116,6 +116,11 @@
   .chap{padding-left:10px;border-left:1px dashed var(--os-line-strong)}
   .chap-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:default}
   .chap-row:hover{background:#fff}
+  .chap-sel{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--os-line-strong);background:#fff;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .chap-sel:hover{border-color:var(--os-navy)}
+  .chap-sel.all{background:var(--os-navy);border-color:var(--os-navy)}
+  .chap-sel.some{background:var(--os-navy);border-color:var(--os-navy);opacity:.45}
+  .chap-sel svg{display:block}
   .chap-num{font-size:10px;font-weight:700;color:var(--os-ink-3);
     background:#fff;border:1px solid var(--os-line);border-radius:4px;padding:2px 5px;
     min-width:22px;text-align:center;font-family:"JetBrains Mono",monospace}
@@ -298,11 +303,8 @@
   .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
     font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--os-navy)}
 
-  .scene-foot{display:flex;align-items:center;justify-content:space-between;
+  .scene-foot{display:flex;align-items:center;gap:4px;justify-content:flex-end;
     padding:12px 20px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
-  .scene-foot-l{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--os-ink-3)}
-  .scene-foot-l b{color:var(--os-ink-2);font-weight:600;font-variant-numeric:tabular-nums}
-  .scene-foot-r{display:flex;gap:4px}
   .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
@@ -577,6 +579,103 @@ const CATALOG = [
       {n:"05", unit:2, name:"Clinical Safety", secs:[{n:"5.1",t:"Introduction to Clinical Safety"},{n:"5.2",t:"Fall Prevention"},{n:"5.3",t:"Restraints"},{n:"5.4",t:"Fire Safety"},{n:"5.5",t:"Safe Handling and Disposal of Sharps"}]},
       {n:"09", unit:3, name:"Vital Signs", secs:[{n:"9.1",t:"Introduction to Vital Signs"},{n:"9.2",t:"Temperature"},{n:"9.3",t:"Pulse"},{n:"9.4",t:"Respirations"},{n:"9.5",t:"Blood Pressure"},{n:"9.6",t:"Oxygen Saturation"}]},
       {n:"14", unit:4, name:"Medication Administration", secs:[{n:"14.1",t:"Introduction to Medication Administration"},{n:"14.2",t:"Rights of Medication Administration"},{n:"14.3",t:"Oral Medications"},{n:"14.4",t:"Parenteral Medications"},{n:"14.5",t:"Topical Medications"}]},
+    ]
+  },
+
+  {
+    id:"clinicalnursing", title:"Clinical Nursing Skills", sub:"OpenStax Nursing", color:"#c0392b",
+    bookTitle:"Clinical Nursing Skills",
+    chapters:[
+      {n:"01", unit:1, name:"The Role of the Nurse in Comprehensive Care", secs:[{n:"1.1",t:"Overview"}]},
+      {n:"02", unit:1, name:"The Evolution of the Nurse's Role", secs:[{n:"2.1",t:"Overview"}]},
+      {n:"03", unit:1, name:"Patient Communication and Interviewing", secs:[{n:"3.1",t:"Overview"}]},
+      {n:"04", unit:1, name:"Obtaining a Complete Health History", secs:[{n:"4.1",t:"Overview"}]},
+      {n:"05", unit:1, name:"Cultural Competence and Assessment", secs:[{n:"5.1",t:"Overview"}]},
+      {n:"06", unit:1, name:"Infection Prevention Techniques and Safety", secs:[{n:"6.1",t:"Overview"}]},
+      {n:"07", unit:2, name:"Hygiene", secs:[{n:"7.1",t:"Overview"}]},
+      {n:"08", unit:2, name:"Wound and Burn Assessment and Care", secs:[{n:"8.1",t:"Overview"}]},
+      {n:"09", unit:2, name:"Activity Assessment and Management", secs:[{n:"9.1",t:"Overview"}]},
+      {n:"10", unit:2, name:"Specimen Collection and Lab Testing", secs:[{n:"10.1",t:"Overview"}]},
+      {n:"11", unit:3, name:"Principles of Medication Administration", secs:[{n:"11.1",t:"Overview"}]},
+      {n:"12", unit:3, name:"Medication Administration Procedures", secs:[{n:"12.1",t:"Overview"}]},
+      {n:"13", unit:3, name:"Intravenous Administration", secs:[{n:"13.1",t:"Overview"}]},
+      {n:"14", unit:3, name:"Miscellaneous Medication Administration", secs:[{n:"14.1",t:"Overview"}]},
+      {n:"15", unit:4, name:"General Survey, Anthropometric Measurement, and Vital Signs", secs:[{n:"15.1",t:"Overview"}]},
+      {n:"16", unit:4, name:"Pain Assessment", secs:[{n:"16.1",t:"Overview"}]},
+      {n:"17", unit:4, name:"Nutrition Assessment", secs:[{n:"17.1",t:"Overview"}]},
+      {n:"18", unit:4, name:"Oxygenation and Perfusion", secs:[{n:"18.1",t:"Overview"}]},
+      {n:"19", unit:4, name:"Fluids, Electrolytes, and Elimination", secs:[{n:"19.1",t:"Overview"}]},
+      {n:"20", unit:4, name:"Psychosocial Assessment", secs:[{n:"20.1",t:"Overview"}]},
+      {n:"21", unit:4, name:"Assessment of the Integumentary System", secs:[{n:"21.1",t:"Overview"}]},
+      {n:"22", unit:4, name:"Assessment of the Head and Neck", secs:[{n:"22.1",t:"Overview"}]},
+    ]
+  },
+  {
+    id:"maternalnursing", title:"Maternal-Newborn Nursing", sub:"OpenStax Nursing", color:"#8e44ad",
+    bookTitle:"Maternal-Newborn Nursing",
+    chapters:[
+      {n:"01", unit:1, name:"Foundations in Maternal-Newborn and Women's Health Nursing", secs:[{n:"1.1",t:"Overview"}]},
+      {n:"02", unit:1, name:"Culturally Competent Nursing Care", secs:[{n:"2.1",t:"Overview"}]},
+      {n:"03", unit:2, name:"Health Promotion, Disease and Injury Prevention, and Well-Person Care", secs:[{n:"3.1",t:"Overview"}]},
+      {n:"04", unit:2, name:"Influences on Fertility", secs:[{n:"4.1",t:"Overview"}]},
+      {n:"05", unit:2, name:"Family Planning", secs:[{n:"5.1",t:"Overview"}]},
+      {n:"06", unit:2, name:"Structural and Tissue Disorders of the Reproductive System", secs:[{n:"6.1",t:"Overview"}]},
+      {n:"07", unit:2, name:"Commonly Occurring Reproductive and Genitourinary System Infections", secs:[{n:"7.1",t:"Overview"}]},
+      {n:"08", unit:2, name:"Disorders of the Breast", secs:[{n:"8.1",t:"Overview"}]},
+      {n:"09", unit:2, name:"Violence Against Women", secs:[{n:"9.1",t:"Overview"}]},
+      {n:"10", unit:3, name:"Pregnancy", secs:[{n:"10.1",t:"Overview"}]},
+      {n:"11", unit:3, name:"Prenatal Care", secs:[{n:"11.1",t:"Overview"}]},
+      {n:"12", unit:3, name:"Pregnancy at Risk", secs:[{n:"12.1",t:"Overview"}]},
+      {n:"13", unit:3, name:"Prenatal Testing", secs:[{n:"13.1",t:"Overview"}]},
+      {n:"14", unit:3, name:"Childbirth Education Options", secs:[{n:"14.1",t:"Overview"}]},
+      {n:"15", unit:4, name:"Process of Labor and Birth", secs:[{n:"15.1",t:"Overview"}]},
+      {n:"16", unit:4, name:"Electronic Fetal and Uterine Contraction Monitoring", secs:[{n:"16.1",t:"Overview"}]},
+      {n:"17", unit:4, name:"Pain Management During Labor and Birth", secs:[{n:"17.1",t:"Overview"}]},
+      {n:"18", unit:4, name:"Nursing Care and Interventions During Labor and Birth", secs:[{n:"18.1",t:"Overview"}]},
+      {n:"19", unit:4, name:"Complications of Labor and Birth", secs:[{n:"19.1",t:"Overview"}]},
+      {n:"20", unit:5, name:"Postpartum Care", secs:[{n:"20.1",t:"Overview"}]},
+      {n:"21", unit:5, name:"Postpartum Complications", secs:[{n:"21.1",t:"Overview"}]},
+      {n:"22", unit:6, name:"Immediate Care of the Newborn", secs:[{n:"22.1",t:"Overview"}]},
+      {n:"23", unit:6, name:"Newborn Assessment", secs:[{n:"23.1",t:"Overview"}]},
+      {n:"24", unit:6, name:"Care of the Typical Newborn", secs:[{n:"24.1",t:"Overview"}]},
+      {n:"25", unit:6, name:"Care of the Newborn at Risk", secs:[{n:"25.1",t:"Overview"}]},
+      {n:"26", unit:6, name:"Perinatal Bereavement", secs:[{n:"26.1",t:"Overview"}]},
+    ]
+  },
+  {
+    id:"medsurgnursing", title:"Medical-Surgical Nursing", sub:"OpenStax Nursing", color:"#1a5276",
+    bookTitle:"Medical-Surgical Nursing",
+    chapters:[
+      {n:"01", unit:1, name:"Professional Medical-Surgical Nursing", secs:[{n:"1.1",t:"Overview"}]},
+      {n:"02", unit:1, name:"Culturally Competent Care", secs:[{n:"2.1",t:"Overview"}]},
+      {n:"03", unit:1, name:"Health Promotion and Patient Education", secs:[{n:"3.1",t:"Overview"}]},
+      {n:"04", unit:2, name:"Clinical Judgment in the Nursing Process", secs:[{n:"4.1",t:"Overview"}]},
+      {n:"05", unit:2, name:"Ethical Decision Making", secs:[{n:"5.1",t:"Overview"}]},
+      {n:"06", unit:3, name:"Comprehensive Health Assessment and Physical Examination", secs:[{n:"6.1",t:"Overview"}]},
+      {n:"07", unit:3, name:"Pain Assessment and Management", secs:[{n:"7.1",t:"Overview"}]},
+      {n:"08", unit:3, name:"Stress and Stress-Related Disorders", secs:[{n:"8.1",t:"Overview"}]},
+      {n:"09", unit:3, name:"Management of Chronic Illness", secs:[{n:"9.1",t:"Overview"}]},
+      {n:"10", unit:4, name:"Fluid, Electrolyte, and Acid-Base Imbalances", secs:[{n:"10.1",t:"Overview"}]},
+      {n:"11", unit:4, name:"Gas Exchange, Airway Management, and Respiratory System Disorders", secs:[{n:"11.1",t:"Overview"}]},
+      {n:"12", unit:4, name:"Cardiovascular System", secs:[{n:"12.1",t:"Overview"}]},
+      {n:"13", unit:4, name:"Musculoskeletal System", secs:[{n:"13.1",t:"Overview"}]},
+      {n:"14", unit:4, name:"Integumentary System", secs:[{n:"14.1",t:"Overview"}]},
+      {n:"15", unit:4, name:"Cerebrovascular System", secs:[{n:"15.1",t:"Overview"}]},
+      {n:"16", unit:4, name:"Hematopoietic Disorders and Regulation", secs:[{n:"16.1",t:"Overview"}]},
+      {n:"17", unit:4, name:"Nervous System and Chronic Diseases of the Nervous System", secs:[{n:"17.1",t:"Overview"}]},
+      {n:"25", unit:5, name:"Preoperative Care", secs:[{n:"25.1",t:"Overview"}]},
+      {n:"26", unit:5, name:"Intraoperative Care", secs:[{n:"26.1",t:"Overview"}]},
+      {n:"27", unit:5, name:"Postoperative Care", secs:[{n:"27.1",t:"Overview"}]},
+      {n:"28", unit:5, name:"Inflammation and Healing", secs:[{n:"28.1",t:"Overview"}]},
+      {n:"29", unit:5, name:"Immunological Function", secs:[{n:"29.1",t:"Overview"}]},
+      {n:"30", unit:6, name:"Genetics", secs:[{n:"30.1",t:"Overview"}]},
+      {n:"31", unit:6, name:"Cancer", secs:[{n:"31.1",t:"Overview"}]},
+      {n:"32", unit:6, name:"Palliative Care", secs:[{n:"32.1",t:"Overview"}]},
+      {n:"33", unit:6, name:"Emergency Care", secs:[{n:"33.1",t:"Overview"}]},
+      {n:"34", unit:6, name:"Disaster and Recovery", secs:[{n:"34.1",t:"Overview"}]},
+      {n:"35", unit:6, name:"Nursing Care of the Critically Ill Patient", secs:[{n:"35.1",t:"Overview"}]},
+      {n:"36", unit:6, name:"Home Health Nursing and Rehabilitation", secs:[{n:"36.1",t:"Overview"}]},
+      {n:"37", unit:6, name:"Trends in Health-Care Technology", secs:[{n:"37.1",t:"Overview"}]},
     ]
   },
 
@@ -859,7 +958,6 @@ const I = {
   play:<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
   film:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>,
   edit:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-  copy:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
   more:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>,
   reorder:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>,
   arrow:<svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 5h15M12 1l4 4-4 4"/></svg>,
@@ -869,7 +967,7 @@ const I = {
 };
 
 /* ─── Sidebar tree ─── */
-function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
+function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter}){
   const [openBooks, setOpenBooks] = useState({biology2e:true});
   const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
 
@@ -917,9 +1015,12 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
                     return (
                       <div key={c.n} className="chap">
                         <div className={`chap-row ${chapOpen?"open":""}`} onClick={()=>setOpenChaps(o => ({...o,[key]:!o[key]}))}>
+                          <span className={`chap-sel ${chapSel===c.secs.length?"all":chapSel>0?"some":""}`}
+                            onClick={e=>{e.stopPropagation();toggleChap(book.id,c);}}>
+                            {chapSel>0 && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                          </span>
                           <span className="chap-num">CH {c.n}</span>
                           <span className="chap-name">{c.name}</span>
-                          {chapSel>0 && <span className="book-count has" style={{fontSize:9,padding:"1px 5px"}}>{chapSel}</span>}
                           <span className="chap-caret">{I.caret}</span>
                         </div>
                         {chapOpen && (
@@ -1040,7 +1141,7 @@ function characterName(characters, id){
 }
 
 function SceneCard({s, characters, decisionPoints, density, isEditing,
-                    onStartEdit, onSaveEdit, onCancelEdit, onDuplicate, onDelete, onMoveLeft, onMoveRight}){
+                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight}){
   const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
 
@@ -1174,7 +1275,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
       <article className="scene"
         style={{width: density==="compact"?800:980}}>
         <div className="scene-hd">
-          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
+          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)} · {lineCount} line{lineCount===1?"":"s"}{s.routes_to?.decision_point_id!=null?` · → DP ${s.routes_to.decision_point_id}`:""}</span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
         <div className="scene-body" style={{padding,gap:density==="compact"?10:12}}>
@@ -1212,28 +1313,16 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
             </div>
           </div>
         </div>
-        <div className="scene-foot">
-          <div className="scene-foot-l">
-            <span><b>{lineCount}</b> line{lineCount===1?"":"s"}</span>
-            <span>·</span>
-            <span>{fmtDuration(s.duration_seconds)}</span>
-            {s.routes_to?.decision_point_id != null && (
-              <Fragment><span>·</span><span>→ DP {s.routes_to.decision_point_id}</span></Fragment>
-            )}
-          </div>
-          <div className="scene-foot-r">
-            {onMoveLeft && <button className="icon-btn" title="Move left"
-              onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
-            {onMoveRight && <button className="icon-btn" title="Move right"
-              onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
-            <button className="icon-btn" title="Edit manually"
-              onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
-            <button className="icon-btn" title="Duplicate"
-              onClick={(e)=>{e.stopPropagation(); onDuplicate();}}>{I.copy}</button>
-            <button className="icon-btn" title="Delete scene"
-              style={{color:"#c0392b"}}
-              onClick={(e)=>{e.stopPropagation(); if(window.confirm("Delete this scene?")) onDelete();}}>{I.trash}</button>
-          </div>
+        <div className="scene-foot" style={{justifyContent:"flex-end"}}>
+          {onMoveLeft && <button className="icon-btn" title="Move left"
+            onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
+          {onMoveRight && <button className="icon-btn" title="Move right"
+            onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
+          <button className="icon-btn" title="Edit scene"
+            onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
+          <button className="icon-btn" title="Delete scene"
+            style={{color:"#c0392b"}}
+            onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
         </div>
       </article>
     </div>
@@ -1440,7 +1529,7 @@ function buildTreeSegments(scenes, decisionPoints) {
 }
 
 /* ─── Decision Tree View ─── */
-function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, duplicateScene, deleteScene, moveScene, updateDecisionPoint}){
+function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint}){
   const scenes = script.scenes || [];
   const dps = script.decision_points || [];
   const characters = script.characters || [];
@@ -1474,7 +1563,6 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                         onStartEdit={()=>setEditingSceneIdx(idx)}
                         onCancelEdit={()=>setEditingSceneIdx(null)}
                         onSaveEdit={(draft)=>saveSceneEdit(idx, draft)}
-                        onDuplicate={()=>duplicateScene(idx)}
                         onDelete={()=>deleteScene(idx)}
                         onMoveLeft={prevIdx>=0 ? ()=>moveScene(idx,prevIdx) : undefined}
                         onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}/>
@@ -1520,7 +1608,6 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                             onStartEdit={()=>setEditingSceneIdx(i)}
                             onCancelEdit={()=>setEditingSceneIdx(null)}
                             onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
-                            onDuplicate={()=>duplicateScene(i)}
                             onDelete={()=>deleteScene(i)}/>
                           {b.choice.is_correct
                             ? <div className="continues-badge">↓ continues</div>
@@ -1796,7 +1883,7 @@ function App(){
   // Full backend script object: {title, learning_goal, target_audience,
   // total_duration_seconds, visual_style, characters[], scenes[], decision_points[]}
   const [script, setScript] = useState(null);
-  const [duplicateUndoStack, setDuplicateUndoStack] = useState([]);
+  const [deleteUndoStack, setDeleteUndoStack] = useState([]);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -1817,6 +1904,15 @@ function App(){
     });
   };
   const removeSec = (id) => setSelected(s => { const n = new Set(s); n.delete(id); return n; });
+  const toggleChap = (bookId, chap) => {
+    const ids = chap.secs.map(s => `${bookId}:${chap.n}:${s.n}`);
+    setSelected(s => {
+      const n = new Set(s);
+      const allOn = ids.every(id => n.has(id));
+      ids.forEach(id => allOn ? n.delete(id) : n.add(id));
+      return n;
+    });
+  };
 
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
@@ -1831,7 +1927,7 @@ function App(){
     setBusy(true);
     setGenStep(0);
     setScript(null);
-    setDuplicateUndoStack([]);
+    setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
 
@@ -1861,22 +1957,15 @@ function App(){
     }));
     setEditingSceneIdx(null);
   };
-  const duplicateScene = (idx) => {
-    setDuplicateUndoStack(s => [...s, script]);
-    setScript(curr => {
-      const scenes = curr.scenes;
-      const copy = {...scenes[idx], scene_id: (scenes[scenes.length-1].scene_id || scenes.length) + 1};
-      return {...curr, scenes: [...scenes.slice(0,idx+1), copy, ...scenes.slice(idx+1)]};
-    });
-  };
-  const undoDuplicate = () => {
-    if (duplicateUndoStack.length === 0) return;
-    setScript(duplicateUndoStack[duplicateUndoStack.length - 1]);
-    setDuplicateUndoStack(s => s.slice(0, -1));
-  };
   const deleteScene = (idx) => {
+    setDeleteUndoStack(s => [...s, script]);
     setScript(curr => ({...curr, scenes: curr.scenes.filter((_,i) => i !== idx)}));
     if (editingSceneIdx === idx) setEditingSceneIdx(null);
+  };
+  const undoDelete = () => {
+    if (deleteUndoStack.length === 0) return;
+    setScript(deleteUndoStack[deleteUndoStack.length - 1]);
+    setDeleteUndoStack(s => s.slice(0, -1));
   };
   const moveScene = (fromIdx, toIdx) => {
     setScript(curr => {
@@ -1955,7 +2044,7 @@ function App(){
 
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
         <div className="sidebar-wrap">
-          <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
+          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}
@@ -1978,10 +2067,10 @@ function App(){
               </div>
             </div>
             <div className="stage-bar-r">
-              {duplicateUndoStack.length > 0 && (
-                <button className="btn btn-ghost btn-sm" onClick={undoDuplicate}
-                  title={`Undo last duplicate (${duplicateUndoStack.length} available)`}>
-                  ↩ Undo duplicate
+              {deleteUndoStack.length > 0 && (
+                <button className="btn btn-ghost btn-sm" onClick={undoDelete}
+                  title={`Undo last delete (${deleteUndoStack.length} available)`}>
+                  ↩ Undo delete
                 </button>
               )}
               <div className="zoom-ctl">
@@ -2065,7 +2154,6 @@ function App(){
                     editingSceneIdx={editingSceneIdx}
                     setEditingSceneIdx={setEditingSceneIdx}
                     saveSceneEdit={saveSceneEdit}
-                    duplicateScene={duplicateScene}
                     deleteScene={deleteScene}
                     moveScene={moveScene}
                     updateDecisionPoint={updateDecisionPoint}

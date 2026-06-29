@@ -9,7 +9,7 @@ import os
 
 def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]:
     client = setup_gemini_client()
-    
+
     system_prompt = """
     You are generating a background visual asset for an interactive training simulation.
     
@@ -33,13 +33,12 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
 
 {
     "visual_style": "",
-     "setting": {
+       "setting": {
     "location": "",
     "scene_description": "",
-    "lighting": {
-      "source": "",
-      "time_of_day": ""
-    },
+    "light_source": "", 
+    "time_of_day": "",
+    "atmosphere": "",
     "background_furniture": [
     {
       "name": "",
@@ -79,47 +78,47 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
     Your output should create a clear, production-ready background reference asset that can be used consistently throughout the simulation.
 
     """
-    
+
     MODEL = "gemini-3.1-flash-image"
-    
+
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
         response_modalities=["IMAGE"],    
     )
-    
+
     background_json_path = process_background_json(json_script)
-        
+
     PROJECT_DIR = Path(__file__).resolve().parents[1]
-    
+
     dir_path = PROJECT_DIR / "Background_Image_Output"
-    
+
     uploaded_file_names = []
-    
+
     uploaded_json = client.files.upload(file=background_json_path, config=types.UploadFileConfig(display_name=f"background_description", mime_type="application/json"))
-    
+
     user_query = f"Generate a background reference image based on the background description in the uploaded JSON file: {uploaded_json.name}."
-    
+
     response = client.models.generate_content(
         model=MODEL,
         contents=[user_query, uploaded_json],
         config=config
     )
-    
+
     for part in response.candidates[0].content.parts:
         if part.inline_data:
             image = Image.open(BytesIO(part.inline_data.data))
             image.save(dir_path / f"background_reference_image.png")
-            
+
     uploaded_file_names.append(uploaded_json.name)
-    
+
     background_image_file_path = str(dir_path / f"background_reference_image.png")
-        
+
     return background_image_file_path, uploaded_file_names, [background_json_path]
 
 def delete_local_files(file_paths):
     for file_path in file_paths:
         os.remove(file_path)
-        
+
 def delete_uploaded_files(client, file_names):
     for file in file_names:
         client.files.delete(name=file)

@@ -182,28 +182,45 @@ def fetch_abl_catalog(abl_url: str) -> list:
     print(f"      {n} books found in catalog")
     return catalog
 
+_STOP_WORDS = {"of", "the", "and", "a", "an", "in", "for", "to", "by", "at", "vol", "volume"}
+
+def _key_tokens(s: str) -> frozenset:
+    """Significant lowercase tokens from a title or slug, ignoring stop words."""
+    return frozenset(re.findall(r"[a-z0-9]+", s.lower())) - _STOP_WORDS
+
+
 def find_book(catalog: list, book_title: str) -> dict:
     """
-    Find a book by title substring and return { title, book_uuid, commit_sha }.
-    Note that we only need the first 7 characters for commit_sha.
-    Prints all available titles if nothing matches.
+    Find a book by title and return { title, book_uuid, commit_sha }.
+    Accepts both ABL slugs ("principles-microeconomics-3e") and display
+    names ("Principles of Microeconomics 3e") by falling back to
+    stop-word-stripped token matching when substring search fails.
     """
     books = catalog
     if not books:
         raise ValueError("ABL catalog returned no books")
 
     print(f"[2/5] Searching {len(books)} books for: '{book_title}'")
+    needle_tokens = _key_tokens(book_title)
+
     for book in books:
-        title = book.get("slug")
-        if normalize(book_title) in normalize(title):
-            book_uuid = book.get("uuid")
-            commit_sha = book.get("commit_sha")
-            print(f"      ✓ Found : '{title}'")
-            print(f"        book_uuid  = {book_uuid}")
-            print(f"        commit_sha = {commit_sha}\n")
-            return {"title": title, "book_uuid": book_uuid, "commit_sha": commit_sha[:7]}
-    
-    # If nothing matched, print all available titles so the user can check spelling
+        slug = book.get("slug", "")
+        # Fast path: direct substring match (works when caller passes a slug)
+        if normalize(book_title) in normalize(slug):
+            pass  # fall through to return below
+        # Slow path: token-set equality (handles "Principles of Micro 3e" vs slug)
+        elif needle_tokens and _key_tokens(slug) == needle_tokens:
+            pass
+        else:
+            continue
+
+        book_uuid = book.get("uuid")
+        commit_sha = book.get("commit_sha")
+        print(f"      ✓ Found : '{slug}'")
+        print(f"        book_uuid  = {book_uuid}")
+        print(f"        commit_sha = {commit_sha}\n")
+        return {"title": slug, "book_uuid": book_uuid, "commit_sha": commit_sha[:7]}
+
     available = [book.get("slug") for book in books]
     raise ValueError(
         f"Book not found: '{book_title}'\n"

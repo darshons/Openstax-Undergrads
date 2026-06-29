@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 import json
-import asyncio
+import time
 
 def setup_gemini_client():
     env_path = Path(__file__).resolve().parents[2] / "backend.env"
@@ -89,21 +89,18 @@ def generate_script_with_decision_points(markdown_file_path, user_query) -> tupl
     
     return output_json, [uploaded_md_file.name, uploaded_json.name]
 
-async def delete_uploaded_files(file_names: list):
+def delete_uploaded_file(file_name):
     client = setup_gemini_client()
-    await asyncio.gather(*(delete_uploaded_file(client, file_name) for file_name in file_names))
-    
-async def delete_uploaded_file(client, file_name: str):
+
     for attempt in range(3):
         try:
-            await client.aio.files.delete(name=file_name)
+            client.files.delete(file_name)
             print(f"Successfully deleted {file_name}")
             return
         except Exception as e:
             if attempt == 2:
                 print(f"Failed to delete {file_name}: {e}")
             else:
-                 await asyncio.sleep(2 ** attempt)  # non-blocking # sleep for 1, 2, then 4 seconds before retrying
+                time.sleep(2 ** attempt)
 
-        
     

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -40,3 +40,30 @@ class ScenarioResponse(BaseModel):
 
 class ScenarioDetail(ScenarioResponse):
     nodes: List[NodeDetail]
+    script: Optional[Any] = None
+
+
+class GenerateRequest(BaseModel):
+    textbook: str
+    unit_num: int
+    chapter_num: Optional[int] = None
+    page_num: Optional[str] = None
+    description: str
+    model: str = "anthropic"
+
+
+class GenerateResponse(BaseModel):
+    scenario_id: uuid.UUID
+    script: Any
+
+
+class SaveScriptRequest(BaseModel):
+    script: Any
+
+
+class SaveScriptResponse(BaseModel):
+    scenario_id: uuid.UUID
+
+
+class NodeUpdate(BaseModel):
+    node_prompt: Optional[str] = None

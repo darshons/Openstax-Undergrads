@@ -116,6 +116,11 @@
   .chap{padding-left:10px;border-left:1px dashed var(--os-line-strong)}
   .chap-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:default}
   .chap-row:hover{background:#fff}
+  .chap-sel{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--os-line-strong);background:#fff;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .chap-sel:hover{border-color:var(--os-navy)}
+  .chap-sel.all{background:var(--os-navy);border-color:var(--os-navy)}
+  .chap-sel.some{background:var(--os-navy);border-color:var(--os-navy);opacity:.45}
+  .chap-sel svg{display:block}
   .chap-num{font-size:10px;font-weight:700;color:var(--os-ink-3);
     background:#fff;border:1px solid var(--os-line);border-radius:4px;padding:2px 5px;
     min-width:22px;text-align:center;font-family:"JetBrains Mono",monospace}
@@ -298,11 +303,14 @@
   .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
     font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--os-navy)}
 
-  .scene-foot{display:flex;align-items:center;justify-content:space-between;
+  .scene-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;
     padding:12px 20px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
-  .scene-foot-l{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--os-ink-3)}
-  .scene-foot-l b{color:var(--os-ink-2);font-weight:600;font-variant-numeric:tabular-nums}
-  .scene-foot-r{display:flex;gap:4px}
+  .scene-foot-r{display:flex;align-items:center;gap:4px;margin-left:auto}
+  .btn-add-dp{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+    color:#1a7a4a;background:#eafaf1;border:1.5px solid #82c99a;border-radius:7px;
+    padding:5px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
+  .btn-add-dp:hover:not(.btn-add-dp-disabled){background:#d4f0e0;border-color:#4caf72;transform:translateY(-1px)}
+  .btn-add-dp-disabled{opacity:.4;cursor:not-allowed}
   .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
@@ -523,7 +531,14 @@
     text-align:center;box-shadow:var(--shadow-md);min-width:700px;max-width:1100px}
   .tree-dp-badge{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     color:rgba(255,255,255,.5);margin-bottom:6px;font-family:"JetBrains Mono",monospace}
-  .tree-dp-question{font-size:20px;font-weight:700;line-height:1.35}
+  .tree-dp-question{font-size:20px;font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px;cursor:text}
+  .dp-edit-hint{opacity:0;font-size:12px;flex-shrink:0;color:var(--os-ink-3);transition:.12s}
+  .tree-dp-question:hover .dp-edit-hint{opacity:1}
+  .dp-inline-edit{display:flex;flex-direction:column;gap:6px;width:100%}
+  .dp-inline-ta{width:100%;padding:8px 10px;border:1.5px solid var(--os-navy);border-radius:7px;
+    font-size:15px;font-family:inherit;resize:vertical;outline:none;background:#fff}
+  .dp-inline-actions{display:flex;gap:6px;justify-content:flex-end}
+  .choice-pill-hd{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 
   .tree-branch-frame{display:flex;flex-direction:column;align-items:center;gap:0}
   .tree-branch-row{display:flex;align-items:flex-start;border-top:2px solid var(--os-line-strong);
@@ -531,14 +546,16 @@
   .tree-branch-col{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 28px}
 
   .choice-pill{padding:12px 22px;border-radius:12px;font-weight:700;text-align:center;
-    min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:4px}
-  .choice-letter{font-size:12px;letter-spacing:.07em;text-transform:uppercase;
-    font-family:"JetBrains Mono",monospace;opacity:.7}
+    min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:6px}
+  .choice-id-label{font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    font-family:"JetBrains Mono",monospace;opacity:.6;font-weight:700}
   .choice-text{font-size:15px;line-height:1.4}
   .correct-pill{background:#eef7df;color:#4d6e1d;border:1.5px solid #9ccb3b}
   .wrong-pill{background:#fff4d1;color:#6b5200;border:1.5px solid #e0b400}
-  .choice-pill-toggle.wrong-pill:hover{background:#ffe9a0;border-color:#c89600;
-    box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateY(-1px);transition:all .12s}
+  .correct-badge{font-size:12px;font-weight:700;color:#4d6e1d;letter-spacing:.04em;padding:2px 0}
+  .mark-correct-btn{font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;
+    background:#fff;color:#6b5200;border:1.5px solid #c89600;letter-spacing:.03em;transition:.12s}
+  .mark-correct-btn:hover{background:#c89600;color:#fff;border-color:#c89600}
 
   .retry-badge{font-size:13px;font-weight:600;color:var(--os-ink-3);
     background:var(--os-bg-3);border:1px solid var(--os-line-strong);
@@ -577,6 +594,118 @@ const CATALOG = [
       {n:"05", unit:2, name:"Clinical Safety", secs:[{n:"5.1",t:"Introduction to Clinical Safety"},{n:"5.2",t:"Fall Prevention"},{n:"5.3",t:"Restraints"},{n:"5.4",t:"Fire Safety"},{n:"5.5",t:"Safe Handling and Disposal of Sharps"}]},
       {n:"09", unit:3, name:"Vital Signs", secs:[{n:"9.1",t:"Introduction to Vital Signs"},{n:"9.2",t:"Temperature"},{n:"9.3",t:"Pulse"},{n:"9.4",t:"Respirations"},{n:"9.5",t:"Blood Pressure"},{n:"9.6",t:"Oxygen Saturation"}]},
       {n:"14", unit:4, name:"Medication Administration", secs:[{n:"14.1",t:"Introduction to Medication Administration"},{n:"14.2",t:"Rights of Medication Administration"},{n:"14.3",t:"Oral Medications"},{n:"14.4",t:"Parenteral Medications"},{n:"14.5",t:"Topical Medications"}]},
+    ]
+  },
+
+  {
+    id:"clinicalnursing", title:"Clinical Nursing Skills", sub:"OpenStax Nursing", color:"#c0392b",
+    bookTitle:"Clinical Nursing Skills",
+    chapters:[
+      {n:"01", unit:1, name:"The Role of the Nurse in Comprehensive Care", secs:[{n:"1.1",t:"Principles of Nursing Practice"},{n:"1.2",t:"Evidence-Based Practice"},{n:"1.3",t:"Nursing Process"}]},
+      {n:"02", unit:1, name:"The Evolution of the Nurse's Role", secs:[{n:"2.1",t:"Changing with Trends"},{n:"2.2",t:"Patient-Centered Care"},{n:"2.3",t:"Practice Standards"},{n:"2.4",t:"Collaborative Care"}]},
+      {n:"03", unit:1, name:"Patient Communication and Interviewing", secs:[{n:"3.1",t:"Therapeutic Communication"},{n:"3.2",t:"Comprehensive Interview Practices"},{n:"3.3",t:"Patient Education and Teaching"}]},
+      {n:"04", unit:1, name:"Obtaining a Complete Health History", secs:[{n:"4.1",t:"Foundations for a Complete Electronic Health Record"},{n:"4.2",t:"Data Collection and Documentation"},{n:"4.3",t:"Informatics"}]},
+      {n:"05", unit:1, name:"Cultural Competence and Assessment", secs:[{n:"5.1",t:"Understanding Cultural Differences"},{n:"5.2",t:"Ethical Practice in Culture and Diversity"},{n:"5.3",t:"Cultural Practice in Nursing"},{n:"5.4",t:"Diversity, Equity, and Inclusion"}]},
+      {n:"06", unit:1, name:"Infection Prevention Techniques and Safety", secs:[{n:"6.1",t:"Infection Cycle"},{n:"6.2",t:"Asepsis and PPE"},{n:"6.3",t:"Sterile Technique"},{n:"6.4",t:"Infection Control and Patient Safety"}]},
+      {n:"07", unit:2, name:"Hygiene", secs:[{n:"7.1",t:"Hygiene Practices"},{n:"7.2",t:"Factors Influencing Personal Hygiene"},{n:"7.3",t:"Assisting with Hygiene and Health Promotion"}]},
+      {n:"08", unit:2, name:"Wound and Burn Assessment and Care", secs:[{n:"8.1",t:"Wound Classification"},{n:"8.2",t:"Wound Assessment"},{n:"8.3",t:"Wound Management"},{n:"8.4",t:"Burn Injuries and Management"}]},
+      {n:"09", unit:2, name:"Activity Assessment and Management", secs:[{n:"9.1",t:"Assessing Functional Ability"},{n:"9.2",t:"Assessing Mobility"},{n:"9.3",t:"Transferring Patients"},{n:"9.4",t:"Positioning in Bed"},{n:"9.5",t:"Limited Movement Devices"}]},
+      {n:"10", unit:2, name:"Specimen Collection and Lab Testing", secs:[{n:"10.1",t:"Urine Specimen"},{n:"10.2",t:"Stool Collection"},{n:"10.3",t:"Sputum Collection"},{n:"10.4",t:"Blood Sampling"}]},
+      {n:"11", unit:3, name:"Principles of Medication Administration", secs:[{n:"11.1",t:"Rights of Medication Administration"},{n:"11.2",t:"Dosing"},{n:"11.3",t:"Documentation of Medication Administration"}]},
+      {n:"12", unit:3, name:"Medication Administration Procedures", secs:[{n:"12.1",t:"Administering Oral Medications"},{n:"12.2",t:"Administering Parenteral Medications"},{n:"12.3",t:"Preparing Unit-Dose Packaged Medications"},{n:"12.4",t:"Administering Intradermal Injections"},{n:"12.5",t:"Administering Subcutaneous Injections"},{n:"12.6",t:"Administering Intramuscular Injections"}]},
+      {n:"13", unit:3, name:"Intravenous Administration", secs:[{n:"13.1",t:"Principles of Intravenous Therapy"},{n:"13.2",t:"Intravenous Device Insertion"},{n:"13.3",t:"Intravenous Infusion"},{n:"13.4",t:"Blood Transfusions"}]},
+      {n:"14", unit:3, name:"Miscellaneous Medication Administration", secs:[{n:"14.1",t:"Administering Eye Medications"},{n:"14.2",t:"Administering Ear Medications"},{n:"14.3",t:"Administering Nasal Medications"},{n:"14.4",t:"Administering Inhaled Medications"},{n:"14.5",t:"Administering Other Medications"}]},
+      {n:"15", unit:4, name:"General Survey, Anthropometric Measurement, and Vital Signs", secs:[{n:"15.1",t:"Performing a General Survey"},{n:"15.2",t:"Common Types of Anthropometric Measurements"},{n:"15.3",t:"Vital Signs"},{n:"15.4",t:"Temperature"},{n:"15.5",t:"Heart Rate"},{n:"15.6",t:"Respiration"},{n:"15.7",t:"Blood Pressure"}]},
+      {n:"16", unit:4, name:"Pain Assessment", secs:[{n:"16.1",t:"The Pain Process"},{n:"16.2",t:"Responses to Pain"},{n:"16.3",t:"Factors Affecting Pain"},{n:"16.4",t:"Pain Assessment"},{n:"16.5",t:"Pain Management"}]},
+      {n:"17", unit:4, name:"Nutrition Assessment", secs:[{n:"17.1",t:"Nutritional Concepts"},{n:"17.2",t:"Factors Affecting Nutrition"},{n:"17.3",t:"Specialized Diets"},{n:"17.4",t:"Nutritional Assessment"}]},
+      {n:"18", unit:4, name:"Oxygenation and Perfusion", secs:[{n:"18.1",t:"Respiratory System"},{n:"18.2",t:"Cardiovascular System"},{n:"18.3",t:"Factors Affecting Cardiopulmonary Function"},{n:"18.4",t:"Management of Impaired Cardiopulmonary Functioning"}]},
+      {n:"19", unit:4, name:"Fluids, Electrolytes, and Elimination", secs:[{n:"19.1",t:"Fluid and Electrolytes"},{n:"19.2",t:"Nursing Assessment for Fluid and Electrolytes"},{n:"19.3",t:"Considerations for Fluid and Electrolyte Imbalances"},{n:"19.4",t:"Nursing Management of Elimination"}]},
+      {n:"20", unit:4, name:"Psychosocial Assessment", secs:[{n:"20.1",t:"Mental Health Assessment"},{n:"20.2",t:"Substance Use Disorder Assessment"},{n:"20.3",t:"Abuse and Neglect Assessment"}]},
+      {n:"21", unit:4, name:"Assessment of the Integumentary System", secs:[{n:"21.1",t:"Structure and Functions of the Skin"},{n:"21.2",t:"Factors Affecting Skin Integrity"}]},
+      {n:"22", unit:4, name:"Assessment of the Head and Neck", secs:[{n:"22.1",t:"Head and Neck"},{n:"22.2",t:"Eyes"},{n:"22.3",t:"Ears"},{n:"22.4",t:"Mouth, Throat, Nose, and Sinuses"}]},
+      {n:"23", unit:4, name:"Assessment of the Thorax, Lungs, Breast, and Lymphatic System", secs:[{n:"23.1",t:"Structure and Function"},{n:"23.2",t:"Physical Assessment of the Thorax"},{n:"23.3",t:"Breath Sounds and Lung Assessment"},{n:"23.4",t:"Breast and Lymphatic System"}]},
+      {n:"24", unit:4, name:"Assessment of the Cardiovascular and Peripheral Vascular System", secs:[{n:"24.1",t:"Cardiovascular System"},{n:"24.2",t:"Peripheral Vascular System"},{n:"24.3",t:"Nursing Assessment"}]},
+      {n:"25", unit:4, name:"Assessment of the Musculoskeletal System", secs:[{n:"25.1",t:"Structure and Function"},{n:"25.2",t:"Physical Assessment"},{n:"25.3",t:"Recognizing Common Musculoskeletal Disorders"}]},
+      {n:"26", unit:4, name:"Assessment of the Neurological System", secs:[{n:"26.1",t:"Structure and Function"},{n:"26.2",t:"Physical Assessment"},{n:"26.3",t:"Recognizing Common Neurological Disorders"}]},
+      {n:"27", unit:4, name:"Assessment of the Abdomen", secs:[{n:"27.1",t:"Structure and Function"},{n:"27.2",t:"Physical Assessment"},{n:"27.3",t:"Recognizing Common Abdominal Disorders"}]},
+      {n:"28", unit:4, name:"Clinical Judgment and Critical Thinking", secs:[{n:"28.1",t:"Clinical Judgment Measurement Model"},{n:"28.2",t:"Developing Critical Thinking Skills"},{n:"28.3",t:"Unfolding Case Study Dissection"}]},
+    ]
+  },
+  {
+    id:"maternalnursing", title:"Maternal-Newborn Nursing", sub:"OpenStax Nursing", color:"#8e44ad",
+    bookTitle:"Maternal-Newborn Nursing",
+    chapters:[
+      {n:"01", unit:1, name:"Foundations in Maternal-Newborn and Women's Health Nursing", secs:[{n:"1.1",t:"Current Trends in Women's Health Care"},{n:"1.2",t:"Standards of Maternal, Newborn, and Gynecologic Nursing Care"},{n:"1.3",t:"Perinatal Care: Regional and Levels of Care and Transport"},{n:"1.4",t:"Ethical and Legal Concerns"}]},
+      {n:"02", unit:1, name:"Culturally Competent Nursing Care", secs:[{n:"2.1",t:"Person- and Family-Centered Care"},{n:"2.2",t:"Family Health and Cultural Factors"},{n:"2.3",t:"Culturally Competent Care"},{n:"2.4",t:"Families at Higher Risk for Poor Health Outcomes"}]},
+      {n:"03", unit:2, name:"Health Promotion, Disease and Injury Prevention, and Well-Person Care", secs:[{n:"3.1",t:"Factors Influencing the Health of Persons Assigned Female at Birth"},{n:"3.2",t:"Leading Causes of Death and Health Screenings"},{n:"3.3",t:"Health Promotion"},{n:"3.4",t:"Well-Person Care"},{n:"3.5",t:"Preconceptual Care"}]},
+      {n:"04", unit:2, name:"Influences on Fertility", secs:[{n:"4.1",t:"Fertility and Conception"},{n:"4.2",t:"Genetics"},{n:"4.3",t:"Causes of Infertility"},{n:"4.4",t:"Treating Infertility"}]},
+      {n:"05", unit:2, name:"Family Planning", secs:[{n:"5.1",t:"Contraception: The Nurse's Role"},{n:"5.2",t:"Natural Methods of Contraception"},{n:"5.3",t:"Barrier Methods of Contraception"},{n:"5.4",t:"Short-Acting Reversible Hormonal Methods of Contraception"},{n:"5.5",t:"Long-Acting Reversible Contraception"},{n:"5.6",t:"Emergency Contraception"},{n:"5.7",t:"Sterilization"},{n:"5.8",t:"Induced Abortion"}]},
+      {n:"06", unit:2, name:"Structural and Tissue Disorders of the Reproductive System", secs:[{n:"6.1",t:"Functional Disorders"},{n:"6.2",t:"Structural Disorders"},{n:"6.3",t:"Benign Growths"},{n:"6.4",t:"Malignant Neoplasms"}]},
+      {n:"07", unit:2, name:"Commonly Occurring Reproductive and Genitourinary System Infections", secs:[{n:"7.1",t:"Sexually Transmitted Infections"},{n:"7.2",t:"Vaginal Infections and Other Conditions"},{n:"7.3",t:"Urinary Tract Infections"}]},
+      {n:"08", unit:2, name:"Disorders of the Breast", secs:[{n:"8.1",t:"Benign Disorders of the Breast"},{n:"8.2",t:"Cancer of the Breast"}]},
+      {n:"09", unit:2, name:"Violence Against Women", secs:[{n:"9.1",t:"Incidence, History, and Psychosocial Factors"},{n:"9.2",t:"Domestic and Intimate Partner Violence"},{n:"9.3",t:"Sexual Abuse and Assault"},{n:"9.4",t:"Human Trafficking"},{n:"9.5",t:"Social and Cultural Practices of Violence Against Women"},{n:"9.6",t:"Psychological Trauma of Violence Against Women"}]},
+      {n:"10", unit:3, name:"Pregnancy", secs:[{n:"10.1",t:"Physiologic Changes Due to Pregnancy"},{n:"10.2",t:"Psychosocial Aspects of Pregnancy"},{n:"10.3",t:"Common Discomforts of Pregnancy"},{n:"10.4",t:"Fetal Growth and Development"},{n:"10.5",t:"Choosing a Health Care Provider"},{n:"10.6",t:"Choosing a Birthing Place"}]},
+      {n:"11", unit:3, name:"Prenatal Care", secs:[{n:"11.1",t:"First Prenatal Visit"},{n:"11.2",t:"Care in the First Trimester of Pregnancy"},{n:"11.3",t:"Care in the Second Trimester of Pregnancy"},{n:"11.4",t:"Care in the Third Trimester of Pregnancy"},{n:"11.5",t:"Family Assessment and Nursing Interventions"}]},
+      {n:"12", unit:3, name:"Pregnancy at Risk", secs:[{n:"12.1",t:"Preconception Conditions Affecting Pregnancy"},{n:"12.2",t:"Conditions Limited to Pregnancy"}]},
+      {n:"13", unit:3, name:"Prenatal Testing", secs:[{n:"13.1",t:"Prenatal Testing during the First Trimester"},{n:"13.2",t:"Prenatal Testing during the Second Trimester"},{n:"13.3",t:"Prenatal Testing during the Third Trimester"}]},
+      {n:"14", unit:3, name:"Childbirth Education Options", secs:[{n:"14.1",t:"Lamaze International Childbirth Education"},{n:"14.2",t:"Bradley Method"},{n:"14.3",t:"Hypnobirthing: The Mongan Method"},{n:"14.4",t:"Alexander Technique"},{n:"14.5",t:"Birth Plans"}]},
+      {n:"15", unit:4, name:"Process of Labor and Birth", secs:[{n:"15.1",t:"Factors Influencing the Process of Labor and Birth"},{n:"15.2",t:"Stages of Labor"},{n:"15.3",t:"Physiologic Adaptations during Labor and Birth"},{n:"15.4",t:"Psychosocial Adaptations during Labor and Birth"},{n:"15.5",t:"Family Adaptations during Labor and Birth"}]},
+      {n:"16", unit:4, name:"Electronic Fetal and Uterine Contraction Monitoring", secs:[{n:"16.1",t:"Basic Terms of Fetal Heart Rate and Contraction Patterns"},{n:"16.2",t:"External and Internal Monitoring"},{n:"16.3",t:"Physiological Influences on Fetal Heart Rate Patterns"},{n:"16.4",t:"Nursing Interventions Based on Fetal Heart Rate and Uterine Contraction Patterns"},{n:"16.5",t:"Intrauterine Resuscitation"}]},
+      {n:"17", unit:4, name:"Pain Management During Labor and Birth", secs:[{n:"17.1",t:"Nonpharmacological Pain Management"},{n:"17.2",t:"Pharmacological Pain Management"},{n:"17.3",t:"Anesthesia"}]},
+      {n:"18", unit:4, name:"Nursing Care and Interventions During Labor and Birth", secs:[{n:"18.1",t:"Nursing Care During the First Stage of Labor"},{n:"18.2",t:"Nursing Care During the Second Stage of Labor"},{n:"18.3",t:"Nursing Care During the Third Stage of Labor"},{n:"18.4",t:"Nursing Care During the Fourth Stage of Labor"}]},
+      {n:"19", unit:4, name:"Complications of Labor and Birth", secs:[{n:"19.1",t:"Labor Dystocia"},{n:"19.2",t:"Medical Interventions During Labor"},{n:"19.3",t:"Obstetrical Conditions Affecting Labor and Birth"},{n:"19.4",t:"Preexisting Conditions Placing Delivery at Risk"},{n:"19.5",t:"Interventions During Birth"},{n:"19.6",t:"Cesarean Section"},{n:"19.7",t:"Obstetrical Emergencies"},{n:"19.8",t:"Complications of the Second Stage of Labor"},{n:"19.9",t:"Complications in the Third Stage of Labor"},{n:"19.10",t:"Monitoring for Complications During Labor and Birth"}]},
+      {n:"20", unit:5, name:"Postpartum Care", secs:[{n:"20.1",t:"Physiologic Changes During the Postpartum Period"},{n:"20.2",t:"Psychosocial Adaptation to Parenthood"},{n:"20.3",t:"Nursing Care During the Postpartum Period"}]},
+      {n:"21", unit:5, name:"Postpartum Complications", secs:[{n:"21.1",t:"Postpartum Infections"},{n:"21.2",t:"Postpartum Hemorrhage"},{n:"21.3",t:"Breasts and Breast-Feeding"},{n:"21.4",t:"Cesarean Birth Discomforts"},{n:"21.5",t:"Postpartum Mood Disorders and Psychiatric Disorders"}]},
+      {n:"22", unit:6, name:"Immediate Care of the Newborn", secs:[{n:"22.1",t:"Apgar Scoring"},{n:"22.2",t:"Physiological Adaptation and Transition"},{n:"22.3",t:"Neutral Thermal Environment"}]},
+      {n:"23", unit:6, name:"Newborn Assessment", secs:[{n:"23.1",t:"Physical Assessment of the Newborn"},{n:"23.2",t:"Estimation of Gestational Age and Newborn Behavioral Assessment"}]},
+      {n:"24", unit:6, name:"Care of the Typical Newborn", secs:[{n:"24.1",t:"Basic Newborn Care"},{n:"24.2",t:"Care of Common Problems in the Newborn"},{n:"24.3",t:"Newborn Discharge Planning and Parent Education"}]},
+      {n:"25", unit:6, name:"Care of the Newborn at Risk", secs:[{n:"25.1",t:"Birth-Related Complications"},{n:"25.2",t:"Congenital, Genetic, and Acquired Complications"},{n:"25.3",t:"Newborn Resuscitation"},{n:"25.4",t:"Preterm Newborn"},{n:"25.5",t:"Parent-Newborn Bonding and Attachment"},{n:"25.6",t:"Discharge Planning"}]},
+      {n:"26", unit:6, name:"Perinatal Bereavement", secs:[{n:"26.1",t:"Pregnancy Loss"},{n:"26.2",t:"Intrapartum Fetal Death"},{n:"26.3",t:"Newborn Loss"}]},
+      {n:"27", unit:6, name:"Applying Clinical Judgment", secs:[{n:"27.1",t:"Clinical Judgment within the Nursing Process"},{n:"27.2",t:"Measuring Clinical Judgment within Nursing Practice"}]},
+    ]
+  },
+  {
+    id:"medsurgnursing", title:"Medical-Surgical Nursing", sub:"OpenStax Nursing", color:"#1a5276",
+    bookTitle:"Medical-Surgical Nursing",
+    chapters:[
+      {n:"01", unit:1, name:"Professional Medical-Surgical Nursing", secs:[{n:"1.1",t:"Professional Nursing Practice"},{n:"1.2",t:"Intercollaborative Care"},{n:"1.3",t:"Health Policy and Ethical Considerations"},{n:"1.4",t:"Evidence-Based Practice"},{n:"1.5",t:"Health-Care Delivery Systems"},{n:"1.6",t:"Systems-Based Practice"},{n:"1.7",t:"Technology and Informatics"}]},
+      {n:"02", unit:1, name:"Culturally Competent Care", secs:[{n:"2.1",t:"Concepts in Culture"},{n:"2.2",t:"Cultural Assessment"},{n:"2.3",t:"Health Equity and Disparities"}]},
+      {n:"03", unit:1, name:"Health Promotion and Patient Education", secs:[{n:"3.1",t:"Health Promotion and Wellness"},{n:"3.2",t:"Strategies for Improving Healthy Habits"},{n:"3.3",t:"Challenges Throughout the Lifespan"},{n:"3.4",t:"Purpose of Health Education and Patient Teaching"},{n:"3.5",t:"Strategies for Optimal Patient Education"}]},
+      {n:"04", unit:2, name:"Clinical Judgment in the Nursing Process", secs:[{n:"4.1",t:"Critical Thinking and the Nursing Process"},{n:"4.2",t:"Clinical Judgment Measurement Model Overview"},{n:"4.3",t:"Recognizing and Analyzing Cues"},{n:"4.4",t:"Prioritizing Hypotheses, Generating Solutions, and Taking Action"},{n:"4.5",t:"Evaluating Outcomes"}]},
+      {n:"05", unit:2, name:"Ethical Decision Making", secs:[{n:"5.1",t:"Clinical Judgment and Ethical Dilemmas"},{n:"5.2",t:"Patient Care and Safety"},{n:"5.3",t:"Ethical Patient Education"},{n:"5.4",t:"Ethical Challenges in Scope of Practice"}]},
+      {n:"06", unit:3, name:"Comprehensive Health Assessment and Physical Examination", secs:[{n:"6.1",t:"Critical Thinking in Assessment"},{n:"6.2",t:"Effective Communication in the Nurse-Patient Relationship"},{n:"6.3",t:"Health History"},{n:"6.4",t:"Bedside Physical Assessment in Medical-Surgical Nursing"}]},
+      {n:"07", unit:3, name:"Pain Assessment and Management", secs:[{n:"7.1",t:"Concepts and Causes of Pain"},{n:"7.2",t:"Pain Assessment"},{n:"7.3",t:"Pharmacological Pain Management"},{n:"7.4",t:"Nonpharmacological Pain Management"},{n:"7.5",t:"Substance Use Disorder"}]},
+      {n:"08", unit:3, name:"Stress and Stress-Related Disorders", secs:[{n:"8.1",t:"Homeostasis, Stress, and Adaptation"},{n:"8.2",t:"Causes and Types of Stress"},{n:"8.3",t:"Stress and Disease"},{n:"8.4",t:"Physiological Response"},{n:"8.5",t:"Psychological Response"},{n:"8.6",t:"Inflammation: Cellular Response to Stress"},{n:"8.7",t:"Role of Stress in Family Health"},{n:"8.8",t:"Pharmacotherapy and Complementary and Alternative Medicine"}]},
+      {n:"09", unit:3, name:"Management of Chronic Illness", secs:[{n:"9.1",t:"Chronic Disease and Illness"},{n:"9.2",t:"Comorbid Chronic Diseases"},{n:"9.3",t:"Chronic Illness and Disability"},{n:"9.4",t:"Access and Barriers to Health Care"},{n:"9.5",t:"Prevention of Chronic Disease"},{n:"9.6",t:"The Chronic Care Model"},{n:"9.7",t:"Care of the Chronically Ill Patient"}]},
+      {n:"10", unit:4, name:"Fluid, Electrolyte, and Acid-Base Imbalances", secs:[{n:"10.1",t:"Maintaining Homeostasis"},{n:"10.2",t:"Fluid Disturbances and Replacement"},{n:"10.3",t:"Electrolyte Imbalance"},{n:"10.4",t:"Acid-Base Imbalance"}]},
+      {n:"11", unit:4, name:"Gas Exchange, Airway Management, and Respiratory System Disorders", secs:[{n:"11.1",t:"Concepts of Oxygenation and Perfusion"},{n:"11.2",t:"Upper and Lower Respiratory Assessment"},{n:"11.3",t:"Bronchiectasis"},{n:"11.4",t:"Asthma"},{n:"11.5",t:"Chronic Obstructive Pulmonary Disease"},{n:"11.6",t:"Pneumothorax"},{n:"11.7",t:"Pneumonia and Aspiration"},{n:"11.8",t:"Tuberculosis"},{n:"11.9",t:"Cystic Fibrosis"},{n:"11.10",t:"Effects of Smoking, Vaping, and Environmental Triggers"}]},
+      {n:"12", unit:4, name:"Cardiovascular System", secs:[{n:"12.1",t:"Cardiovascular Overview"},{n:"12.2",t:"Dysrhythmia"},{n:"12.3",t:"Heart Failure"},{n:"12.4",t:"Hypertension"},{n:"12.5",t:"Myocardial Infarction"},{n:"12.6",t:"Vascular Disorders"},{n:"12.7",t:"Peripheral Vascular Disease"}]},
+      {n:"13", unit:4, name:"Musculoskeletal System", secs:[{n:"13.1",t:"Osteoporosis and Osteopenia"},{n:"13.2",t:"Osteoarthritis"},{n:"13.3",t:"Bone Fractures"},{n:"13.4",t:"Muscular Dystrophy"},{n:"13.5",t:"Connective Tissue Disease"},{n:"13.6",t:"Soft Tissue Injuries"}]},
+      {n:"14", unit:4, name:"Integumentary System", secs:[{n:"14.1",t:"Integumentary Disorders"},{n:"14.2",t:"Burns"},{n:"14.3",t:"Dermatologic Conditions"}]},
+      {n:"15", unit:4, name:"Cerebrovascular System", secs:[{n:"15.1",t:"The Cerebrovascular System and Cerebral Vascular Accidents"},{n:"15.2",t:"Ischemic Stroke"},{n:"15.3",t:"Hemorrhagic Stroke"}]},
+      {n:"16", unit:4, name:"Hematopoietic Disorders and Regulation", secs:[{n:"16.1",t:"Anemias"},{n:"16.2",t:"Hereditary Disorders"},{n:"16.3",t:"Polycythemia"},{n:"16.4",t:"Thrombocytopenia"},{n:"16.5",t:"Neutropenia"},{n:"16.6",t:"Thrombotic Disorder"},{n:"16.7",t:"Blood Products and Transfusion Principles"}]},
+      {n:"17", unit:4, name:"Nervous System and Chronic Diseases of the Nervous System", secs:[{n:"17.1",t:"Intracranial Pressure Changes"},{n:"17.2",t:"Acute Disorders of the Nervous System"},{n:"17.3",t:"Chronic Disorders of the Nervous System"},{n:"17.4",t:"Major Neurocognitive Disorder and Neurodegenerative Diseases"},{n:"17.5",t:"Seizures"},{n:"17.6",t:"Polyneuropathy"},{n:"17.7",t:"Chronic Pain Disorders"},{n:"17.8",t:"Spinal Disorders"},{n:"17.9",t:"Neurological Injuries"}]},
+      {n:"18", unit:4, name:"Sensory Organs", secs:[{n:"18.1",t:"Disorders of the Eye"},{n:"18.2",t:"Disorders of the Ear"}]},
+      {n:"19", unit:4, name:"Gastrointestinal System and Disorders", secs:[{n:"19.1",t:"Nutritional Disorders"},{n:"19.2",t:"Disorders of the Oral Cavity"},{n:"19.3",t:"Parenteral and Enteral Nutrition"},{n:"19.4",t:"Disorders of the Upper GI System"},{n:"19.5",t:"Disorders of the Lower GI System"},{n:"19.6",t:"Hepatic and Biliary Disorders"},{n:"19.7",t:"Ostomy Care"}]},
+      {n:"20", unit:4, name:"Genitourinary and Reproductive Systems", secs:[{n:"20.1",t:"Genitourinary and Reproductive Anatomy and Physiology"},{n:"20.2",t:"Sexually Transmitted Infections"},{n:"20.3",t:"Male-Specific Disorders of the Reproductive Tract"},{n:"20.4",t:"Disorders of the Prostate"},{n:"20.5",t:"Female-Specific Disorders of the Reproductive Tract"},{n:"20.6",t:"Disorders of the Breast"},{n:"20.7",t:"Renal Function and Chronic Kidney Disease"}]},
+      {n:"21", unit:4, name:"Endocrine System and Disorders", secs:[{n:"21.1",t:"Endocrine Anatomy and Physiology"},{n:"21.2",t:"Diabetes Mellitus"},{n:"21.3",t:"Thyroid and Parathyroid Disorders"},{n:"21.4",t:"Pituitary Disorders"},{n:"21.5",t:"Adrenal Disorders"}]},
+      {n:"22", unit:4, name:"Infection and Infectious Diseases", secs:[{n:"22.1",t:"Infectious Process"},{n:"22.2",t:"Viral and Fungal Infections"},{n:"22.3",t:"Antibiotic Resistance"},{n:"22.4",t:"Preventing Secondary Infections"}]},
+      {n:"23", unit:4, name:"Shock and Sepsis", secs:[{n:"23.1",t:"Shock Overview"},{n:"23.2",t:"Hypovolemic Shock"},{n:"23.3",t:"Septic Shock"},{n:"23.4",t:"Neurogenic Shock"}]},
+      {n:"24", unit:4, name:"Management of Patients with Allergic Disorders", secs:[{n:"24.1",t:"Allergic Response"},{n:"24.2",t:"Allergic Rhinitis"},{n:"24.3",t:"Types of Dermatitis"},{n:"24.4",t:"Urticaria and Angioneurotic Edema"},{n:"24.5",t:"Allergy to Food"},{n:"24.6",t:"Allergy to Latex"},{n:"24.7",t:"Anaphylaxis"}]},
+      {n:"25", unit:5, name:"Preoperative Care", secs:[{n:"25.1",t:"Preadmission Assessment and Education"},{n:"25.2",t:"Preoperative Nursing Priorities"},{n:"25.3",t:"Preoperative Nursing Care Plan"},{n:"25.4",t:"Special Preoperative Considerations"}]},
+      {n:"26", unit:5, name:"Intraoperative Care", secs:[{n:"26.1",t:"Overview of the Surgical Experience"},{n:"26.2",t:"Intraoperative Considerations"},{n:"26.3",t:"Intraoperative Nursing Management"}]},
+      {n:"27", unit:5, name:"Postoperative Care", secs:[{n:"27.1",t:"Postanesthesia Recovery and Care"},{n:"27.2",t:"Postoperative Pain Management"},{n:"27.3",t:"Hospitalized Postoperative Patient"},{n:"27.4",t:"Postoperative Nursing Care Plan"}]},
+      {n:"28", unit:5, name:"Inflammation and Healing", secs:[{n:"28.1",t:"Cellular Response and Adaptation in Wound Healing"},{n:"28.2",t:"Wound Healing Process"},{n:"28.3",t:"Pressure Injury"},{n:"28.4",t:"Debridement"},{n:"28.5",t:"Wound Care and Dressing"},{n:"28.6",t:"Medical Management"},{n:"28.7",t:"Nursing Management and Care Plan"}]},
+      {n:"29", unit:5, name:"Immunological Function", secs:[{n:"29.1",t:"Immune Response"},{n:"29.2",t:"Autoimmunity"},{n:"29.3",t:"Immunodeficiency"}]},
+      {n:"30", unit:6, name:"Genetics", secs:[{n:"30.1",t:"Genetic Disorders"},{n:"30.2",t:"Patterns of Inheritance and Mutations"},{n:"30.3",t:"Testing and Detection"}]},
+      {n:"31", unit:6, name:"Cancer", secs:[{n:"31.1",t:"Oncological Disorders"},{n:"31.2",t:"Detection and Prevention of Cancer"},{n:"31.3",t:"Care of the Patient with Cancer"},{n:"31.4",t:"Survivorship"}]},
+      {n:"32", unit:6, name:"Palliative Care", secs:[{n:"32.1",t:"Palliation"},{n:"32.2",t:"End-of-Life Care"},{n:"32.3",t:"Assessment"},{n:"32.4",t:"Psychosocial Support"},{n:"32.5",t:"Special Considerations"}]},
+      {n:"33", unit:6, name:"Emergency Care", secs:[{n:"33.1",t:"Triage and Assessment"},{n:"33.2",t:"Types of Emergency Care"},{n:"33.3",t:"Managing Risk Exposure"},{n:"33.4",t:"Forensic Nursing"},{n:"33.5",t:"Transferring from the Emergency Department"}]},
+      {n:"34", unit:6, name:"Disaster and Recovery", secs:[{n:"34.1",t:"Environmental Disasters"},{n:"34.2",t:"Biological and Technological Disasters"},{n:"34.3",t:"Epidemics and Pandemics"},{n:"34.4",t:"Community Response to Disaster"},{n:"34.5",t:"Hospital Preparedness for Disasters"}]},
+      {n:"35", unit:6, name:"Nursing Care of the Critically Ill Patient", secs:[{n:"35.1",t:"Assessment and Management of the Critically Ill Patient"},{n:"35.2",t:"Cardiovascular Concerns"},{n:"35.3",t:"Respiratory Concerns"},{n:"35.4",t:"Neurological Concerns"},{n:"35.5",t:"Gastrointestinal Concerns"},{n:"35.6",t:"Renal Concerns"},{n:"35.7",t:"Integumentary Concerns"},{n:"35.8",t:"Musculoskeletal Concerns"}]},
+      {n:"36", unit:6, name:"Home Health Nursing and Rehabilitation", secs:[{n:"36.1",t:"Home Health Care"},{n:"36.2",t:"Rehabilitative Care"},{n:"36.3",t:"Additional Care Settings in the Community"},{n:"36.4",t:"Transition and Continuity of Care"}]},
+      {n:"37", unit:6, name:"Trends in Health-Care Technology", secs:[{n:"37.1",t:"Telemedicine and Artificial Intelligence"},{n:"37.2",t:"Health Informatics"},{n:"37.3",t:"Influences on Delivery of Health Care"}]},
+      {n:"38", unit:7, name:"Unfolding Case Study and NCLEX Preparation", secs:[{n:"38.1",t:"Unfolding Case Study Dissection"},{n:"38.2",t:"NCLEX Preparation"}]},
     ]
   },
 
@@ -859,17 +988,17 @@ const I = {
   play:<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
   film:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>,
   edit:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-  copy:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
   more:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>,
   reorder:<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>,
   arrow:<svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 5h15M12 1l4 4-4 4"/></svg>,
   trash:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
   arrowL:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
   arrowR:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  plus:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
 };
 
 /* ─── Sidebar tree ─── */
-function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
+function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter}){
   const [openBooks, setOpenBooks] = useState({biology2e:true});
   const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
 
@@ -895,7 +1024,8 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
       <div className="sb-list">
         {CATALOG.map(book => {
           const open = openBooks[book.id];
-          const selCount = book.chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
+          const chapters = book.chapters;
+          const selCount = chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
           return (
             <div key={book.id} className="book">
               <div className={`book-row ${open?"open":""}`} onClick={()=>setOpenBooks(o => ({...o,[book.id]:!o[book.id]}))}>
@@ -904,22 +1034,25 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
                   <div className="book-title">{book.title}</div>
                   <div className="book-sub">{book.sub}</div>
                 </div>
-                <div className={`book-count ${selCount>0?"has":""}`}>{selCount>0?selCount:book.chapters.length}</div>
+                <div className={`book-count ${selCount>0?"has":""}`}>{selCount>0?selCount:chapters.length}</div>
                 <div className="book-caret">{I.caret}</div>
               </div>
 
               {open && (
                 <div className="chapters">
-                  {book.chapters.map(c => {
+                  {chapters.map(c => {
                     const key = `${book.id}:${c.n}`;
                     const chapOpen = openChaps[key];
                     const chapSel = c.secs.filter(s => selected.has(`${key}:${s.n}`)).length;
                     return (
                       <div key={c.n} className="chap">
                         <div className={`chap-row ${chapOpen?"open":""}`} onClick={()=>setOpenChaps(o => ({...o,[key]:!o[key]}))}>
+                          <span className={`chap-sel ${chapSel===c.secs.length?"all":chapSel>0?"some":""}`}
+                            onClick={e=>{e.stopPropagation();toggleChap(book.id,c);}}>
+                            {chapSel>0 && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                          </span>
                           <span className="chap-num">CH {c.n}</span>
                           <span className="chap-name">{c.name}</span>
-                          {chapSel>0 && <span className="book-count has" style={{fontSize:9,padding:"1px 5px"}}>{chapSel}</span>}
                           <span className="chap-caret">{I.caret}</span>
                         </div>
                         {chapOpen && (
@@ -1040,7 +1173,7 @@ function characterName(characters, id){
 }
 
 function SceneCard({s, characters, decisionPoints, density, isEditing,
-                    onStartEdit, onSaveEdit, onCancelEdit, onDuplicate, onDelete, onMoveLeft, onMoveRight}){
+                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight, onAddDP, addDPDisabled}){
   const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
 
@@ -1174,7 +1307,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
       <article className="scene"
         style={{width: density==="compact"?800:980}}>
         <div className="scene-hd">
-          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
+          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)} · {lineCount} line{lineCount===1?"":"s"}{s.routes_to?.decision_point_id!=null?` · → DP ${s.routes_to.decision_point_id}`:""}</span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
         <div className="scene-body" style={{padding,gap:density==="compact"?10:12}}>
@@ -1213,26 +1346,23 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
           </div>
         </div>
         <div className="scene-foot">
-          <div className="scene-foot-l">
-            <span><b>{lineCount}</b> line{lineCount===1?"":"s"}</span>
-            <span>·</span>
-            <span>{fmtDuration(s.duration_seconds)}</span>
-            {s.routes_to?.decision_point_id != null && (
-              <Fragment><span>·</span><span>→ DP {s.routes_to.decision_point_id}</span></Fragment>
-            )}
-          </div>
+          {onAddDP && (
+            <button className={`btn-add-dp${addDPDisabled?" btn-add-dp-disabled":""}`}
+              onClick={(e)=>{e.stopPropagation(); if(!addDPDisabled) onAddDP();}}
+              title={addDPDisabled ? "Scene already routes to a decision point" : "Add a decision point after this scene"}>
+              {I.plus} Add decision point
+            </button>
+          )}
           <div className="scene-foot-r">
             {onMoveLeft && <button className="icon-btn" title="Move left"
               onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
             {onMoveRight && <button className="icon-btn" title="Move right"
               onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
-            <button className="icon-btn" title="Edit manually"
+            <button className="icon-btn" title="Edit scene"
               onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
-            <button className="icon-btn" title="Duplicate"
-              onClick={(e)=>{e.stopPropagation(); onDuplicate();}}>{I.copy}</button>
             <button className="icon-btn" title="Delete scene"
               style={{color:"#c0392b"}}
-              onClick={(e)=>{e.stopPropagation(); if(window.confirm("Delete this scene?")) onDelete();}}>{I.trash}</button>
+              onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
           </div>
         </div>
       </article>
@@ -1439,18 +1569,51 @@ function buildTreeSegments(scenes, decisionPoints) {
   return segments;
 }
 
+function DPInlineEdit({value, onSave, onCancel, placeholder}){
+  const [draft, setDraft] = React.useState(value);
+  return (
+    <div className="dp-inline-edit">
+      <textarea className="dp-inline-ta" value={draft} onChange={e=>setDraft(e.target.value)}
+        placeholder={placeholder} autoFocus rows={2}
+        onKeyDown={e=>{if(e.key==="Enter"&&e.metaKey){onSave(draft.trim());}if(e.key==="Escape")onCancel();}}/>
+      <div className="dp-inline-actions">
+        <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn btn-navy btn-sm" onClick={()=>onSave(draft.trim())}>Save</button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Decision Tree View ─── */
-function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, duplicateScene, deleteScene, moveScene, updateDecisionPoint}){
+function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint}){
   const scenes = script.scenes || [];
   const dps = script.decision_points || [];
   const characters = script.characters || [];
   const sceneIdxMap = new Map(scenes.map((s,i) => [s.scene_id, i]));
   const segments = buildTreeSegments(scenes, dps);
+  const [editingChoice, setEditingChoice] = useState(null); // {dpId, idx} | null
+  const [editingDPQ, setEditingDPQ] = useState(null); // dpId | null
+
+  const getDpIdx = (dpId) => dps.findIndex(d => d.decision_point_id === dpId);
+
   const setCorrectChoice = (dpId, choiceIdx) => {
-    const dpIdx = dps.findIndex(d => d.decision_point_id === dpId);
+    const dpIdx = getDpIdx(dpId);
     if (dpIdx < 0 || !updateDecisionPoint) return;
     const dp = dps[dpIdx];
     updateDecisionPoint(dpIdx, {...dp, choices: dp.choices.map((c,i) => ({...c, is_correct: i===choiceIdx}))});
+  };
+  const saveChoiceText = (dpId, choiceIdx, text) => {
+    const dpIdx = getDpIdx(dpId);
+    if (dpIdx < 0 || !updateDecisionPoint) return;
+    const dp = dps[dpIdx];
+    updateDecisionPoint(dpIdx, {...dp, choices: dp.choices.map((c,i) => i===choiceIdx ? {...c, text} : c)});
+    setEditingChoice(null);
+  };
+  const saveQuestionText = (dpId, text) => {
+    const dpIdx = getDpIdx(dpId);
+    if (dpIdx < 0 || !updateDecisionPoint) return;
+    updateDecisionPoint(dpIdx, {...dps[dpIdx], question_text: text});
+    setEditingDPQ(null);
   };
 
   return (
@@ -1474,10 +1637,11 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                         onStartEdit={()=>setEditingSceneIdx(idx)}
                         onCancelEdit={()=>setEditingSceneIdx(null)}
                         onSaveEdit={(draft)=>saveSceneEdit(idx, draft)}
-                        onDuplicate={()=>duplicateScene(idx)}
                         onDelete={()=>deleteScene(idx)}
                         onMoveLeft={prevIdx>=0 ? ()=>moveScene(idx,prevIdx) : undefined}
-                        onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}/>
+                        onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}
+                        onAddDP={()=>addDecisionPoint(idx)}
+                        addDPDisabled={s.routes_to?.decision_point_id!=null}/>
                     </Fragment>
                   );
                 })}
@@ -1492,7 +1656,19 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
               <div className="tree-vline"/>
               <div className="tree-dp-node">
                 <div className="tree-dp-badge">Decision Point {seg.dp.decision_point_id}</div>
-                <div className="tree-dp-question">{seg.dp.question_text}</div>
+                {editingDPQ === seg.dp.decision_point_id ? (
+                  <DPInlineEdit
+                    value={seg.dp.question_text}
+                    onSave={text=>saveQuestionText(seg.dp.decision_point_id, text)}
+                    onCancel={()=>setEditingDPQ(null)}
+                    placeholder="Question text"/>
+                ) : (
+                  <div className="tree-dp-question" onClick={()=>setEditingDPQ(seg.dp.decision_point_id)}
+                    title="Click to edit question" style={{cursor:"text"}}>
+                    {seg.dp.question_text}
+                    <span className="dp-edit-hint">{I.edit}</span>
+                  </div>
+                )}
               </div>
               <div className="tree-branch-row">
                 {seg.branches.map((b, bi) => {
@@ -1500,16 +1676,33 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                   return (
                     <div key={b.choice.choice_id ?? bi} className="tree-branch-col">
                       <div className="tree-vline-sm"/>
-                      <div
-                        className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"} choice-pill-toggle`}
-                        onClick={() => !b.choice.is_correct && setCorrectChoice(seg.dp.decision_point_id, bi)}
-                        title={b.choice.is_correct ? "This is the correct answer" : "Click to mark as correct answer"}
-                        style={{cursor: b.choice.is_correct ? "default" : "pointer"}}
-                      >
-                        <span className="choice-letter">
-                          {b.choice.is_correct ? "✓ Correct" : "✗ Mark correct"} · {b.choice.choice_id}
-                        </span>
-                        <span className="choice-text">{b.choice.text}</span>
+                      <div className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"}`}>
+                        <div className="choice-pill-hd">
+                          <span className="choice-id-label">{b.choice.choice_id}</span>
+                          {b.choice.is_correct ? (
+                            <span className="correct-badge">✓ Correct answer</span>
+                          ) : (
+                            <button className="mark-correct-btn"
+                              onClick={() => setCorrectChoice(seg.dp.decision_point_id, bi)}
+                              title="Mark as correct answer">
+                              Mark as correct
+                            </button>
+                          )}
+                          <button className="icon-btn" style={{width:22,height:22,marginLeft:"auto"}}
+                            title="Edit choice text"
+                            onClick={()=>setEditingChoice({dpId:seg.dp.decision_point_id, idx:bi})}>
+                            {I.edit}
+                          </button>
+                        </div>
+                        {editingChoice?.dpId===seg.dp.decision_point_id && editingChoice?.idx===bi ? (
+                          <DPInlineEdit
+                            value={b.choice.text}
+                            onSave={text=>saveChoiceText(seg.dp.decision_point_id, bi, text)}
+                            onCancel={()=>setEditingChoice(null)}
+                            placeholder="Choice text"/>
+                        ) : (
+                          <span className="choice-text">{b.choice.text}</span>
+                        )}
                       </div>
                       {b.scene ? (
                         <>
@@ -1520,7 +1713,6 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                             onStartEdit={()=>setEditingSceneIdx(i)}
                             onCancelEdit={()=>setEditingSceneIdx(null)}
                             onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
-                            onDuplicate={()=>duplicateScene(i)}
                             onDelete={()=>deleteScene(i)}/>
                           {b.choice.is_correct
                             ? <div className="continues-badge">↓ continues</div>
@@ -1783,7 +1975,7 @@ function ExportMenu({script}) {
 
 function App(){
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [selected, setSelected] = useState(new Set(["biology2e:09:9.2"]));
+  const [selected, setSelected] = useState(new Set(["clinicalnursing:03:3.1"]));
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -1796,7 +1988,7 @@ function App(){
   // Full backend script object: {title, learning_goal, target_audience,
   // total_duration_seconds, visual_style, characters[], scenes[], decision_points[]}
   const [script, setScript] = useState(null);
-  const [duplicateUndoStack, setDuplicateUndoStack] = useState([]);
+  const [deleteUndoStack, setDeleteUndoStack] = useState([]);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -1817,6 +2009,15 @@ function App(){
     });
   };
   const removeSec = (id) => setSelected(s => { const n = new Set(s); n.delete(id); return n; });
+  const toggleChap = (bookId, chap) => {
+    const ids = chap.secs.map(s => `${bookId}:${chap.n}:${s.n}`);
+    setSelected(s => {
+      const n = new Set(s);
+      const allOn = ids.every(id => n.has(id));
+      ids.forEach(id => allOn ? n.delete(id) : n.add(id));
+      return n;
+    });
+  };
 
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
@@ -1831,7 +2032,7 @@ function App(){
     setBusy(true);
     setGenStep(0);
     setScript(null);
-    setDuplicateUndoStack([]);
+    setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
 
@@ -1861,22 +2062,15 @@ function App(){
     }));
     setEditingSceneIdx(null);
   };
-  const duplicateScene = (idx) => {
-    setDuplicateUndoStack(s => [...s, script]);
-    setScript(curr => {
-      const scenes = curr.scenes;
-      const copy = {...scenes[idx], scene_id: (scenes[scenes.length-1].scene_id || scenes.length) + 1};
-      return {...curr, scenes: [...scenes.slice(0,idx+1), copy, ...scenes.slice(idx+1)]};
-    });
-  };
-  const undoDuplicate = () => {
-    if (duplicateUndoStack.length === 0) return;
-    setScript(duplicateUndoStack[duplicateUndoStack.length - 1]);
-    setDuplicateUndoStack(s => s.slice(0, -1));
-  };
   const deleteScene = (idx) => {
+    setDeleteUndoStack(s => [...s, script]);
     setScript(curr => ({...curr, scenes: curr.scenes.filter((_,i) => i !== idx)}));
     if (editingSceneIdx === idx) setEditingSceneIdx(null);
+  };
+  const undoDelete = () => {
+    if (deleteUndoStack.length === 0) return;
+    setScript(deleteUndoStack[deleteUndoStack.length - 1]);
+    setDeleteUndoStack(s => s.slice(0, -1));
   };
   const moveScene = (fromIdx, toIdx) => {
     setScript(curr => {
@@ -1897,6 +2091,27 @@ function App(){
       ...curr,
       decision_points: curr.decision_points.map((d,i) => i===idx ? dp : d),
     }));
+  };
+  const addDecisionPoint = (sceneIdx) => {
+    setScript(curr => {
+      const dps = curr.decision_points || [];
+      const newId = dps.length > 0 ? Math.max(...dps.map(d => d.decision_point_id)) + 1 : 1;
+      const scene = curr.scenes[sceneIdx];
+      const newDP = {
+        decision_point_id: newId,
+        question_text: "What should the nurse do next?",
+        associated_introduction_scene_id: scene.scene_id,
+        choices: [
+          {choice_id:"A", text:"Choice A", is_correct:true,  routes_to_scene:null, misconception:""},
+          {choice_id:"B", text:"Choice B", is_correct:false, routes_to_scene:null, misconception:""},
+          {choice_id:"C", text:"Choice C", is_correct:false, routes_to_scene:null, misconception:""},
+        ],
+      };
+      const updatedScenes = curr.scenes.map((s,i) =>
+        i===sceneIdx ? {...s, routes_to:{...( s.routes_to||{}), decision_point_id:newId, type:"true_choice"}} : s
+      );
+      return {...curr, scenes:updatedScenes, decision_points:[...dps, newDP]};
+    });
   };
 
   const submitScript = async () => {
@@ -1955,7 +2170,7 @@ function App(){
 
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
         <div className="sidebar-wrap">
-          <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
+          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}
@@ -1978,10 +2193,10 @@ function App(){
               </div>
             </div>
             <div className="stage-bar-r">
-              {duplicateUndoStack.length > 0 && (
-                <button className="btn btn-ghost btn-sm" onClick={undoDuplicate}
-                  title={`Undo last duplicate (${duplicateUndoStack.length} available)`}>
-                  ↩ Undo duplicate
+              {deleteUndoStack.length > 0 && (
+                <button className="btn btn-ghost btn-sm" onClick={undoDelete}
+                  title={`Undo last delete (${deleteUndoStack.length} available)`}>
+                  ↩ Undo delete
                 </button>
               )}
               <div className="zoom-ctl">
@@ -2065,10 +2280,10 @@ function App(){
                     editingSceneIdx={editingSceneIdx}
                     setEditingSceneIdx={setEditingSceneIdx}
                     saveSceneEdit={saveSceneEdit}
-                    duplicateScene={duplicateScene}
                     deleteScene={deleteScene}
                     moveScene={moveScene}
                     updateDecisionPoint={updateDecisionPoint}
+                    addDecisionPoint={addDecisionPoint}
                   />
 
                 </>

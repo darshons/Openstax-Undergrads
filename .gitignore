@@ -19,5 +19,5 @@ build/
 .vscode/
 .idea/
 
-# Scratch markdown the /api/initial_script writer produces before LLM upload
-BackEnd/Script_Generation_Pipeline/Textbook_Context/*.md
+test.py
+pyrefly.toml

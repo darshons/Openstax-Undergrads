@@ -1,13 +1,15 @@
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import FileResponse
 from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
-import Script_Generation_Pipeline.script_with_dpoints.anthropic_script_generation as anthropic_script_generation
-import Script_Generation_Pipeline.script_with_dpoints.gemini_script_generation as gemini_script_generation
+import Script_Generation_Pipeline.Script_With_Dpoints.anthropic_script_generation as anthropic_script_generation
+import Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation as gemini_script_generation
 from pydantic import BaseModel
 from pathlib import Path
 import os
 import re
 import tempfile
 from typing import Any
+import json
 
 class SceneInformation(BaseModel):
     book_title: str
@@ -17,10 +19,10 @@ class SceneInformation(BaseModel):
     user_query: str
     model_choice: str
     video_type: str = "scenario"
-    
+
 class ModifiedScript(BaseModel):
     script: dict[str, Any]
-    
+
 
 api_router = APIRouter()
 
@@ -85,6 +87,35 @@ def generate_initial_script(scene_information: SceneInformation, background_task
 def generate_final_script(modified_script: ModifiedScript) -> dict:
     print("Received modified script:", modified_script.script)
     return {"message": "Final script generation request received"}
+
+
+@api_router.get("/dummy_path")
+def get_dummy_path(target: str):
+    match target:
+        case "script":
+            return {"script_path": ""}
+        case "images":
+            return {"image_paths": [""]}
+        case "video":
+            return {"video_path": ""}
+
+
+@api_router.get("/script/{script_path:path}")
+def get_script(script_path: str):
+    with open(script_path, "r") as f:
+        script = json.load(f)
+    return {"script": script}
+
+# This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
+@api_router.get("/image/{image_path:path}")
+def get_image(image_path: str):
+    return FileResponse(image_path, media_type="image/png")
+
+
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@api_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(video_path, media_type="video/mp4")
 
 
 def delete_md_file(file_path: Path):

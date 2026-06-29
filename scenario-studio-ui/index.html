@@ -984,7 +984,7 @@ const I = {
 };
 
 /* ─── Sidebar tree ─── */
-function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter}){
+function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter, dynamicChapters}){
   const [openBooks, setOpenBooks] = useState({biology2e:true});
   const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
 
@@ -2171,7 +2171,7 @@ function App(){
 
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
         <div className="sidebar-wrap">
-          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
+          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} dynamicChapters={dynamicChapters}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}

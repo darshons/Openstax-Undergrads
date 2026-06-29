@@ -8,8 +8,6 @@ import asyncio
 
 
 def setup_gemini_client():
-    env_path = Path(__file__).resolve().parents[2] / "backend.env"
-    load_dotenv(env_path)
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     return client
 

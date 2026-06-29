@@ -8,15 +8,11 @@ from anthropic.types.beta import BetaTextBlock
 
 
 def setup_anthropic_client():
-    env_path = Path(__file__).resolve().parents[2] / "backend.env"
-    load_dotenv(env_path)
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
 
 
 def setup_async_anthropic_client():
-    env_path = Path(__file__).resolve().parents[2] / "backend.env"
-    load_dotenv(env_path)
     client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     return client
 

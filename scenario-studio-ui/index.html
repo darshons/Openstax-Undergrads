@@ -278,8 +278,8 @@
   }
 
   /* ─── Video Page ─── */
-  .video-page{display:flex;flex-direction:column;flex:1;min-height:0;overflow:auto;background:var(--os-bg-2)}
-  .video-body{padding:40px 52px 80px;display:flex;flex-direction:column;gap:48px}
+  .video-page{display:flex;flex-direction:column;flex:1;min-height:0;overflow:auto;background:var(--os-bg-2);align-items:center}
+  .video-body{padding:40px 52px 80px;display:flex;flex-direction:column;gap:48px;width:100%;max-width:1000px}
   .video-hero{background:#fff;border:1.5px solid var(--os-line);border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
   .video-player-lg{background:#0d1117;aspect-ratio:16/9;display:flex;flex-direction:column;
     align-items:center;justify-content:center;position:relative;cursor:pointer}
@@ -298,18 +298,18 @@
   .video-hero-stats{display:flex;gap:10px;align-items:center;margin-top:6px;font-size:12px;color:var(--os-ink-2)}
   .vdot{width:3px;height:3px;border-radius:50%;background:var(--os-ink-3);flex-shrink:0}
 
-  .video-timeline{display:flex;flex-direction:column;gap:28px}
-  .video-segment{display:flex;flex-direction:column;gap:14px}
-  .video-trunk-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .video-timeline{display:flex;flex-direction:column;gap:28px;align-items:center}
+  .video-segment{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
+  .video-trunk-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
   .video-connector{font-size:16px;color:var(--os-ink-3);flex-shrink:0;user-select:none}
-  .video-dp-group{border-left:2px solid var(--os-line);margin-left:20px;padding-left:20px;
-    display:flex;flex-direction:column;gap:10px}
+  .video-dp-group{border-left:2px solid var(--os-line);padding-left:20px;
+    display:flex;flex-direction:column;gap:10px;align-self:center}
   .video-dp-label-row{display:flex;align-items:center;gap:8px}
   .video-dp-tag{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
     color:#fff;background:var(--os-navy);border-radius:4px;padding:2px 7px;flex-shrink:0}
   .video-dp-q{font-size:12px;color:var(--os-ink-2);font-style:italic;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
-  .video-branches-row{display:flex;gap:12px;flex-wrap:wrap}
+  .video-branches-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 
   .video-clip-card{background:#fff;border:1.5px solid var(--os-line);border-radius:12px;
     width:180px;flex-shrink:0;cursor:pointer;overflow:hidden;transition:.15s}
@@ -2370,14 +2370,11 @@ function App(){
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showVideo, setShowVideo] = useState(false);
   const [currentPage, setCurrentPage] = useState("script");
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
 
   // Save flow
-  const [submitting, setSubmitting] = useState(false);
-  const [submitMsg, setSubmitMsg] = useState(null); // {kind:"success"|"error", text}
 
   const toggleSec = (id) => {
     setSelected(s => {
@@ -2406,7 +2403,6 @@ function App(){
       return;
     }
     setGenError(null);
-    setSubmitMsg(null);
     setBusy(true);
     setGenStep(0);
     setScript(null);
@@ -2492,19 +2488,6 @@ function App(){
     });
   };
 
-  const submitScript = async () => {
-    if (!script) return;
-    setSubmitting(true);
-    setSubmitMsg(null);
-    try {
-      await window.OSApi.submitModifiedScript(script);
-      setSubmitMsg({kind:"success", text:"Saved — backend acknowledged."});
-    } catch (err) {
-      setSubmitMsg({kind:"error", text: err.message || "Save failed"});
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   // Apply accent dynamically
   useEffect(() => {
@@ -2689,39 +2672,8 @@ function App(){
             {busy && <GenOverlay step={genStep}/>}
           </div>
 
-          {script && !busy && (
-            <div className="actionbar">
-              <div className="ab-stat">
-                <div>
-                  <div className="ab-stat-k">Scenes</div>
-                  <div className="ab-stat-v">{sceneCount}</div>
-                </div>
-                <div>
-                  <div className="ab-stat-k">Runtime</div>
-                  <div className="ab-stat-v">{runtimeLabel}</div>
-                </div>
-                <div>
-                  <div className="ab-stat-k">Sources</div>
-                  <div className="ab-stat-v">{selected.size}</div>
-                </div>
-              </div>
-              <div className="ab-actions">
-                <button className="btn btn-navy" onClick={submitScript} disabled={submitting}>
-                  {submitting ? <><span className="spin"/>Saving…</> : <>{I.edit} Save &amp; continue</>}
-                </button>
-                <button className="btn btn-ghost" onClick={()=>setShowVideo(true)}>
-                  {I.film} Generate scenario video
-                </button>
-                {submitMsg && (
-                  <div className={`save-banner ${submitMsg.kind}`}>{submitMsg.text}</div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
-
-      {showVideo && <VideoModal onClose={()=>setShowVideo(false)} sceneCount={sceneCount || 0}/>}
 
       <TweaksPanel>
         <TweakSection label="Canvas density"/>

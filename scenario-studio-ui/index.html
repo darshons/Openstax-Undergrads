@@ -303,11 +303,8 @@
   .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
     font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--os-navy)}
 
-  .scene-foot{display:flex;align-items:center;justify-content:space-between;
+  .scene-foot{display:flex;align-items:center;gap:4px;justify-content:flex-end;
     padding:12px 20px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
-  .scene-foot-l{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--os-ink-3)}
-  .scene-foot-l b{color:var(--os-ink-2);font-weight:600;font-variant-numeric:tabular-nums}
-  .scene-foot-r{display:flex;gap:4px}
   .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
@@ -1278,7 +1275,7 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
       <article className="scene"
         style={{width: density==="compact"?800:980}}>
         <div className="scene-hd">
-          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)}</span>
+          <span className="scene-num">SCENE <b>{String(s.scene_id).padStart(2,"0")}</b> · {fmtDuration(s.duration_seconds)} · {lineCount} line{lineCount===1?"":"s"}{s.routes_to?.decision_point_id!=null?` · → DP ${s.routes_to.decision_point_id}`:""}</span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>
         <div className="scene-body" style={{padding,gap:density==="compact"?10:12}}>
@@ -1316,26 +1313,16 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
             </div>
           </div>
         </div>
-        <div className="scene-foot">
-          <div className="scene-foot-l">
-            <span><b>{lineCount}</b> line{lineCount===1?"":"s"}</span>
-            <span>·</span>
-            <span>{fmtDuration(s.duration_seconds)}</span>
-            {s.routes_to?.decision_point_id != null && (
-              <Fragment><span>·</span><span>→ DP {s.routes_to.decision_point_id}</span></Fragment>
-            )}
-          </div>
-          <div className="scene-foot-r">
-            {onMoveLeft && <button className="icon-btn" title="Move left"
-              onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
-            {onMoveRight && <button className="icon-btn" title="Move right"
-              onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
-            <button className="icon-btn" title="Edit manually"
-              onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
-            <button className="icon-btn" title="Delete scene"
-              style={{color:"#c0392b"}}
-              onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
-          </div>
+        <div className="scene-foot" style={{justifyContent:"flex-end"}}>
+          {onMoveLeft && <button className="icon-btn" title="Move left"
+            onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
+          {onMoveRight && <button className="icon-btn" title="Move right"
+            onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
+          <button className="icon-btn" title="Edit scene"
+            onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
+          <button className="icon-btn" title="Delete scene"
+            style={{color:"#c0392b"}}
+            onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
         </div>
       </article>
     </div>

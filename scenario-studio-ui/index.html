@@ -116,6 +116,11 @@
   .chap{padding-left:10px;border-left:1px dashed var(--os-line-strong)}
   .chap-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:default}
   .chap-row:hover{background:#fff}
+  .chap-sel{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--os-line-strong);background:#fff;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .chap-sel:hover{border-color:var(--os-navy)}
+  .chap-sel.all{background:var(--os-navy);border-color:var(--os-navy)}
+  .chap-sel.some{background:var(--os-navy);border-color:var(--os-navy);opacity:.45}
+  .chap-sel svg{display:block}
   .chap-num{font-size:10px;font-weight:700;color:var(--os-ink-3);
     background:#fff;border:1px solid var(--os-line);border-radius:4px;padding:2px 5px;
     min-width:22px;text-align:center;font-family:"JetBrains Mono",monospace}
@@ -869,7 +874,7 @@ const I = {
 };
 
 /* ─── Sidebar tree ─── */
-function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
+function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter}){
   const [openBooks, setOpenBooks] = useState({biology2e:true});
   const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
 
@@ -917,9 +922,12 @@ function Sidebar({selected, toggleSec, search, setSearch, filter, setFilter}){
                     return (
                       <div key={c.n} className="chap">
                         <div className={`chap-row ${chapOpen?"open":""}`} onClick={()=>setOpenChaps(o => ({...o,[key]:!o[key]}))}>
+                          <span className={`chap-sel ${chapSel===c.secs.length?"all":chapSel>0?"some":""}`}
+                            onClick={e=>{e.stopPropagation();toggleChap(book.id,c);}}>
+                            {chapSel>0 && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                          </span>
                           <span className="chap-num">CH {c.n}</span>
                           <span className="chap-name">{c.name}</span>
-                          {chapSel>0 && <span className="book-count has" style={{fontSize:9,padding:"1px 5px"}}>{chapSel}</span>}
                           <span className="chap-caret">{I.caret}</span>
                         </div>
                         {chapOpen && (
@@ -1817,6 +1825,15 @@ function App(){
     });
   };
   const removeSec = (id) => setSelected(s => { const n = new Set(s); n.delete(id); return n; });
+  const toggleChap = (bookId, chap) => {
+    const ids = chap.secs.map(s => `${bookId}:${chap.n}:${s.n}`);
+    setSelected(s => {
+      const n = new Set(s);
+      const allOn = ids.every(id => n.has(id));
+      ids.forEach(id => allOn ? n.delete(id) : n.add(id));
+      return n;
+    });
+  };
 
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
@@ -1955,7 +1972,7 @@ function App(){
 
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
         <div className="sidebar-wrap">
-          <Sidebar selected={selected} toggleSec={toggleSec} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
+          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}

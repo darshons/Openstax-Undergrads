@@ -309,7 +309,8 @@
   .btn-add-dp{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
     color:#1a7a4a;background:#eafaf1;border:1.5px solid #82c99a;border-radius:7px;
     padding:5px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
-  .btn-add-dp:hover{background:#d4f0e0;border-color:#4caf72;transform:translateY(-1px)}
+  .btn-add-dp:hover:not(.btn-add-dp-disabled){background:#d4f0e0;border-color:#4caf72;transform:translateY(-1px)}
+  .btn-add-dp-disabled{opacity:.4;cursor:not-allowed}
   .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
@@ -1156,7 +1157,7 @@ function characterName(characters, id){
 }
 
 function SceneCard({s, characters, decisionPoints, density, isEditing,
-                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight, onAddDP}){
+                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight, onAddDP, addDPDisabled}){
   const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
 
@@ -1330,8 +1331,9 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
         </div>
         <div className="scene-foot">
           {onAddDP && (
-            <button className="btn-add-dp" onClick={(e)=>{e.stopPropagation();onAddDP();}}
-              title="Add a decision point after this scene">
+            <button className={`btn-add-dp${addDPDisabled?" btn-add-dp-disabled":""}`}
+              onClick={(e)=>{e.stopPropagation(); if(!addDPDisabled) onAddDP();}}
+              title={addDPDisabled ? "Scene already routes to a decision point" : "Add a decision point after this scene"}>
               {I.plus} Add decision point
             </button>
           )}
@@ -1622,7 +1624,8 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                         onDelete={()=>deleteScene(idx)}
                         onMoveLeft={prevIdx>=0 ? ()=>moveScene(idx,prevIdx) : undefined}
                         onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}
-                        onAddDP={s.routes_to?.decision_point_id==null ? ()=>addDecisionPoint(idx) : undefined}/>
+                        onAddDP={()=>addDecisionPoint(idx)}
+                        addDPDisabled={s.routes_to?.decision_point_id!=null}/>
                     </Fragment>
                   );
                 })}

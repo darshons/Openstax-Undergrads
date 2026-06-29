@@ -601,96 +601,111 @@ const CATALOG = [
     id:"clinicalnursing", title:"Clinical Nursing Skills", sub:"OpenStax Nursing", color:"#c0392b",
     bookTitle:"Clinical Nursing Skills",
     chapters:[
-      {n:"01", unit:1, name:"The Role of the Nurse in Comprehensive Care", secs:[{n:"1.1",t:"Overview"}]},
-      {n:"02", unit:1, name:"The Evolution of the Nurse's Role", secs:[{n:"2.1",t:"Overview"}]},
-      {n:"03", unit:1, name:"Patient Communication and Interviewing", secs:[{n:"3.1",t:"Overview"}]},
-      {n:"04", unit:1, name:"Obtaining a Complete Health History", secs:[{n:"4.1",t:"Overview"}]},
-      {n:"05", unit:1, name:"Cultural Competence and Assessment", secs:[{n:"5.1",t:"Overview"}]},
-      {n:"06", unit:1, name:"Infection Prevention Techniques and Safety", secs:[{n:"6.1",t:"Overview"}]},
-      {n:"07", unit:2, name:"Hygiene", secs:[{n:"7.1",t:"Overview"}]},
-      {n:"08", unit:2, name:"Wound and Burn Assessment and Care", secs:[{n:"8.1",t:"Overview"}]},
-      {n:"09", unit:2, name:"Activity Assessment and Management", secs:[{n:"9.1",t:"Overview"}]},
-      {n:"10", unit:2, name:"Specimen Collection and Lab Testing", secs:[{n:"10.1",t:"Overview"}]},
-      {n:"11", unit:3, name:"Principles of Medication Administration", secs:[{n:"11.1",t:"Overview"}]},
-      {n:"12", unit:3, name:"Medication Administration Procedures", secs:[{n:"12.1",t:"Overview"}]},
-      {n:"13", unit:3, name:"Intravenous Administration", secs:[{n:"13.1",t:"Overview"}]},
-      {n:"14", unit:3, name:"Miscellaneous Medication Administration", secs:[{n:"14.1",t:"Overview"}]},
-      {n:"15", unit:4, name:"General Survey, Anthropometric Measurement, and Vital Signs", secs:[{n:"15.1",t:"Overview"}]},
-      {n:"16", unit:4, name:"Pain Assessment", secs:[{n:"16.1",t:"Overview"}]},
-      {n:"17", unit:4, name:"Nutrition Assessment", secs:[{n:"17.1",t:"Overview"}]},
-      {n:"18", unit:4, name:"Oxygenation and Perfusion", secs:[{n:"18.1",t:"Overview"}]},
-      {n:"19", unit:4, name:"Fluids, Electrolytes, and Elimination", secs:[{n:"19.1",t:"Overview"}]},
-      {n:"20", unit:4, name:"Psychosocial Assessment", secs:[{n:"20.1",t:"Overview"}]},
-      {n:"21", unit:4, name:"Assessment of the Integumentary System", secs:[{n:"21.1",t:"Overview"}]},
-      {n:"22", unit:4, name:"Assessment of the Head and Neck", secs:[{n:"22.1",t:"Overview"}]},
+      {n:"01", unit:1, name:"The Role of the Nurse in Comprehensive Care", secs:[{n:"1.1",t:"Principles of Nursing Practice"},{n:"1.2",t:"Evidence-Based Practice"},{n:"1.3",t:"Nursing Process"}]},
+      {n:"02", unit:1, name:"The Evolution of the Nurse's Role", secs:[{n:"2.1",t:"Changing with Trends"},{n:"2.2",t:"Patient-Centered Care"},{n:"2.3",t:"Practice Standards"},{n:"2.4",t:"Collaborative Care"}]},
+      {n:"03", unit:1, name:"Patient Communication and Interviewing", secs:[{n:"3.1",t:"Therapeutic Communication"},{n:"3.2",t:"Comprehensive Interview Practices"},{n:"3.3",t:"Patient Education and Teaching"}]},
+      {n:"04", unit:1, name:"Obtaining a Complete Health History", secs:[{n:"4.1",t:"Foundations for a Complete Electronic Health Record"},{n:"4.2",t:"Data Collection and Documentation"},{n:"4.3",t:"Informatics"}]},
+      {n:"05", unit:1, name:"Cultural Competence and Assessment", secs:[{n:"5.1",t:"Understanding Cultural Differences"},{n:"5.2",t:"Ethical Practice in Culture and Diversity"},{n:"5.3",t:"Cultural Practice in Nursing"},{n:"5.4",t:"Diversity, Equity, and Inclusion"}]},
+      {n:"06", unit:1, name:"Infection Prevention Techniques and Safety", secs:[{n:"6.1",t:"Infection Cycle"},{n:"6.2",t:"Asepsis and PPE"},{n:"6.3",t:"Sterile Technique"},{n:"6.4",t:"Infection Control and Patient Safety"}]},
+      {n:"07", unit:2, name:"Hygiene", secs:[{n:"7.1",t:"Hygiene Practices"},{n:"7.2",t:"Factors Influencing Personal Hygiene"},{n:"7.3",t:"Assisting with Hygiene and Health Promotion"}]},
+      {n:"08", unit:2, name:"Wound and Burn Assessment and Care", secs:[{n:"8.1",t:"Wound Classification"},{n:"8.2",t:"Wound Assessment"},{n:"8.3",t:"Wound Management"},{n:"8.4",t:"Burn Injuries and Management"}]},
+      {n:"09", unit:2, name:"Activity Assessment and Management", secs:[{n:"9.1",t:"Assessing Functional Ability"},{n:"9.2",t:"Assessing Mobility"},{n:"9.3",t:"Transferring Patients"},{n:"9.4",t:"Positioning in Bed"},{n:"9.5",t:"Limited Movement Devices"}]},
+      {n:"10", unit:2, name:"Specimen Collection and Lab Testing", secs:[{n:"10.1",t:"Urine Specimen"},{n:"10.2",t:"Stool Collection"},{n:"10.3",t:"Sputum Collection"},{n:"10.4",t:"Blood Sampling"}]},
+      {n:"11", unit:3, name:"Principles of Medication Administration", secs:[{n:"11.1",t:"Rights of Medication Administration"},{n:"11.2",t:"Dosing"},{n:"11.3",t:"Documentation of Medication Administration"}]},
+      {n:"12", unit:3, name:"Medication Administration Procedures", secs:[{n:"12.1",t:"Administering Oral Medications"},{n:"12.2",t:"Administering Parenteral Medications"},{n:"12.3",t:"Preparing Unit-Dose Packaged Medications"},{n:"12.4",t:"Administering Intradermal Injections"},{n:"12.5",t:"Administering Subcutaneous Injections"},{n:"12.6",t:"Administering Intramuscular Injections"}]},
+      {n:"13", unit:3, name:"Intravenous Administration", secs:[{n:"13.1",t:"Principles of Intravenous Therapy"},{n:"13.2",t:"Intravenous Device Insertion"},{n:"13.3",t:"Intravenous Infusion"},{n:"13.4",t:"Blood Transfusions"}]},
+      {n:"14", unit:3, name:"Miscellaneous Medication Administration", secs:[{n:"14.1",t:"Administering Eye Medications"},{n:"14.2",t:"Administering Ear Medications"},{n:"14.3",t:"Administering Nasal Medications"},{n:"14.4",t:"Administering Inhaled Medications"},{n:"14.5",t:"Administering Other Medications"}]},
+      {n:"15", unit:4, name:"General Survey, Anthropometric Measurement, and Vital Signs", secs:[{n:"15.1",t:"Performing a General Survey"},{n:"15.2",t:"Common Types of Anthropometric Measurements"},{n:"15.3",t:"Vital Signs"},{n:"15.4",t:"Temperature"},{n:"15.5",t:"Heart Rate"},{n:"15.6",t:"Respiration"},{n:"15.7",t:"Blood Pressure"}]},
+      {n:"16", unit:4, name:"Pain Assessment", secs:[{n:"16.1",t:"The Pain Process"},{n:"16.2",t:"Responses to Pain"},{n:"16.3",t:"Factors Affecting Pain"},{n:"16.4",t:"Pain Assessment"},{n:"16.5",t:"Pain Management"}]},
+      {n:"17", unit:4, name:"Nutrition Assessment", secs:[{n:"17.1",t:"Nutritional Concepts"},{n:"17.2",t:"Factors Affecting Nutrition"},{n:"17.3",t:"Specialized Diets"},{n:"17.4",t:"Nutritional Assessment"}]},
+      {n:"18", unit:4, name:"Oxygenation and Perfusion", secs:[{n:"18.1",t:"Respiratory System"},{n:"18.2",t:"Cardiovascular System"},{n:"18.3",t:"Factors Affecting Cardiopulmonary Function"},{n:"18.4",t:"Management of Impaired Cardiopulmonary Functioning"}]},
+      {n:"19", unit:4, name:"Fluids, Electrolytes, and Elimination", secs:[{n:"19.1",t:"Fluid and Electrolytes"},{n:"19.2",t:"Nursing Assessment for Fluid and Electrolytes"},{n:"19.3",t:"Considerations for Fluid and Electrolyte Imbalances"},{n:"19.4",t:"Nursing Management of Elimination"}]},
+      {n:"20", unit:4, name:"Psychosocial Assessment", secs:[{n:"20.1",t:"Mental Health Assessment"},{n:"20.2",t:"Substance Use Disorder Assessment"},{n:"20.3",t:"Abuse and Neglect Assessment"}]},
+      {n:"21", unit:4, name:"Assessment of the Integumentary System", secs:[{n:"21.1",t:"Structure and Functions of the Skin"},{n:"21.2",t:"Factors Affecting Skin Integrity"}]},
+      {n:"22", unit:4, name:"Assessment of the Head and Neck", secs:[{n:"22.1",t:"Head and Neck"},{n:"22.2",t:"Eyes"},{n:"22.3",t:"Ears"},{n:"22.4",t:"Mouth, Throat, Nose, and Sinuses"}]},
+      {n:"23", unit:4, name:"Assessment of the Thorax, Lungs, Breast, and Lymphatic System", secs:[{n:"23.1",t:"Structure and Function"},{n:"23.2",t:"Physical Assessment of the Thorax"},{n:"23.3",t:"Breath Sounds and Lung Assessment"},{n:"23.4",t:"Breast and Lymphatic System"}]},
+      {n:"24", unit:4, name:"Assessment of the Cardiovascular and Peripheral Vascular System", secs:[{n:"24.1",t:"Cardiovascular System"},{n:"24.2",t:"Peripheral Vascular System"},{n:"24.3",t:"Nursing Assessment"}]},
+      {n:"25", unit:4, name:"Assessment of the Musculoskeletal System", secs:[{n:"25.1",t:"Structure and Function"},{n:"25.2",t:"Physical Assessment"},{n:"25.3",t:"Recognizing Common Musculoskeletal Disorders"}]},
+      {n:"26", unit:4, name:"Assessment of the Neurological System", secs:[{n:"26.1",t:"Structure and Function"},{n:"26.2",t:"Physical Assessment"},{n:"26.3",t:"Recognizing Common Neurological Disorders"}]},
+      {n:"27", unit:4, name:"Assessment of the Abdomen", secs:[{n:"27.1",t:"Structure and Function"},{n:"27.2",t:"Physical Assessment"},{n:"27.3",t:"Recognizing Common Abdominal Disorders"}]},
+      {n:"28", unit:4, name:"Clinical Judgment and Critical Thinking", secs:[{n:"28.1",t:"Clinical Judgment Measurement Model"},{n:"28.2",t:"Developing Critical Thinking Skills"},{n:"28.3",t:"Unfolding Case Study Dissection"}]},
     ]
   },
   {
     id:"maternalnursing", title:"Maternal-Newborn Nursing", sub:"OpenStax Nursing", color:"#8e44ad",
     bookTitle:"Maternal-Newborn Nursing",
     chapters:[
-      {n:"01", unit:1, name:"Foundations in Maternal-Newborn and Women's Health Nursing", secs:[{n:"1.1",t:"Overview"}]},
-      {n:"02", unit:1, name:"Culturally Competent Nursing Care", secs:[{n:"2.1",t:"Overview"}]},
-      {n:"03", unit:2, name:"Health Promotion, Disease and Injury Prevention, and Well-Person Care", secs:[{n:"3.1",t:"Overview"}]},
-      {n:"04", unit:2, name:"Influences on Fertility", secs:[{n:"4.1",t:"Overview"}]},
-      {n:"05", unit:2, name:"Family Planning", secs:[{n:"5.1",t:"Overview"}]},
-      {n:"06", unit:2, name:"Structural and Tissue Disorders of the Reproductive System", secs:[{n:"6.1",t:"Overview"}]},
-      {n:"07", unit:2, name:"Commonly Occurring Reproductive and Genitourinary System Infections", secs:[{n:"7.1",t:"Overview"}]},
-      {n:"08", unit:2, name:"Disorders of the Breast", secs:[{n:"8.1",t:"Overview"}]},
-      {n:"09", unit:2, name:"Violence Against Women", secs:[{n:"9.1",t:"Overview"}]},
-      {n:"10", unit:3, name:"Pregnancy", secs:[{n:"10.1",t:"Overview"}]},
-      {n:"11", unit:3, name:"Prenatal Care", secs:[{n:"11.1",t:"Overview"}]},
-      {n:"12", unit:3, name:"Pregnancy at Risk", secs:[{n:"12.1",t:"Overview"}]},
-      {n:"13", unit:3, name:"Prenatal Testing", secs:[{n:"13.1",t:"Overview"}]},
-      {n:"14", unit:3, name:"Childbirth Education Options", secs:[{n:"14.1",t:"Overview"}]},
-      {n:"15", unit:4, name:"Process of Labor and Birth", secs:[{n:"15.1",t:"Overview"}]},
-      {n:"16", unit:4, name:"Electronic Fetal and Uterine Contraction Monitoring", secs:[{n:"16.1",t:"Overview"}]},
-      {n:"17", unit:4, name:"Pain Management During Labor and Birth", secs:[{n:"17.1",t:"Overview"}]},
-      {n:"18", unit:4, name:"Nursing Care and Interventions During Labor and Birth", secs:[{n:"18.1",t:"Overview"}]},
-      {n:"19", unit:4, name:"Complications of Labor and Birth", secs:[{n:"19.1",t:"Overview"}]},
-      {n:"20", unit:5, name:"Postpartum Care", secs:[{n:"20.1",t:"Overview"}]},
-      {n:"21", unit:5, name:"Postpartum Complications", secs:[{n:"21.1",t:"Overview"}]},
-      {n:"22", unit:6, name:"Immediate Care of the Newborn", secs:[{n:"22.1",t:"Overview"}]},
-      {n:"23", unit:6, name:"Newborn Assessment", secs:[{n:"23.1",t:"Overview"}]},
-      {n:"24", unit:6, name:"Care of the Typical Newborn", secs:[{n:"24.1",t:"Overview"}]},
-      {n:"25", unit:6, name:"Care of the Newborn at Risk", secs:[{n:"25.1",t:"Overview"}]},
-      {n:"26", unit:6, name:"Perinatal Bereavement", secs:[{n:"26.1",t:"Overview"}]},
+      {n:"01", unit:1, name:"Foundations in Maternal-Newborn and Women's Health Nursing", secs:[{n:"1.1",t:"Current Trends in Women's Health Care"},{n:"1.2",t:"Standards of Maternal, Newborn, and Gynecologic Nursing Care"},{n:"1.3",t:"Perinatal Care: Regional and Levels of Care and Transport"},{n:"1.4",t:"Ethical and Legal Concerns"}]},
+      {n:"02", unit:1, name:"Culturally Competent Nursing Care", secs:[{n:"2.1",t:"Person- and Family-Centered Care"},{n:"2.2",t:"Family Health and Cultural Factors"},{n:"2.3",t:"Culturally Competent Care"},{n:"2.4",t:"Families at Higher Risk for Poor Health Outcomes"}]},
+      {n:"03", unit:2, name:"Health Promotion, Disease and Injury Prevention, and Well-Person Care", secs:[{n:"3.1",t:"Factors Influencing the Health of Persons Assigned Female at Birth"},{n:"3.2",t:"Leading Causes of Death and Health Screenings"},{n:"3.3",t:"Health Promotion"},{n:"3.4",t:"Well-Person Care"},{n:"3.5",t:"Preconceptual Care"}]},
+      {n:"04", unit:2, name:"Influences on Fertility", secs:[{n:"4.1",t:"Fertility and Conception"},{n:"4.2",t:"Genetics"},{n:"4.3",t:"Causes of Infertility"},{n:"4.4",t:"Treating Infertility"}]},
+      {n:"05", unit:2, name:"Family Planning", secs:[{n:"5.1",t:"Contraception: The Nurse's Role"},{n:"5.2",t:"Natural Methods of Contraception"},{n:"5.3",t:"Barrier Methods of Contraception"},{n:"5.4",t:"Short-Acting Reversible Hormonal Methods of Contraception"},{n:"5.5",t:"Long-Acting Reversible Contraception"},{n:"5.6",t:"Emergency Contraception"},{n:"5.7",t:"Sterilization"},{n:"5.8",t:"Induced Abortion"}]},
+      {n:"06", unit:2, name:"Structural and Tissue Disorders of the Reproductive System", secs:[{n:"6.1",t:"Functional Disorders"},{n:"6.2",t:"Structural Disorders"},{n:"6.3",t:"Benign Growths"},{n:"6.4",t:"Malignant Neoplasms"}]},
+      {n:"07", unit:2, name:"Commonly Occurring Reproductive and Genitourinary System Infections", secs:[{n:"7.1",t:"Sexually Transmitted Infections"},{n:"7.2",t:"Vaginal Infections and Other Conditions"},{n:"7.3",t:"Urinary Tract Infections"}]},
+      {n:"08", unit:2, name:"Disorders of the Breast", secs:[{n:"8.1",t:"Benign Disorders of the Breast"},{n:"8.2",t:"Cancer of the Breast"}]},
+      {n:"09", unit:2, name:"Violence Against Women", secs:[{n:"9.1",t:"Incidence, History, and Psychosocial Factors"},{n:"9.2",t:"Domestic and Intimate Partner Violence"},{n:"9.3",t:"Sexual Abuse and Assault"},{n:"9.4",t:"Human Trafficking"},{n:"9.5",t:"Social and Cultural Practices of Violence Against Women"},{n:"9.6",t:"Psychological Trauma of Violence Against Women"}]},
+      {n:"10", unit:3, name:"Pregnancy", secs:[{n:"10.1",t:"Physiologic Changes Due to Pregnancy"},{n:"10.2",t:"Psychosocial Aspects of Pregnancy"},{n:"10.3",t:"Common Discomforts of Pregnancy"},{n:"10.4",t:"Fetal Growth and Development"},{n:"10.5",t:"Choosing a Health Care Provider"},{n:"10.6",t:"Choosing a Birthing Place"}]},
+      {n:"11", unit:3, name:"Prenatal Care", secs:[{n:"11.1",t:"First Prenatal Visit"},{n:"11.2",t:"Care in the First Trimester of Pregnancy"},{n:"11.3",t:"Care in the Second Trimester of Pregnancy"},{n:"11.4",t:"Care in the Third Trimester of Pregnancy"},{n:"11.5",t:"Family Assessment and Nursing Interventions"}]},
+      {n:"12", unit:3, name:"Pregnancy at Risk", secs:[{n:"12.1",t:"Preconception Conditions Affecting Pregnancy"},{n:"12.2",t:"Conditions Limited to Pregnancy"}]},
+      {n:"13", unit:3, name:"Prenatal Testing", secs:[{n:"13.1",t:"Prenatal Testing during the First Trimester"},{n:"13.2",t:"Prenatal Testing during the Second Trimester"},{n:"13.3",t:"Prenatal Testing during the Third Trimester"}]},
+      {n:"14", unit:3, name:"Childbirth Education Options", secs:[{n:"14.1",t:"Lamaze International Childbirth Education"},{n:"14.2",t:"Bradley Method"},{n:"14.3",t:"Hypnobirthing: The Mongan Method"},{n:"14.4",t:"Alexander Technique"},{n:"14.5",t:"Birth Plans"}]},
+      {n:"15", unit:4, name:"Process of Labor and Birth", secs:[{n:"15.1",t:"Factors Influencing the Process of Labor and Birth"},{n:"15.2",t:"Stages of Labor"},{n:"15.3",t:"Physiologic Adaptations during Labor and Birth"},{n:"15.4",t:"Psychosocial Adaptations during Labor and Birth"},{n:"15.5",t:"Family Adaptations during Labor and Birth"}]},
+      {n:"16", unit:4, name:"Electronic Fetal and Uterine Contraction Monitoring", secs:[{n:"16.1",t:"Basic Terms of Fetal Heart Rate and Contraction Patterns"},{n:"16.2",t:"External and Internal Monitoring"},{n:"16.3",t:"Physiological Influences on Fetal Heart Rate Patterns"},{n:"16.4",t:"Nursing Interventions Based on Fetal Heart Rate and Uterine Contraction Patterns"},{n:"16.5",t:"Intrauterine Resuscitation"}]},
+      {n:"17", unit:4, name:"Pain Management During Labor and Birth", secs:[{n:"17.1",t:"Nonpharmacological Pain Management"},{n:"17.2",t:"Pharmacological Pain Management"},{n:"17.3",t:"Anesthesia"}]},
+      {n:"18", unit:4, name:"Nursing Care and Interventions During Labor and Birth", secs:[{n:"18.1",t:"Nursing Care During the First Stage of Labor"},{n:"18.2",t:"Nursing Care During the Second Stage of Labor"},{n:"18.3",t:"Nursing Care During the Third Stage of Labor"},{n:"18.4",t:"Nursing Care During the Fourth Stage of Labor"}]},
+      {n:"19", unit:4, name:"Complications of Labor and Birth", secs:[{n:"19.1",t:"Labor Dystocia"},{n:"19.2",t:"Medical Interventions During Labor"},{n:"19.3",t:"Obstetrical Conditions Affecting Labor and Birth"},{n:"19.4",t:"Preexisting Conditions Placing Delivery at Risk"},{n:"19.5",t:"Interventions During Birth"},{n:"19.6",t:"Cesarean Section"},{n:"19.7",t:"Obstetrical Emergencies"},{n:"19.8",t:"Complications of the Second Stage of Labor"},{n:"19.9",t:"Complications in the Third Stage of Labor"},{n:"19.10",t:"Monitoring for Complications During Labor and Birth"}]},
+      {n:"20", unit:5, name:"Postpartum Care", secs:[{n:"20.1",t:"Physiologic Changes During the Postpartum Period"},{n:"20.2",t:"Psychosocial Adaptation to Parenthood"},{n:"20.3",t:"Nursing Care During the Postpartum Period"}]},
+      {n:"21", unit:5, name:"Postpartum Complications", secs:[{n:"21.1",t:"Postpartum Infections"},{n:"21.2",t:"Postpartum Hemorrhage"},{n:"21.3",t:"Breasts and Breast-Feeding"},{n:"21.4",t:"Cesarean Birth Discomforts"},{n:"21.5",t:"Postpartum Mood Disorders and Psychiatric Disorders"}]},
+      {n:"22", unit:6, name:"Immediate Care of the Newborn", secs:[{n:"22.1",t:"Apgar Scoring"},{n:"22.2",t:"Physiological Adaptation and Transition"},{n:"22.3",t:"Neutral Thermal Environment"}]},
+      {n:"23", unit:6, name:"Newborn Assessment", secs:[{n:"23.1",t:"Physical Assessment of the Newborn"},{n:"23.2",t:"Estimation of Gestational Age and Newborn Behavioral Assessment"}]},
+      {n:"24", unit:6, name:"Care of the Typical Newborn", secs:[{n:"24.1",t:"Basic Newborn Care"},{n:"24.2",t:"Care of Common Problems in the Newborn"},{n:"24.3",t:"Newborn Discharge Planning and Parent Education"}]},
+      {n:"25", unit:6, name:"Care of the Newborn at Risk", secs:[{n:"25.1",t:"Birth-Related Complications"},{n:"25.2",t:"Congenital, Genetic, and Acquired Complications"},{n:"25.3",t:"Newborn Resuscitation"},{n:"25.4",t:"Preterm Newborn"},{n:"25.5",t:"Parent-Newborn Bonding and Attachment"},{n:"25.6",t:"Discharge Planning"}]},
+      {n:"26", unit:6, name:"Perinatal Bereavement", secs:[{n:"26.1",t:"Pregnancy Loss"},{n:"26.2",t:"Intrapartum Fetal Death"},{n:"26.3",t:"Newborn Loss"}]},
+      {n:"27", unit:6, name:"Applying Clinical Judgment", secs:[{n:"27.1",t:"Clinical Judgment within the Nursing Process"},{n:"27.2",t:"Measuring Clinical Judgment within Nursing Practice"}]},
     ]
   },
   {
     id:"medsurgnursing", title:"Medical-Surgical Nursing", sub:"OpenStax Nursing", color:"#1a5276",
     bookTitle:"Medical-Surgical Nursing",
     chapters:[
-      {n:"01", unit:1, name:"Professional Medical-Surgical Nursing", secs:[{n:"1.1",t:"Overview"}]},
-      {n:"02", unit:1, name:"Culturally Competent Care", secs:[{n:"2.1",t:"Overview"}]},
-      {n:"03", unit:1, name:"Health Promotion and Patient Education", secs:[{n:"3.1",t:"Overview"}]},
-      {n:"04", unit:2, name:"Clinical Judgment in the Nursing Process", secs:[{n:"4.1",t:"Overview"}]},
-      {n:"05", unit:2, name:"Ethical Decision Making", secs:[{n:"5.1",t:"Overview"}]},
-      {n:"06", unit:3, name:"Comprehensive Health Assessment and Physical Examination", secs:[{n:"6.1",t:"Overview"}]},
-      {n:"07", unit:3, name:"Pain Assessment and Management", secs:[{n:"7.1",t:"Overview"}]},
-      {n:"08", unit:3, name:"Stress and Stress-Related Disorders", secs:[{n:"8.1",t:"Overview"}]},
-      {n:"09", unit:3, name:"Management of Chronic Illness", secs:[{n:"9.1",t:"Overview"}]},
-      {n:"10", unit:4, name:"Fluid, Electrolyte, and Acid-Base Imbalances", secs:[{n:"10.1",t:"Overview"}]},
-      {n:"11", unit:4, name:"Gas Exchange, Airway Management, and Respiratory System Disorders", secs:[{n:"11.1",t:"Overview"}]},
-      {n:"12", unit:4, name:"Cardiovascular System", secs:[{n:"12.1",t:"Overview"}]},
-      {n:"13", unit:4, name:"Musculoskeletal System", secs:[{n:"13.1",t:"Overview"}]},
-      {n:"14", unit:4, name:"Integumentary System", secs:[{n:"14.1",t:"Overview"}]},
-      {n:"15", unit:4, name:"Cerebrovascular System", secs:[{n:"15.1",t:"Overview"}]},
-      {n:"16", unit:4, name:"Hematopoietic Disorders and Regulation", secs:[{n:"16.1",t:"Overview"}]},
-      {n:"17", unit:4, name:"Nervous System and Chronic Diseases of the Nervous System", secs:[{n:"17.1",t:"Overview"}]},
-      {n:"25", unit:5, name:"Preoperative Care", secs:[{n:"25.1",t:"Overview"}]},
-      {n:"26", unit:5, name:"Intraoperative Care", secs:[{n:"26.1",t:"Overview"}]},
-      {n:"27", unit:5, name:"Postoperative Care", secs:[{n:"27.1",t:"Overview"}]},
-      {n:"28", unit:5, name:"Inflammation and Healing", secs:[{n:"28.1",t:"Overview"}]},
-      {n:"29", unit:5, name:"Immunological Function", secs:[{n:"29.1",t:"Overview"}]},
-      {n:"30", unit:6, name:"Genetics", secs:[{n:"30.1",t:"Overview"}]},
-      {n:"31", unit:6, name:"Cancer", secs:[{n:"31.1",t:"Overview"}]},
-      {n:"32", unit:6, name:"Palliative Care", secs:[{n:"32.1",t:"Overview"}]},
-      {n:"33", unit:6, name:"Emergency Care", secs:[{n:"33.1",t:"Overview"}]},
-      {n:"34", unit:6, name:"Disaster and Recovery", secs:[{n:"34.1",t:"Overview"}]},
-      {n:"35", unit:6, name:"Nursing Care of the Critically Ill Patient", secs:[{n:"35.1",t:"Overview"}]},
-      {n:"36", unit:6, name:"Home Health Nursing and Rehabilitation", secs:[{n:"36.1",t:"Overview"}]},
-      {n:"37", unit:6, name:"Trends in Health-Care Technology", secs:[{n:"37.1",t:"Overview"}]},
+      {n:"01", unit:1, name:"Professional Medical-Surgical Nursing", secs:[{n:"1.1",t:"Professional Nursing Practice"},{n:"1.2",t:"Intercollaborative Care"},{n:"1.3",t:"Health Policy and Ethical Considerations"},{n:"1.4",t:"Evidence-Based Practice"},{n:"1.5",t:"Health-Care Delivery Systems"},{n:"1.6",t:"Systems-Based Practice"},{n:"1.7",t:"Technology and Informatics"}]},
+      {n:"02", unit:1, name:"Culturally Competent Care", secs:[{n:"2.1",t:"Concepts in Culture"},{n:"2.2",t:"Cultural Assessment"},{n:"2.3",t:"Health Equity and Disparities"}]},
+      {n:"03", unit:1, name:"Health Promotion and Patient Education", secs:[{n:"3.1",t:"Health Promotion and Wellness"},{n:"3.2",t:"Strategies for Improving Healthy Habits"},{n:"3.3",t:"Challenges Throughout the Lifespan"},{n:"3.4",t:"Purpose of Health Education and Patient Teaching"},{n:"3.5",t:"Strategies for Optimal Patient Education"}]},
+      {n:"04", unit:2, name:"Clinical Judgment in the Nursing Process", secs:[{n:"4.1",t:"Critical Thinking and the Nursing Process"},{n:"4.2",t:"Clinical Judgment Measurement Model Overview"},{n:"4.3",t:"Recognizing and Analyzing Cues"},{n:"4.4",t:"Prioritizing Hypotheses, Generating Solutions, and Taking Action"},{n:"4.5",t:"Evaluating Outcomes"}]},
+      {n:"05", unit:2, name:"Ethical Decision Making", secs:[{n:"5.1",t:"Clinical Judgment and Ethical Dilemmas"},{n:"5.2",t:"Patient Care and Safety"},{n:"5.3",t:"Ethical Patient Education"},{n:"5.4",t:"Ethical Challenges in Scope of Practice"}]},
+      {n:"06", unit:3, name:"Comprehensive Health Assessment and Physical Examination", secs:[{n:"6.1",t:"Critical Thinking in Assessment"},{n:"6.2",t:"Effective Communication in the Nurse-Patient Relationship"},{n:"6.3",t:"Health History"},{n:"6.4",t:"Bedside Physical Assessment in Medical-Surgical Nursing"}]},
+      {n:"07", unit:3, name:"Pain Assessment and Management", secs:[{n:"7.1",t:"Concepts and Causes of Pain"},{n:"7.2",t:"Pain Assessment"},{n:"7.3",t:"Pharmacological Pain Management"},{n:"7.4",t:"Nonpharmacological Pain Management"},{n:"7.5",t:"Substance Use Disorder"}]},
+      {n:"08", unit:3, name:"Stress and Stress-Related Disorders", secs:[{n:"8.1",t:"Homeostasis, Stress, and Adaptation"},{n:"8.2",t:"Causes and Types of Stress"},{n:"8.3",t:"Stress and Disease"},{n:"8.4",t:"Physiological Response"},{n:"8.5",t:"Psychological Response"},{n:"8.6",t:"Inflammation: Cellular Response to Stress"},{n:"8.7",t:"Role of Stress in Family Health"},{n:"8.8",t:"Pharmacotherapy and Complementary and Alternative Medicine"}]},
+      {n:"09", unit:3, name:"Management of Chronic Illness", secs:[{n:"9.1",t:"Chronic Disease and Illness"},{n:"9.2",t:"Comorbid Chronic Diseases"},{n:"9.3",t:"Chronic Illness and Disability"},{n:"9.4",t:"Access and Barriers to Health Care"},{n:"9.5",t:"Prevention of Chronic Disease"},{n:"9.6",t:"The Chronic Care Model"},{n:"9.7",t:"Care of the Chronically Ill Patient"}]},
+      {n:"10", unit:4, name:"Fluid, Electrolyte, and Acid-Base Imbalances", secs:[{n:"10.1",t:"Maintaining Homeostasis"},{n:"10.2",t:"Fluid Disturbances and Replacement"},{n:"10.3",t:"Electrolyte Imbalance"},{n:"10.4",t:"Acid-Base Imbalance"}]},
+      {n:"11", unit:4, name:"Gas Exchange, Airway Management, and Respiratory System Disorders", secs:[{n:"11.1",t:"Concepts of Oxygenation and Perfusion"},{n:"11.2",t:"Upper and Lower Respiratory Assessment"},{n:"11.3",t:"Bronchiectasis"},{n:"11.4",t:"Asthma"},{n:"11.5",t:"Chronic Obstructive Pulmonary Disease"},{n:"11.6",t:"Pneumothorax"},{n:"11.7",t:"Pneumonia and Aspiration"},{n:"11.8",t:"Tuberculosis"},{n:"11.9",t:"Cystic Fibrosis"},{n:"11.10",t:"Effects of Smoking, Vaping, and Environmental Triggers"}]},
+      {n:"12", unit:4, name:"Cardiovascular System", secs:[{n:"12.1",t:"Cardiovascular Overview"},{n:"12.2",t:"Dysrhythmia"},{n:"12.3",t:"Heart Failure"},{n:"12.4",t:"Hypertension"},{n:"12.5",t:"Myocardial Infarction"},{n:"12.6",t:"Vascular Disorders"},{n:"12.7",t:"Peripheral Vascular Disease"}]},
+      {n:"13", unit:4, name:"Musculoskeletal System", secs:[{n:"13.1",t:"Osteoporosis and Osteopenia"},{n:"13.2",t:"Osteoarthritis"},{n:"13.3",t:"Bone Fractures"},{n:"13.4",t:"Muscular Dystrophy"},{n:"13.5",t:"Connective Tissue Disease"},{n:"13.6",t:"Soft Tissue Injuries"}]},
+      {n:"14", unit:4, name:"Integumentary System", secs:[{n:"14.1",t:"Integumentary Disorders"},{n:"14.2",t:"Burns"},{n:"14.3",t:"Dermatologic Conditions"}]},
+      {n:"15", unit:4, name:"Cerebrovascular System", secs:[{n:"15.1",t:"The Cerebrovascular System and Cerebral Vascular Accidents"},{n:"15.2",t:"Ischemic Stroke"},{n:"15.3",t:"Hemorrhagic Stroke"}]},
+      {n:"16", unit:4, name:"Hematopoietic Disorders and Regulation", secs:[{n:"16.1",t:"Anemias"},{n:"16.2",t:"Hereditary Disorders"},{n:"16.3",t:"Polycythemia"},{n:"16.4",t:"Thrombocytopenia"},{n:"16.5",t:"Neutropenia"},{n:"16.6",t:"Thrombotic Disorder"},{n:"16.7",t:"Blood Products and Transfusion Principles"}]},
+      {n:"17", unit:4, name:"Nervous System and Chronic Diseases of the Nervous System", secs:[{n:"17.1",t:"Intracranial Pressure Changes"},{n:"17.2",t:"Acute Disorders of the Nervous System"},{n:"17.3",t:"Chronic Disorders of the Nervous System"},{n:"17.4",t:"Major Neurocognitive Disorder and Neurodegenerative Diseases"},{n:"17.5",t:"Seizures"},{n:"17.6",t:"Polyneuropathy"},{n:"17.7",t:"Chronic Pain Disorders"},{n:"17.8",t:"Spinal Disorders"},{n:"17.9",t:"Neurological Injuries"}]},
+      {n:"18", unit:4, name:"Sensory Organs", secs:[{n:"18.1",t:"Disorders of the Eye"},{n:"18.2",t:"Disorders of the Ear"}]},
+      {n:"19", unit:4, name:"Gastrointestinal System and Disorders", secs:[{n:"19.1",t:"Nutritional Disorders"},{n:"19.2",t:"Disorders of the Oral Cavity"},{n:"19.3",t:"Parenteral and Enteral Nutrition"},{n:"19.4",t:"Disorders of the Upper GI System"},{n:"19.5",t:"Disorders of the Lower GI System"},{n:"19.6",t:"Hepatic and Biliary Disorders"},{n:"19.7",t:"Ostomy Care"}]},
+      {n:"20", unit:4, name:"Genitourinary and Reproductive Systems", secs:[{n:"20.1",t:"Genitourinary and Reproductive Anatomy and Physiology"},{n:"20.2",t:"Sexually Transmitted Infections"},{n:"20.3",t:"Male-Specific Disorders of the Reproductive Tract"},{n:"20.4",t:"Disorders of the Prostate"},{n:"20.5",t:"Female-Specific Disorders of the Reproductive Tract"},{n:"20.6",t:"Disorders of the Breast"},{n:"20.7",t:"Renal Function and Chronic Kidney Disease"}]},
+      {n:"21", unit:4, name:"Endocrine System and Disorders", secs:[{n:"21.1",t:"Endocrine Anatomy and Physiology"},{n:"21.2",t:"Diabetes Mellitus"},{n:"21.3",t:"Thyroid and Parathyroid Disorders"},{n:"21.4",t:"Pituitary Disorders"},{n:"21.5",t:"Adrenal Disorders"}]},
+      {n:"22", unit:4, name:"Infection and Infectious Diseases", secs:[{n:"22.1",t:"Infectious Process"},{n:"22.2",t:"Viral and Fungal Infections"},{n:"22.3",t:"Antibiotic Resistance"},{n:"22.4",t:"Preventing Secondary Infections"}]},
+      {n:"23", unit:4, name:"Shock and Sepsis", secs:[{n:"23.1",t:"Shock Overview"},{n:"23.2",t:"Hypovolemic Shock"},{n:"23.3",t:"Septic Shock"},{n:"23.4",t:"Neurogenic Shock"}]},
+      {n:"24", unit:4, name:"Management of Patients with Allergic Disorders", secs:[{n:"24.1",t:"Allergic Response"},{n:"24.2",t:"Allergic Rhinitis"},{n:"24.3",t:"Types of Dermatitis"},{n:"24.4",t:"Urticaria and Angioneurotic Edema"},{n:"24.5",t:"Allergy to Food"},{n:"24.6",t:"Allergy to Latex"},{n:"24.7",t:"Anaphylaxis"}]},
+      {n:"25", unit:5, name:"Preoperative Care", secs:[{n:"25.1",t:"Preadmission Assessment and Education"},{n:"25.2",t:"Preoperative Nursing Priorities"},{n:"25.3",t:"Preoperative Nursing Care Plan"},{n:"25.4",t:"Special Preoperative Considerations"}]},
+      {n:"26", unit:5, name:"Intraoperative Care", secs:[{n:"26.1",t:"Overview of the Surgical Experience"},{n:"26.2",t:"Intraoperative Considerations"},{n:"26.3",t:"Intraoperative Nursing Management"}]},
+      {n:"27", unit:5, name:"Postoperative Care", secs:[{n:"27.1",t:"Postanesthesia Recovery and Care"},{n:"27.2",t:"Postoperative Pain Management"},{n:"27.3",t:"Hospitalized Postoperative Patient"},{n:"27.4",t:"Postoperative Nursing Care Plan"}]},
+      {n:"28", unit:5, name:"Inflammation and Healing", secs:[{n:"28.1",t:"Cellular Response and Adaptation in Wound Healing"},{n:"28.2",t:"Wound Healing Process"},{n:"28.3",t:"Pressure Injury"},{n:"28.4",t:"Debridement"},{n:"28.5",t:"Wound Care and Dressing"},{n:"28.6",t:"Medical Management"},{n:"28.7",t:"Nursing Management and Care Plan"}]},
+      {n:"29", unit:5, name:"Immunological Function", secs:[{n:"29.1",t:"Immune Response"},{n:"29.2",t:"Autoimmunity"},{n:"29.3",t:"Immunodeficiency"}]},
+      {n:"30", unit:6, name:"Genetics", secs:[{n:"30.1",t:"Genetic Disorders"},{n:"30.2",t:"Patterns of Inheritance and Mutations"},{n:"30.3",t:"Testing and Detection"}]},
+      {n:"31", unit:6, name:"Cancer", secs:[{n:"31.1",t:"Oncological Disorders"},{n:"31.2",t:"Detection and Prevention of Cancer"},{n:"31.3",t:"Care of the Patient with Cancer"},{n:"31.4",t:"Survivorship"}]},
+      {n:"32", unit:6, name:"Palliative Care", secs:[{n:"32.1",t:"Palliation"},{n:"32.2",t:"End-of-Life Care"},{n:"32.3",t:"Assessment"},{n:"32.4",t:"Psychosocial Support"},{n:"32.5",t:"Special Considerations"}]},
+      {n:"33", unit:6, name:"Emergency Care", secs:[{n:"33.1",t:"Triage and Assessment"},{n:"33.2",t:"Types of Emergency Care"},{n:"33.3",t:"Managing Risk Exposure"},{n:"33.4",t:"Forensic Nursing"},{n:"33.5",t:"Transferring from the Emergency Department"}]},
+      {n:"34", unit:6, name:"Disaster and Recovery", secs:[{n:"34.1",t:"Environmental Disasters"},{n:"34.2",t:"Biological and Technological Disasters"},{n:"34.3",t:"Epidemics and Pandemics"},{n:"34.4",t:"Community Response to Disaster"},{n:"34.5",t:"Hospital Preparedness for Disasters"}]},
+      {n:"35", unit:6, name:"Nursing Care of the Critically Ill Patient", secs:[{n:"35.1",t:"Assessment and Management of the Critically Ill Patient"},{n:"35.2",t:"Cardiovascular Concerns"},{n:"35.3",t:"Respiratory Concerns"},{n:"35.4",t:"Neurological Concerns"},{n:"35.5",t:"Gastrointestinal Concerns"},{n:"35.6",t:"Renal Concerns"},{n:"35.7",t:"Integumentary Concerns"},{n:"35.8",t:"Musculoskeletal Concerns"}]},
+      {n:"36", unit:6, name:"Home Health Nursing and Rehabilitation", secs:[{n:"36.1",t:"Home Health Care"},{n:"36.2",t:"Rehabilitative Care"},{n:"36.3",t:"Additional Care Settings in the Community"},{n:"36.4",t:"Transition and Continuity of Care"}]},
+      {n:"37", unit:6, name:"Trends in Health-Care Technology", secs:[{n:"37.1",t:"Telemedicine and Artificial Intelligence"},{n:"37.2",t:"Health Informatics"},{n:"37.3",t:"Influences on Delivery of Health Care"}]},
+      {n:"38", unit:7, name:"Unfolding Case Study and NCLEX Preparation", secs:[{n:"38.1",t:"Unfolding Case Study Dissection"},{n:"38.2",t:"NCLEX Preparation"}]},
     ]
   },
 
@@ -886,12 +901,11 @@ const CATALOG = [
 ];
 
 /* Look up the book + chapter for a section ID like "biology2e:09:9.1". */
-function lookupSection(id, dynamicChapters={}){
+function lookupSection(id){
   const [bookId, chapN, secN] = id.split(":");
   const book = CATALOG.find(b => b.id === bookId);
   if (!book) return null;
-  const chapters = dynamicChapters[bookId] || book.chapters;
-  const chap = chapters.find(c => c.n === chapN);
+  const chap = book.chapters.find(c => c.n === chapN);
   if (!chap) return null;
   return {book, chap, secN};
 }
@@ -899,9 +913,9 @@ function lookupSection(id, dynamicChapters={}){
 /* Build the /api/initial_script request from the section the user selected
    first. The backend takes one (book_title, unit_num) at a time; if multiple
    sections are picked we use the first and let chapter/page narrow it. */
-function buildGenerateRequest({selected, model, videoType, userQuery, dynamicChapters={}}){
+function buildGenerateRequest({selected, model, videoType, userQuery}){
   const firstId = Array.from(selected)[0];
-  const hit = firstId && lookupSection(firstId, dynamicChapters);
+  const hit = firstId && lookupSection(firstId);
   if (!hit) return null;
   return {
     book_title: hit.book.bookTitle,
@@ -984,7 +998,7 @@ const I = {
 };
 
 /* ─── Sidebar tree ─── */
-function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter, dynamicChapters}){
+function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, setFilter}){
   const [openBooks, setOpenBooks] = useState({biology2e:true});
   const [openChaps, setOpenChaps] = useState({"biology2e:09":true});
 
@@ -1010,7 +1024,7 @@ function Sidebar({selected, toggleSec, toggleChap, search, setSearch, filter, se
       <div className="sb-list">
         {CATALOG.map(book => {
           const open = openBooks[book.id];
-          const chapters = dynamicChapters[book.id] || book.chapters;
+          const chapters = book.chapters;
           const selCount = chapters.reduce((acc,c) => acc + c.secs.filter(s => selected.has(`${book.id}:${c.n}:${s.n}`)).length, 0);
           return (
             <div key={book.id} className="book">
@@ -1980,21 +1994,6 @@ function App(){
   const [zoom, setZoom] = useState(100);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  const [dynamicChapters, setDynamicChapters] = useState({});
-
-  useEffect(() => {
-    const placeholder = (book) => book.chapters.every(c => c.secs.length === 1 && c.secs[0].t === "Overview");
-    CATALOG.filter(placeholder).forEach(book => {
-      fetch(`/toc?book_title=${encodeURIComponent(book.bookTitle)}`)
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.chapters?.length) {
-            setDynamicChapters(prev => ({...prev, [book.id]: data.chapters}));
-          }
-        })
-        .catch(() => {});
-    });
-  }, []);
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
 
@@ -2023,7 +2022,7 @@ function App(){
   // Walk the four-step overlay forward while the LLM call is in flight, then
   // freeze on the last step until the fetch resolves.
   const runGenerate = async () => {
-    const req = buildGenerateRequest({selected, model, videoType, userQuery: userQuery.trim(), dynamicChapters});
+    const req = buildGenerateRequest({selected, model, videoType, userQuery: userQuery.trim()});
     if (!req) {
       setGenError("Pick at least one section from a known textbook.");
       return;
@@ -2171,7 +2170,7 @@ function App(){
 
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
         <div className="sidebar-wrap">
-          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} dynamicChapters={dynamicChapters}/>
+          <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
             busy={busy} hasScript={!!script}
             model={model} setModel={setModel}

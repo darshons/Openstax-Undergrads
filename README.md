@@ -2,7 +2,7 @@
 
 An internal authoring tool that lets OpenStax content editors generate, review, and refine **interactive educational scenario scripts** grounded in real OpenStax textbook content — then hand them off to a video generation pipeline.
 
-Built by Team YAMS.
+Built by Team DJ YAM.
 
 ---
 

@@ -207,6 +207,61 @@
       var(--os-bg-2)}
   .canvas-inner{padding:40px 52px 200px;min-width:3200px;transform-origin:top left;transition:transform .2s}
 
+  /* ─── Assets page ─── */
+  .assets-page{display:flex;flex-direction:column;flex:1;min-height:0;overflow:auto;background:var(--os-bg-2)}
+  .assets-topbar{display:flex;align-items:center;gap:16px;padding:14px 32px;
+    background:#fff;border-bottom:1px solid var(--os-line);position:sticky;top:0;z-index:10}
+  .assets-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+    color:var(--os-ink-2);background:var(--os-bg-3);border:1px solid var(--os-line);
+    border-radius:8px;padding:6px 12px;cursor:pointer;transition:.12s}
+  .assets-back:hover{background:var(--os-line);color:var(--os-ink)}
+  .assets-topbar-title{flex:1;text-align:center}
+  .assets-topbar-title h2{font-size:16px;font-weight:800;color:var(--os-navy);margin:0;letter-spacing:-.01em}
+  .assets-topbar-title p{font-size:12px;color:var(--os-ink-3);margin:2px 0 0;font-style:italic}
+  .assets-body{padding:40px 52px 80px;display:flex;flex-direction:column;gap:48px}
+  .asset-section-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
+  .asset-section-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--os-navy);font-family:"JetBrains Mono",monospace}
+  .asset-section-count{font-size:11px;color:var(--os-ink-3);font-weight:500}
+  .asset-section-divider{flex:1;height:1px;background:var(--os-line);margin-left:8px}
+  .asset-grid{display:flex;flex-wrap:wrap;gap:20px}
+  .asset-card{background:#fff;border:1.5px solid var(--os-line);border-radius:14px;
+    overflow:hidden;width:220px;display:flex;flex-direction:column;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);transition:.15s}
+  .asset-card:hover{border-color:var(--os-navy);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+  .asset-img-wrap{width:100%;height:160px;overflow:hidden;position:relative;background:#eef0f5}
+  .asset-img-wrap img{width:100%;height:100%;object-fit:cover}
+  .asset-img-placeholder{width:100%;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;
+    background:linear-gradient(145deg,#eef0f5,#e4e7ef)}
+  .asset-img-placeholder svg{color:#b0b8cc;opacity:.8}
+  .asset-cat-badge{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    font-family:"JetBrains Mono",monospace;color:#8892a8;margin-top:4px}
+  .asset-card-info{padding:12px 14px 8px;border-bottom:1px solid var(--os-line)}
+  .asset-card-name{font-size:14px;font-weight:700;color:var(--os-ink)}
+  .asset-card-role{font-size:11.5px;color:var(--os-ink-3);margin-top:2px}
+  .asset-card-form{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .asset-request-ta{width:100%;padding:7px 9px;border:1.5px solid var(--os-line);border-radius:8px;
+    font-size:12px;font-family:inherit;resize:none;outline:none;background:#fafbfc;
+    color:var(--os-ink);transition:.12s;box-sizing:border-box}
+  .asset-request-ta:focus{border-color:var(--os-navy);background:#fff}
+  .asset-request-btn{align-self:flex-end;font-size:12px;font-weight:700;padding:5px 14px;
+    border-radius:7px;cursor:pointer;background:var(--os-navy);color:#fff;
+    border:none;transition:.12s;letter-spacing:.02em}
+  .asset-request-btn:hover:not(:disabled){background:#001a4d;transform:translateY(-1px)}
+  .asset-request-btn:disabled{opacity:.35;cursor:not-allowed}
+  .asset-requested{display:flex;flex-direction:column;gap:6px}
+  .asset-requested-badge{display:flex;align-items:center;gap:6px;font-size:12px;
+    font-weight:700;color:#4d6e1d}
+  .asset-requested-text{font-size:11.5px;color:var(--os-ink-2);font-style:italic;
+    background:#f4f7ee;border:1px solid #c8e08a;border-radius:6px;padding:5px 8px;line-height:1.4}
+  .asset-edit-link{font-size:11px;color:var(--os-ink-3);cursor:pointer;text-decoration:underline;
+    align-self:flex-start;background:none;border:none;padding:0}
+  .btn-assets{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+    padding:6px 14px;border-radius:8px;cursor:pointer;background:var(--os-navy);color:#fff;
+    border:none;transition:.12s;letter-spacing:.02em;white-space:nowrap}
+  .btn-assets:hover{background:#001a4d;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+
   /* Empty state */
   .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .empty-card{background:#fff;border:1px dashed var(--os-line-strong);border-radius:14px;
@@ -995,6 +1050,8 @@ const I = {
   arrowL:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
   arrowR:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
   plus:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  image:<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  arrowRight:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
 };
 
 /* ─── Sidebar tree ─── */
@@ -1973,6 +2030,109 @@ function ExportMenu({script}) {
   );
 }
 
+/* ─── Asset Card ─── */
+function AssetCard({id, label, role, src, category}){
+  const [note, setNote] = useState("");
+  const [requested, setRequested] = useState(null);
+  return (
+    <div className="asset-card">
+      <div className="asset-img-wrap">
+        {src
+          ? <img src={src} alt={label}/>
+          : <div className="asset-img-placeholder">
+              {I.image}
+              <span className="asset-cat-badge">{category}</span>
+            </div>
+        }
+      </div>
+      <div className="asset-card-info">
+        <div className="asset-card-name">{label}</div>
+        {role && <div className="asset-card-role">{role}</div>}
+      </div>
+      <div className="asset-card-form">
+        {requested ? (
+          <div className="asset-requested">
+            <div className="asset-requested-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Change requested
+            </div>
+            <div className="asset-requested-text">"{requested}"</div>
+            <button className="asset-edit-link" onClick={()=>{setNote(requested);setRequested(null);}}>Edit request</button>
+          </div>
+        ) : (
+          <>
+            <textarea className="asset-request-ta" rows={2} value={note}
+              onChange={e=>setNote(e.target.value)}
+              placeholder="Describe changes to this image…"
+              onKeyDown={e=>{if(e.key==="Enter"&&e.metaKey&&note.trim()){setRequested(note.trim());setNote("");}}}/>
+            <button className="asset-request-btn" disabled={!note.trim()}
+              onClick={()=>{if(note.trim()){setRequested(note.trim());setNote("");}}}>
+              Request change
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AssetSection({title, items}){
+  return (
+    <section>
+      <div className="asset-section-hd">
+        <span className="asset-section-title">{title}</span>
+        <span className="asset-section-count">{items.length} image{items.length!==1?"s":""}</span>
+        <div className="asset-section-divider"/>
+      </div>
+      <div className="asset-grid">
+        {items.map(item=><AssetCard key={item.id} {...item}/>)}
+      </div>
+    </section>
+  );
+}
+
+/* ─── Assets Page ─── */
+function AssetsPage({script, onBack}){
+  const characters = (script.characters||[]).map(c=>({
+    id: `char-${c.character_id}`,
+    label: c.name || `Character ${c.character_id}`,
+    role: c.role || c.character_id,
+    src: null, /* REPLACE: e.g. `/assets/characters/${c.character_id}.png` */
+    category: "character",
+  }));
+
+  /* REPLACE: update labels and add src paths as backgrounds are generated */
+  const backgrounds = [
+    {id:"bg-1", label:"Primary Setting",   role:"Main scene background",  src:null, category:"background"},
+    {id:"bg-2", label:"Secondary Setting", role:"Alternate background",   src:null, category:"background"},
+  ];
+
+  /* REPLACE: update labels and add src paths as assets are generated */
+  const sceneAssets = [
+    {id:"asset-1", label:"Medical Equipment", role:"Primary prop",   src:null, category:"asset"},
+    {id:"asset-2", label:"Patient Chart",     role:"Document prop",  src:null, category:"asset"},
+    {id:"asset-3", label:"Clinical Tool",     role:"Secondary prop", src:null, category:"asset"},
+  ];
+
+  return (
+    <div className="assets-page">
+      <div className="assets-topbar">
+        <button className="assets-back" onClick={onBack}>← Back to Script</button>
+        <div className="assets-topbar-title">
+          <h2>Video Assets</h2>
+          <p>{script.title || "Untitled scenario"}</p>
+        </div>
+        <div style={{width:140}}/>
+      </div>
+      <div className="assets-body">
+        <AssetSection title="Characters" items={characters}/>
+        <AssetSection title="Backgrounds" items={backgrounds}/>
+        <AssetSection title="Scene Assets" items={sceneAssets}/>
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [selected, setSelected] = useState(new Set(["clinicalnursing:03:3.1"]));
@@ -1994,6 +2154,7 @@ function App(){
   const [zoom, setZoom] = useState(100);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  const [currentPage, setCurrentPage] = useState("script");
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState(null);
 
@@ -2168,7 +2329,10 @@ function App(){
         </div>
       </header>
 
-      <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`}>
+      {currentPage==="assets" && script
+        ? <AssetsPage script={script} onBack={()=>setCurrentPage("script")}/>
+        : null}
+      <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`} style={{display:currentPage==="assets"?"none":"grid"}}>
         <div className="sidebar-wrap">
           <Sidebar selected={selected} toggleSec={toggleSec} toggleChap={toggleChap} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter}/>
           <GeneratePanel selected={selected} removeSec={removeSec} onGenerate={runGenerate}
@@ -2205,6 +2369,11 @@ function App(){
                 <button onClick={()=>setZoom(z=>Math.min(150,z+10))}>+</button>
               </div>
               <ExportMenu script={script}/>
+              {script && (
+                <button className="btn-assets" onClick={()=>setCurrentPage("assets")}>
+                  View Assets {I.arrowRight}
+                </button>
+              )}
             </div>
           </div>
 

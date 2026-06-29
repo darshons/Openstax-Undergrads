@@ -303,8 +303,13 @@
   .scene-block.onscreen p code{background:var(--os-bg-3);padding:1px 5px;border-radius:3px;
     font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--os-navy)}
 
-  .scene-foot{display:flex;align-items:center;gap:4px;justify-content:flex-end;
+  .scene-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;
     padding:12px 20px;border-top:1px solid var(--os-line);background:#fafbfc;border-radius:0 0 12px 12px}
+  .scene-foot-r{display:flex;align-items:center;gap:4px;margin-left:auto}
+  .btn-add-dp{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+    color:#1a7a4a;background:#eafaf1;border:1.5px solid #82c99a;border-radius:7px;
+    padding:5px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
+  .btn-add-dp:hover{background:#d4f0e0;border-color:#4caf72;transform:translateY(-1px)}
   .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);
     display:flex;align-items:center;justify-content:center}
   .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
@@ -971,6 +976,7 @@ const I = {
   trash:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
   arrowL:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
   arrowR:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  plus:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
 };
 
 /* ─── Sidebar tree ─── */
@@ -1148,7 +1154,7 @@ function characterName(characters, id){
 }
 
 function SceneCard({s, characters, decisionPoints, density, isEditing,
-                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight}){
+                    onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight, onAddDP}){
   const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
 
@@ -1320,16 +1326,24 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
             </div>
           </div>
         </div>
-        <div className="scene-foot" style={{justifyContent:"flex-end"}}>
-          {onMoveLeft && <button className="icon-btn" title="Move left"
-            onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
-          {onMoveRight && <button className="icon-btn" title="Move right"
-            onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
-          <button className="icon-btn" title="Edit scene"
-            onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
-          <button className="icon-btn" title="Delete scene"
-            style={{color:"#c0392b"}}
-            onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
+        <div className="scene-foot">
+          {onAddDP && (
+            <button className="btn-add-dp" onClick={(e)=>{e.stopPropagation();onAddDP();}}
+              title="Add a decision point after this scene">
+              {I.plus} Add decision point
+            </button>
+          )}
+          <div className="scene-foot-r">
+            {onMoveLeft && <button className="icon-btn" title="Move left"
+              onClick={(e)=>{e.stopPropagation(); onMoveLeft();}}>{I.arrowL}</button>}
+            {onMoveRight && <button className="icon-btn" title="Move right"
+              onClick={(e)=>{e.stopPropagation(); onMoveRight();}}>{I.arrowR}</button>}
+            <button className="icon-btn" title="Edit scene"
+              onClick={(e)=>{e.stopPropagation(); onStartEdit();}}>{I.edit}</button>
+            <button className="icon-btn" title="Delete scene"
+              style={{color:"#c0392b"}}
+              onClick={(e)=>{e.stopPropagation(); onDelete();}}>{I.trash}</button>
+          </div>
         </div>
       </article>
     </div>
@@ -1551,7 +1565,7 @@ function DPInlineEdit({value, onSave, onCancel, placeholder}){
 }
 
 /* ─── Decision Tree View ─── */
-function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint}){
+function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint}){
   const scenes = script.scenes || [];
   const dps = script.decision_points || [];
   const characters = script.characters || [];
@@ -1605,7 +1619,8 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                         onSaveEdit={(draft)=>saveSceneEdit(idx, draft)}
                         onDelete={()=>deleteScene(idx)}
                         onMoveLeft={prevIdx>=0 ? ()=>moveScene(idx,prevIdx) : undefined}
-                        onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}/>
+                        onMoveRight={nextIdx>=0 ? ()=>moveScene(idx,nextIdx) : undefined}
+                        onAddDP={s.routes_to?.decision_point_id==null ? ()=>addDecisionPoint(idx) : undefined}/>
                     </Fragment>
                   );
                 })}
@@ -2051,6 +2066,27 @@ function App(){
       decision_points: curr.decision_points.map((d,i) => i===idx ? dp : d),
     }));
   };
+  const addDecisionPoint = (sceneIdx) => {
+    setScript(curr => {
+      const dps = curr.decision_points || [];
+      const newId = dps.length > 0 ? Math.max(...dps.map(d => d.decision_point_id)) + 1 : 1;
+      const scene = curr.scenes[sceneIdx];
+      const newDP = {
+        decision_point_id: newId,
+        question_text: "What should the nurse do next?",
+        associated_introduction_scene_id: scene.scene_id,
+        choices: [
+          {choice_id:"A", text:"Choice A", is_correct:true,  routes_to_scene:null, misconception:""},
+          {choice_id:"B", text:"Choice B", is_correct:false, routes_to_scene:null, misconception:""},
+          {choice_id:"C", text:"Choice C", is_correct:false, routes_to_scene:null, misconception:""},
+        ],
+      };
+      const updatedScenes = curr.scenes.map((s,i) =>
+        i===sceneIdx ? {...s, routes_to:{...( s.routes_to||{}), decision_point_id:newId, type:"true_choice"}} : s
+      );
+      return {...curr, scenes:updatedScenes, decision_points:[...dps, newDP]};
+    });
+  };
 
   const submitScript = async () => {
     if (!script) return;
@@ -2221,6 +2257,7 @@ function App(){
                     deleteScene={deleteScene}
                     moveScene={moveScene}
                     updateDecisionPoint={updateDecisionPoint}
+                    addDecisionPoint={addDecisionPoint}
                   />
 
                 </>

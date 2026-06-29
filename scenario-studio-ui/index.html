@@ -545,14 +545,16 @@
   .tree-branch-col{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 28px}
 
   .choice-pill{padding:12px 22px;border-radius:12px;font-weight:700;text-align:center;
-    min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:4px}
-  .choice-letter{font-size:12px;letter-spacing:.07em;text-transform:uppercase;
-    font-family:"JetBrains Mono",monospace;opacity:.7}
+    min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:6px}
+  .choice-id-label{font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    font-family:"JetBrains Mono",monospace;opacity:.6;font-weight:700}
   .choice-text{font-size:15px;line-height:1.4}
   .correct-pill{background:#eef7df;color:#4d6e1d;border:1.5px solid #9ccb3b}
   .wrong-pill{background:#fff4d1;color:#6b5200;border:1.5px solid #e0b400}
-  .choice-pill-toggle.wrong-pill:hover{background:#ffe9a0;border-color:#c89600;
-    box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateY(-1px);transition:all .12s}
+  .correct-badge{font-size:12px;font-weight:700;color:#4d6e1d;letter-spacing:.04em;padding:2px 0}
+  .mark-correct-btn{font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;
+    background:#fff;color:#6b5200;border:1.5px solid #c89600;letter-spacing:.03em;transition:.12s}
+  .mark-correct-btn:hover{background:#c89600;color:#fff;border-color:#c89600}
 
   .retry-badge{font-size:13px;font-weight:600;color:var(--os-ink-3);
     background:var(--os-bg-3);border:1px solid var(--os-line-strong);
@@ -1657,11 +1659,16 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                       <div className="tree-vline-sm"/>
                       <div className={`choice-pill ${b.choice.is_correct ? "correct-pill" : "wrong-pill"}`}>
                         <div className="choice-pill-hd">
-                          <span className="choice-letter" style={{cursor: b.choice.is_correct?"default":"pointer"}}
-                            onClick={() => !b.choice.is_correct && setCorrectChoice(seg.dp.decision_point_id, bi)}
-                            title={b.choice.is_correct ? "Correct answer" : "Click to mark as correct"}>
-                            {b.choice.is_correct ? "✓ Correct" : "✗ Mark correct"} · {b.choice.choice_id}
-                          </span>
+                          <span className="choice-id-label">{b.choice.choice_id}</span>
+                          {b.choice.is_correct ? (
+                            <span className="correct-badge">✓ Correct answer</span>
+                          ) : (
+                            <button className="mark-correct-btn"
+                              onClick={() => setCorrectChoice(seg.dp.decision_point_id, bi)}
+                              title="Mark as correct answer">
+                              Mark as correct
+                            </button>
+                          )}
                           <button className="icon-btn" style={{width:22,height:22,marginLeft:"auto"}}
                             title="Edit choice text"
                             onClick={()=>setEditingChoice({dpId:seg.dp.decision_point_id, idx:bi})}>

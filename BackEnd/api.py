@@ -122,6 +122,76 @@ def generate_final_script(modified_script: ModifiedScript) -> dict:
     return {"message": "Final script generation request received"}
 
 
+@api_router.get("/dummy_paths")
+def get_dummy_paths(target: str):
+    BACKEND_DIR = Path(__file__).parent
+
+    match target:
+        case "script":
+            return {
+                "script_path": str(
+                    BACKEND_DIR / "Video_Generation_Pipeline" / "scenario.json"
+                )
+            }
+        case "images":
+            return {
+                "image_paths": {
+                    "character_images": [
+                        {
+                            "character_id": "patient_carl",
+                            "image_path": str(
+                                BACKEND_DIR
+                                / "Video_Generation_Pipeline"
+                                / "reference_images"
+                                / "patient_Carl_reference_image.png"
+                            ),
+                        },
+                        {
+                            "character_id": "nurse_maya",
+                            "image_path": str(
+                                BACKEND_DIR
+                                / "Video_Generation_Pipeline"
+                                / "reference_images"
+                                / "Nurse_Maya_reference_image.png"
+                            ),
+                        },
+                    ],
+                    "background_image": {
+                        "image_path": str(
+                            BACKEND_DIR
+                            / "Video_Generation_Pipeline"
+                            / "reference_images"
+                            / "background_reference_image.png"
+                        )
+                    },
+                }
+            }
+        case "video":
+            return {"video_paths": {
+                "video_paths": [{"scene_id": "1", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_1.mp4")},
+                                {"scene_id": "2", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_2.mp4")}],
+                "manim_path": "",
+            }}
+
+
+@api_router.get("/script/{script_path:path}")
+def get_script(script_path: str):
+    with open(script_path, "r") as f:
+        script = json.load(f)
+    return {"script": script}
+
+# This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
+@api_router.get("/image/{image_path:path}")
+def get_image(image_path: str):
+    return FileResponse(image_path, media_type="image/png")
+
+
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@api_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(video_path, media_type="video/mp4")
+
+
 def delete_md_file(file_path: Path):
     file_path.unlink()
     print(f"Successfully deleted {file_path}")

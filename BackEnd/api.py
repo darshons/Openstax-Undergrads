@@ -2,8 +2,8 @@ from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import FileResponse
 
 from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
-import Script_Generation_Pipeline.Script_With_Dpoints.anthropic_script_generation as anthropic_script_generation
-import Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation as gemini_script_generation
+import Script_Generation_Pipeline.script_with_dpoints.anthropic_script_generation as anthropic_script_generation
+import Script_Generation_Pipeline.script_with_dpoints.gemini_script_generation as gemini_script_generation
 
 from pydantic import BaseModel
 from pathlib import Path

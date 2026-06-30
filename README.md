@@ -21,23 +21,25 @@ Built by Team DJ YAM.
 
 ```
 .
-├── scenario-studio-ui/     # Frontend — single HTML file, no build step
-│   ├── index.html          # The whole app (React + inline Babel)
-│   ├── api.js              # Backend client (fetchInitialScript, submitModifiedScript)
-│   ├── tweaks-panel.jsx    # Reusable appearance-controls panel
-│   └── docs/
-│       └── data-contracts.md   # API request/response shapes
+├── frontend/                        # React frontend (Vite)
+│   └── src/
 │
-└── BackEnd/                # FastAPI backend
-    ├── main.py             # App entry point + CORS config
-    ├── api.py              # Route handlers (/api/initial_script, /api/modified_script)
+└── backend/                         # FastAPI backend
+    ├── main.py                      # App entry point + CORS config
+    ├── api.py                       # Route handlers (/api/initial_script, /api/modified_script)
     ├── Script_Generation_Pipeline/
-    │   ├── Preprocessing/  # OpenStax HTML crawler → Markdown
-    │   ├── script_with_dpoints/   # Anthropic + Gemini LLM script generators
-    │   └── JSON_Templates/ # Output schema the LLM must follow
-    └── Image_Generation_Pipeline/
-        ├── Character_Generation/
-        └── Frame_Generation/
+    │   ├── Preprocessing/           # OpenStax HTML crawler → Markdown
+    │   ├── Script_With_Dpoints/     # Anthropic + Gemini LLM script generators (with branching)
+    │   ├── Script_Without_Dpoints/  # Linear script generators
+    │   ├── Dpoints_Separate/        # Add decision points to an existing linear script
+    │   └── JSON_Templates/          # Output schemas the LLM must follow
+    ├── Image_Generation_Pipeline/
+    │   ├── Character_Generation/
+    │   └── Frame_Generation/
+    └── Video_Generation_Pipeline/
+        ├── scenario.json            # Example scenario
+        ├── test_prompt.py           # Print prompts without calling Veo
+        └── video_generator/         # Generation package — see its README
 ```
 
 ---
@@ -47,7 +49,7 @@ Built by Team DJ YAM.
 ### 1. Start the backend
 
 ```bash
-cd BackEnd
+cd backend
 python3 -m venv venv && source venv/bin/activate
 pip install -r backend_requirement.txt
 
@@ -122,6 +124,28 @@ The generated script follows the template in `BackEnd/Script_Generation_Pipeline
 | `decision_points` | array | Questions with A/B/C choices, correct answer, scene routing |
 
 See `scenario-studio-ui/docs/data-contracts.md` for the full schema.
+
+---
+
+## Video generation
+
+Once a script is finalized, `backend/Video_Generation_Pipeline/video_generator` takes the exported JSON and produces MP4 videos using Google Veo.
+
+```bash
+cd backend/Video_Generation_Pipeline
+export GEMINI_API_KEY=your-key-here
+
+# Generate all scenes
+python -m video_generator.cli --scenario scenario.json
+
+# Generate one scene with a specific model
+python -m video_generator.cli --scenario scenario.json --scene-id 1 --model veo-3.1-fast
+
+# Preview prompts without making API calls
+python test_prompt.py
+```
+
+Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
 
 ---
 

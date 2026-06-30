@@ -306,12 +306,9 @@
   .video-hero-stats{display:flex;gap:10px;align-items:center;margin-top:6px;font-size:12px;color:var(--os-ink-2)}
   .vdot{width:3px;height:3px;border-radius:50%;background:var(--os-ink-3);flex-shrink:0}
 
-  .video-timeline{display:flex;flex-direction:column;gap:28px;align-items:center}
-  .video-segment{display:flex;flex-direction:column;gap:14px;align-items:center;width:100%}
-  .video-trunk-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
-  .video-connector{font-size:16px;color:var(--os-ink-3);flex-shrink:0;user-select:none}
-  .video-dp-group{border-left:2px solid var(--os-line);padding-left:20px;
-    display:flex;flex-direction:column;gap:10px;align-self:center}
+  .video-timeline{display:flex;flex-direction:column;gap:0;align-items:center}
+  .video-segment{display:flex;flex-direction:column;gap:0;align-items:center;width:100%}
+  .video-dp-group{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
   .video-dp-label-row{display:flex;align-items:center;gap:8px}
   .video-dp-tag{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
     color:#fff;background:var(--os-navy);border-radius:4px;padding:2px 7px;flex-shrink:0}
@@ -319,8 +316,7 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
   .video-branches-row{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
   .video-branch-item{display:flex;flex-direction:column;align-items:center;gap:0}
-  .video-arrow-h{display:flex;align-items:center;flex-shrink:0;color:var(--os-line-strong)}
-  .video-arrow-d{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--os-ink-3)}
+  .video-arrow-d{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--os-line-strong)}
   .video-arrow-d.retry{color:#b35c00}
   .video-arrow-d.continues{color:#3a6b18}
   .video-arrow-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:currentColor;white-space:nowrap}
@@ -2268,30 +2264,16 @@ function AssetsPage({script, onBack, onViewVideos}){
 }
 
 /* ─── Video Clip Card ─── */
-function VideoArrowH(){
+function VideoArrowD({label, colorClass, height}){
+  const h = height || 44;
+  const arrowY = h - 10;
   return (
-    <div className="video-arrow-h">
-      <svg width="52" height="18" viewBox="0 0 52 18" fill="none">
-        <line x1="0" y1="9" x2="40" y2="9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-        <polygon points="38,3 52,9 38,15" fill="currentColor"/>
+    <div className={`video-arrow-d${colorClass?" "+colorClass:""}`}>
+      <svg width="18" height={h} viewBox={`0 0 18 ${h}`} fill="none">
+        <line x1="9" y1="0" x2="9" y2={arrowY} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        <polygon points={`3,${arrowY-6} 9,${h} 15,${arrowY-6}`} fill="currentColor"/>
       </svg>
-    </div>
-  );
-}
-
-function VideoArrowD({routesTo}){
-  if(!routesTo) return null;
-  const isRetry = routesTo.type === "decision_point";
-  const label = isRetry
-    ? `↩ retry · DP ${routesTo.decision_point_id}`
-    : `→ Scene ${routesTo.scene_id}`;
-  return (
-    <div className={`video-arrow-d ${isRetry ? "retry" : "continues"}`}>
-      <svg width="18" height="36" viewBox="0 0 18 36" fill="none">
-        <line x1="9" y1="0" x2="9" y2="26" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-        <polygon points="3,24 9,36 15,24" fill="currentColor"/>
-      </svg>
-      <span className="video-arrow-label">{label}</span>
+      {label && <span className="video-arrow-label">{label}</span>}
     </div>
   );
 }
@@ -2396,31 +2378,43 @@ function VideoPage({script, onBack}){
                 : [];
               return (
                 <div key={scene.scene_id} className="video-segment">
-                  <div className="video-trunk-row">
-                    <VideoClipCard scene={scene} selected={selectedId===scene.scene_id}
-                      onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}/>
-                    {(i < trunkScenes.length-1 || dp) && <VideoArrowH/>}
-                  </div>
+                  <VideoClipCard scene={scene} selected={selectedId===scene.scene_id}
+                    onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}/>
                   {dp && (
-                    <div className="video-dp-group">
-                      <div className="video-dp-label-row">
-                        <span className="video-dp-tag">Decision Point {dp.decision_point_id}</span>
-                        <span className="video-dp-q">{dp.question_text}</span>
-                      </div>
-                      {branches.length > 0 && (
-                        <div className="video-branches-row">
-                          {branches.map(({scene:bs,choice})=>(
-                            <div key={bs.scene_id} className="video-branch-item">
-                              <VideoClipCard scene={bs} choice={choice} branch
-                                selected={selectedId===bs.scene_id}
-                                onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}/>
-                              <VideoArrowD routesTo={bs.routes_to}/>
-                            </div>
-                          ))}
+                    <>
+                      <VideoArrowD height={40}/>
+                      <div className="video-dp-group">
+                        <div className="video-dp-label-row">
+                          <span className="video-dp-tag">Decision Point {dp.decision_point_id}</span>
+                          <span className="video-dp-q">{dp.question_text}</span>
                         </div>
-                      )}
-                    </div>
+                        <VideoArrowD height={40}/>
+                        {branches.length > 0 && (
+                          <div className="video-branches-row">
+                            {branches.map(({scene:bs,choice})=>{
+                              const rt = bs.routes_to;
+                              const isRetry = rt?.type === "decision_point";
+                              const isContinue = rt?.type === "scene";
+                              const routeLabel = isRetry
+                                ? `↩ retry · DP ${rt.decision_point_id}`
+                                : isContinue ? `→ Scene ${rt.scene_id}` : null;
+                              return (
+                                <div key={bs.scene_id} className="video-branch-item">
+                                  <VideoClipCard scene={bs} choice={choice} branch
+                                    selected={selectedId===bs.scene_id}
+                                    onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}/>
+                                  {rt && <VideoArrowD
+                                    label={routeLabel}
+                                    colorClass={isRetry?"retry":"continues"}/>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
+                  {!dp && i < trunkScenes.length-1 && <VideoArrowD height={40}/>}
                 </div>
               );
             })}

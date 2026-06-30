@@ -1389,7 +1389,7 @@ function SceneCard({s, characters, decisionPoints, density, viewMode, isEditing,
                 <button type="button" onClick={addDialogueLine}
                   style={{fontSize:14,fontWeight:600,color:"var(--os-navy)",letterSpacing:".03em"}}>+ ADD LINE</button>
               </div>
-              {(draft.audio?.dialogue || []).map((row, i) => (
+              {(draft.audio?.dialogue?.length ? draft.audio.dialogue : (draft.clips||[]).flatMap(c=>c.dialogue||[])).map((row, i) => (
                 <div key={i} className="dialogue-row">
                   <select value={row.character_id || ""} onChange={e=>updDialogueLine(i, "character_id", e.target.value)}>
                     {(characters || []).map(c => <option key={c.character_id} value={c.character_id}>{c.character_id} · {c.name}</option>)}
@@ -1439,7 +1439,9 @@ function SceneCard({s, characters, decisionPoints, density, viewMode, isEditing,
 
   const tagLabel = (s.type || "scene").toUpperCase();
   const tagClass = (s.type || "scene").toLowerCase();
-  const dialogue = s.audio?.dialogue || [];
+  const dialogue = s.audio?.dialogue?.length
+    ? s.audio.dialogue
+    : (s.clips || []).flatMap(c => c.dialogue || []);
   const lineCount = dialogue.length;
 
   return (

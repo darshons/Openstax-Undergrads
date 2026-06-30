@@ -93,17 +93,52 @@ def generate_final_script(modified_script: ModifiedScript) -> dict:
 
 @api_router.get("/dummy_paths")
 def get_dummy_paths(target: str):
+    BACKEND_DIR = Path(__file__).parent
+
     match target:
         case "script":
-            return {"script_path": ""}
+            return {
+                "script_path": str(
+                    BACKEND_DIR / "Video_Generation_Pipeline" / "scenario.json"
+                )
+            }
         case "images":
-            return {"image_paths": {
-                "character_images": [{"character_id": "", "image_path": ""}],
-                "background_image": {"image_path": ""},
-            }}
+            return {
+                "image_paths": {
+                    "character_images": [
+                        {
+                            "character_id": "patient_carl",
+                            "image_path": str(
+                                BACKEND_DIR
+                                / "Video_Generation_Pipeline"
+                                / "reference_images"
+                                / "patient_Carl_reference_image.png"
+                            ),
+                        },
+                        {
+                            "character_id": "nurse_maya",
+                            "image_path": str(
+                                BACKEND_DIR
+                                / "Video_Generation_Pipeline"
+                                / "reference_images"
+                                / "Nurse_Maya_reference_image.png"
+                            ),
+                        },
+                    ],
+                    "background_image": {
+                        "image_path": str(
+                            BACKEND_DIR
+                            / "Video_Generation_Pipeline"
+                            / "reference_images"
+                            / "background_reference_image.png"
+                        )
+                    },
+                }
+            }
         case "video":
             return {"video_paths": {
-                "veo_path": "",
+                "video_paths": [{"scene_id": "1", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_1.mp4")},
+                                {"scene_id": "2", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_2.mp4")}],
                 "manim_path": "",
             }}
 

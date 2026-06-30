@@ -42,9 +42,9 @@
   .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
 
   /* ─── App shell ─── */
-  .app{display:grid;grid-template-rows:60px 1fr;height:100vh}
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh}
   .topbar{display:flex;align-items:center;justify-content:space-between;
-    padding:0 24px;background:#fff;border-bottom:1px solid var(--os-line);z-index:5}
+    padding:0 18px;background:#fff;border-bottom:1px solid var(--os-line);z-index:5;zoom:0.78}
   .brand{display:flex;align-items:center;gap:14px}
   .brand-mark{display:flex;flex-direction:column;gap:3px}
   .brand-mark span{display:block;height:3px;border-radius:1px}
@@ -53,22 +53,22 @@
   .brand-mark span:nth-child(3){width:24px;background:var(--os-gray);margin-left:3px}
   .brand-mark span:nth-child(4){width:20px;background:var(--os-yellow);margin-left:8px}
   .brand-mark span:nth-child(5){width:26px;background:var(--os-navy);margin-left:1px}
-  .brand-name{font-weight:900;font-size:19px;color:var(--os-navy);letter-spacing:-.01em}
+  .brand-name{font-weight:900;font-size:15px;color:var(--os-navy);letter-spacing:-.01em}
   .brand-name em{font-style:normal;font-weight:300;color:var(--os-navy)}
   .brand-divider{width:1px;height:24px;background:var(--os-line)}
-  .brand-product{font-size:14px;color:var(--os-ink-2);font-weight:500;letter-spacing:.01em}
+  .brand-product{font-size:12px;color:var(--os-ink-2);font-weight:500;letter-spacing:.01em}
   .brand-product b{color:var(--os-ink);font-weight:700}
 
-  .topbar-right{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--os-ink-2)}
+  .topbar-right{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--os-ink-2)}
   .crumb{display:flex;align-items:center;gap:8px}
   .crumb-dot{width:6px;height:6px;border-radius:50%;background:var(--os-green);box-shadow:0 0 0 3px rgba(156,203,59,.22)}
   .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#002569 0%, #1a4dbf 100%);
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
 
   /* ─── Main split ─── */
-  .main{display:grid;grid-template-columns:360px 1fr;min-height:0;transition:grid-template-columns .22s ease}
+  .main{display:grid;grid-template-columns:300px 1fr;min-height:0;transition:grid-template-columns .22s ease}
   .main.sidebar-collapsed{grid-template-columns:0px 1fr}
-  .sidebar-wrap{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-right:1px solid var(--os-line);background:#fff}
+  .sidebar-wrap{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-right:1px solid var(--os-line);background:#fff;zoom:0.82}
   .main.sidebar-collapsed .sidebar-wrap{border-right:none}
   .sidebar{background:#fff;display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .stage{position:relative;min-height:0;display:flex;flex-direction:column;overflow:hidden}
@@ -182,7 +182,7 @@
 
   /* ─── Stage / Canvas ─── */
   .stage-bar{display:flex;align-items:center;justify-content:space-between;
-    padding:12px 24px;background:#fff;border-bottom:1px solid var(--os-line);z-index:2}
+    padding:12px 24px;background:#fff;border-bottom:1px solid var(--os-line);z-index:2;zoom:0.82}
   .stage-bar-l{display:flex;align-items:center;gap:14px}
   .stage-title{font-size:15px;font-weight:700;color:var(--os-ink);margin:0}
   .stage-title em{font-style:normal;color:var(--os-ink-3);font-weight:400;margin-left:6px}
@@ -273,7 +273,7 @@
     align-self:flex-start;background:none;border:none;padding:0}
   .assets-next-strip{display:flex;align-items:center;justify-content:space-between;
     padding:12px 24px;background:linear-gradient(90deg,#001a4d,#0a2d6e);
-    border-bottom:1px solid #001233;gap:16px}
+    border-bottom:1px solid #001233;gap:16px;zoom:0.82}
   .assets-next-strip-l{display:flex;align-items:center;gap:10px}
   .assets-next-step-label{font-size:11px;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;color:rgba(255,255,255,.55);font-family:"JetBrains Mono",monospace}
@@ -2486,7 +2486,7 @@ function App(){
   const [deleteUndoStack, setDeleteUndoStack] = useState([]);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(70);
   const [viewMode, setViewMode] = useState("full");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState("script");

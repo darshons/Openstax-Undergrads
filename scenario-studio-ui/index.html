@@ -2704,7 +2704,7 @@ function App(){
         ? <AssetsPage script={script} onBack={()=>setCurrentPage("script")} onViewVideos={()=>setCurrentPage("videos")}/>
         : null}
       {currentPage==="videos" && script
-        ? <VideoPage script={script} onBack={()=>setCurrentPage("assets")}/>
+        ? <VideoPage script={script} onBack={()=>setCurrentPage(videoType === "manim" ? "script" : "assets")}/>
         : null}
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`} style={{display:(currentPage==="assets"||currentPage==="videos")?"none":"grid"}}>
         <div className="sidebar-wrap">
@@ -2759,10 +2759,14 @@ function App(){
             <div className="assets-next-strip">
               <div className="assets-next-strip-l">
                 <span className="assets-next-step-label">Next step</span>
-                <span className="assets-next-step-desc">Script is ready — review and customize the video assets</span>
+                <span className="assets-next-step-desc">
+                  {videoType === "manim"
+                    ? "Script is ready — preview the generated Manim animations"
+                    : "Script is ready — review and customize the video assets"}
+                </span>
               </div>
-              <button className="btn-assets" onClick={()=>setCurrentPage("assets")}>
-                View Assets {I.arrowRight}
+              <button className="btn-assets" onClick={()=>setCurrentPage(videoType === "manim" ? "videos" : "assets")}>
+                {videoType === "manim" ? "View Videos" : "View Assets"} {I.arrowRight}
               </button>
             </div>
           )}

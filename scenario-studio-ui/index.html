@@ -685,8 +685,12 @@
   .choice-pill-hd{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 
   .tree-branch-frame{display:flex;flex-direction:column;align-items:center;gap:0}
-  .tree-branch-row{display:flex;align-items:stretch;border-top:2px solid var(--os-line-strong);
+  .tree-branches-wrap{display:flex;flex-direction:column;align-items:center}
+  .tree-branch-row{display:flex;align-items:flex-start;border-top:2px solid var(--os-line-strong);
     gap:0;width:fit-content}
+  .tree-branch-row-correct{border-top:none;margin-top:20px;position:relative}
+  .tree-branch-row-correct::before{content:"";position:absolute;top:-10px;left:50%;
+    width:2px;height:10px;background:var(--os-line-strong);transform:translateX(-50%)}
   .tree-branch-col{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 28px}
   .tree-branch-scene-wrap{flex:1;display:flex;flex-direction:column;align-items:center}
   .tree-branch-scene-wrap>div{flex:1;display:flex;flex-direction:column}
@@ -1858,8 +1862,14 @@ function TreeView({script, density, viewMode, editingSceneIdx, setEditingSceneId
                   </div>
                 )}
               </div>
-              <div className="tree-branch-row">
-                {seg.branches.map((b, bi) => {
+              <div className="tree-branches-wrap">
+              {[false, true].map(isCorrectRow => {
+                const rowBranches = seg.branches.filter(b => !!b.choice.is_correct === isCorrectRow);
+                if (rowBranches.length === 0) return null;
+                return (
+                <div key={String(isCorrectRow)} className={`tree-branch-row${isCorrectRow?" tree-branch-row-correct":""}`}>
+                {rowBranches.map(b => {
+                  const bi = seg.branches.indexOf(b);
                   const i = b.scene ? (sceneIdxMap.get(b.scene.scene_id) ?? -1) : -1;
                   return (
                     <div key={b.choice.choice_id ?? bi} className="tree-branch-col">
@@ -1914,6 +1924,9 @@ function TreeView({script, density, viewMode, editingSceneIdx, setEditingSceneId
                     </div>
                   );
                 })}
+                </div>
+                );
+              })}
               </div>
             </div>
           );

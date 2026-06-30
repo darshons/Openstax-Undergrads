@@ -28,6 +28,8 @@ if _UI_DIR.exists():
     app.mount("/ui", StaticFiles(directory=str(_UI_DIR), html=True), name="ui")
 if (_UI_DIR / "images").exists():
     app.mount("/images", StaticFiles(directory=str(_UI_DIR / "images")), name="images")
+if (_UI_DIR / "videos").exists():
+    app.mount("/videos", StaticFiles(directory=str(_UI_DIR / "videos")), name="videos")
 
 @app.get("/")
 def root():

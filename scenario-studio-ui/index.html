@@ -2347,8 +2347,14 @@ function VideoPage({script, onBack}){
   );
   const trunkScenes = scenes.filter(s => !branchIds.has(s.scene_id));
 
+  const dpMap = new Map(dps.map(dp => [dp.decision_point_id, dp]));
   const dpByScene = {};
-  dps.forEach(dp => { dpByScene[dp.associated_introduction_scene_id] = dp; });
+  scenes.forEach(s => {
+    if (s.routes_to?.type === "decision_point") {
+      const dp = dpMap.get(s.routes_to.decision_point_id);
+      if (dp) dpByScene[s.scene_id] = dp;
+    }
+  });
 
   const totalSec = scenes.reduce((sum,s) => sum + (s.duration_seconds||30), 0);
   const fmtDur   = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
@@ -2414,6 +2420,7 @@ function VideoPage({script, onBack}){
                 : [];
               return (
                 <div key={scene.scene_id} className="video-segment">
+                  {i > 0 && <VideoArrowD height={40}/>}
                   <VideoClipCard scene={scene} selected={selectedId===scene.scene_id}
                     onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}/>
                   {dp && (

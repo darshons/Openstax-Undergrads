@@ -685,9 +685,12 @@
   .choice-pill-hd{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 
   .tree-branch-frame{display:flex;flex-direction:column;align-items:center;gap:0}
-  .tree-branch-row{display:flex;align-items:flex-start;border-top:2px solid var(--os-line-strong);
+  .tree-branch-row{display:flex;align-items:stretch;border-top:2px solid var(--os-line-strong);
     gap:0;width:fit-content}
   .tree-branch-col{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 28px}
+  .tree-branch-scene-wrap{flex:1;display:flex;flex-direction:column;align-items:center}
+  .tree-branch-scene-wrap>div{flex:1;display:flex;flex-direction:column}
+  .tree-branch-scene-wrap>div>.scene{flex:1}
 
   .choice-pill{padding:12px 22px;border-radius:12px;font-weight:700;text-align:center;
     min-width:420px;max-width:600px;display:flex;flex-direction:column;gap:6px}
@@ -1892,13 +1895,15 @@ function TreeView({script, density, viewMode, editingSceneIdx, setEditingSceneId
                       {b.scene ? (
                         <>
                           <div className="tree-vline-sm"/>
-                          <SceneCard s={b.scene} characters={characters} decisionPoints={dps}
-                            density="compact" viewMode={viewMode}
-                            isEditing={editingSceneIdx===i}
-                            onStartEdit={()=>setEditingSceneIdx(i)}
-                            onCancelEdit={()=>setEditingSceneIdx(null)}
-                            onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
-                            onDelete={()=>deleteScene(i)}/>
+                          <div className="tree-branch-scene-wrap">
+                            <SceneCard s={b.scene} characters={characters} decisionPoints={dps}
+                              density="compact" viewMode={viewMode}
+                              isEditing={editingSceneIdx===i}
+                              onStartEdit={()=>setEditingSceneIdx(i)}
+                              onCancelEdit={()=>setEditingSceneIdx(null)}
+                              onSaveEdit={(draft)=>saveSceneEdit(i, draft)}
+                              onDelete={()=>deleteScene(i)}/>
+                          </div>
                           {b.choice.is_correct
                             ? <div className="continues-badge">↓ continues</div>
                             : <div className="retry-badge">↺ returns to decision point</div>}

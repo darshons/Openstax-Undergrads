@@ -8,7 +8,7 @@
  * loads (e.g. <script>window.OS_API_BASE="http://my-host:9000";</script>).
  */
 (function(){
-  const DEFAULT_BASE = "http://localhost:8000";
+  const DEFAULT_BASE = "http://127.0.0.1:8000";
   const apiBase = () => (window.OS_API_BASE || DEFAULT_BASE).replace(/\/+$/, "") + "/api";
 
   async function postJSON(path, body){

@@ -31,6 +31,10 @@ if (_UI_DIR / "images").exists():
 if (_UI_DIR / "videos").exists():
     app.mount("/videos", StaticFiles(directory=str(_UI_DIR / "videos")), name="videos")
 
+_DEMO_VIDEOS_DIR = Path(__file__).parent / "Video_Generation_Pipeline" / "output" / "demo"
+if _DEMO_VIDEOS_DIR.exists():
+    app.mount("/demo-videos", StaticFiles(directory=str(_DEMO_VIDEOS_DIR)), name="demo-videos")
+
 @app.get("/")
 def root():
     if _UI_DIR.exists():

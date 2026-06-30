@@ -1994,7 +1994,6 @@ function TreeView({script, density, viewMode, editingSceneIdx, setEditingSceneId
                       </div>
                       {b.scene ? (
                         <>
-                          {b.choice.is_correct && <div className="tree-branch-correct-spacer"/>}
                           <div className="tree-vline-sm"/>
                           <SceneCard s={b.scene} characters={characters} decisionPoints={dps}
                             density="compact" viewMode={viewMode}

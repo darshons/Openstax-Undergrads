@@ -2455,13 +2455,25 @@ function VideoClipCard({scene, selected, onClick, fmtDur, branch, choice, videoU
 }
 
 /* ─── Video Page ─── */
-const SCENE_VIDEOS = {
-  1: "/demo-videos/demo_scene_1.mp4",
-  2: "/demo-videos/demo_scene_2.mp4",
-};
-
 function VideoPage({script, onBack}){
   const [selectedId, setSelectedId] = useState(null);
+  const [sceneVideos, setSceneVideos] = useState({});
+
+  useEffect(() => {
+    const base = (window.OS_API_BASE || "http://127.0.0.1:8000").replace(/\/+$/, "");
+    fetch(`${base}/api/dummy_paths?target=video`)
+      .then(r => r.json())
+      .then(data => {
+        const map = {};
+        for (const {scene_id, video_path} of (data?.video_paths?.video_paths || [])) {
+          const filename = video_path.split("/").pop();
+          map[parseInt(scene_id)] = `/demo-videos/${filename}`;
+        }
+        setSceneVideos(map);
+      })
+      .catch(() => {});
+  }, []);
+
   const scenes  = script.scenes          || [];
   const dps     = script.decision_points || [];
 
@@ -2499,9 +2511,9 @@ function VideoPage({script, onBack}){
         {/* ── Combined hero player ── */}
         <div className="video-hero">
           <div className="video-player-lg" onClick={()=>setSelectedId(null)}>
-            {selectedScene && SCENE_VIDEOS[selectedScene.scene_id] ? (
-              <video key={SCENE_VIDEOS[selectedScene.scene_id]}
-                src={SCENE_VIDEOS[selectedScene.scene_id]}
+            {selectedScene && sceneVideos[selectedScene.scene_id] ? (
+              <video key={sceneVideos[selectedScene.scene_id]}
+                src={sceneVideos[selectedScene.scene_id]}
                 className="video-player-video" controls autoPlay
                 onClick={e=>e.stopPropagation()}/>
             ) : (
@@ -2555,7 +2567,7 @@ function VideoPage({script, onBack}){
                   {i > 0 && <VideoArrowD height={40}/>}
                   <VideoClipCard scene={scene} selected={selectedId===scene.scene_id}
                     onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}
-                    videoUrl={SCENE_VIDEOS[scene.scene_id]}/>
+                    videoUrl={sceneVideos[scene.scene_id]}/>
                   {dp && (
                     <>
                       <VideoArrowD height={40}/>
@@ -2579,7 +2591,7 @@ function VideoPage({script, onBack}){
                                   <VideoClipCard scene={bs} choice={choice} branch
                                     selected={selectedId===bs.scene_id}
                                     onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}
-                                    videoUrl={SCENE_VIDEOS[bs.scene_id]}/>
+                                    videoUrl={sceneVideos[bs.scene_id]}/>
                                   {rt && <VideoArrowD
                                     label={routeLabel}
                                     colorClass={isRetry?"retry":"continues"}/>}

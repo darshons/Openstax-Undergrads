@@ -296,7 +296,9 @@
   .video-body{padding:40px 52px 80px;display:flex;flex-direction:column;gap:48px;width:100%;max-width:1000px}
   .video-hero{background:#fff;border:1.5px solid var(--os-line);border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
   .video-player-lg{background:#0d1117;aspect-ratio:16/9;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;position:relative;cursor:pointer}
+    align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden}
+  .video-player-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:default}
+  .video-clip-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .video-player-lg:hover .video-play-circle{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55)}
   .video-play-circle{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.12);
     border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;
@@ -2420,17 +2422,20 @@ function VideoArrowD({label, colorClass, height}){
   );
 }
 
-function VideoClipCard({scene, selected, onClick, fmtDur, branch, choice}){
+function VideoClipCard({scene, selected, onClick, fmtDur, branch, choice, videoUrl}){
   const dur = scene.duration_seconds || 30;
   const type = (scene.scene_type||"scene").replace(/_/g," ");
   return (
     <div className={`video-clip-card${selected?" video-clip-selected":""}${branch?" video-clip-branch":""}`}
       onClick={onClick}>
       <div className="video-clip-thumb">
+        {videoUrl
+          ? <video src={videoUrl} className="video-clip-video" muted playsInline preload="metadata"/>
+          : <div className="video-clip-play">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+        }
         <span className="video-clip-scene-badge">Scene {scene.scene_id}</span>
-        <div className="video-clip-play">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </div>
         <span className="video-clip-dur">{fmtDur(dur)}</span>
         {choice && (
           <div className={`video-clip-answer-icon ${choice.is_correct?"correct":"incorrect"}`}>
@@ -2450,6 +2455,11 @@ function VideoClipCard({scene, selected, onClick, fmtDur, branch, choice}){
 }
 
 /* ─── Video Page ─── */
+const SCENE_VIDEOS = {
+  1: "/demo-videos/demo_scene_1.mp4",
+  2: "/demo-videos/demo_scene_2.mp4",
+};
+
 function VideoPage({script, onBack}){
   const [selectedId, setSelectedId] = useState(null);
   const scenes  = script.scenes          || [];
@@ -2489,16 +2499,25 @@ function VideoPage({script, onBack}){
         {/* ── Combined hero player ── */}
         <div className="video-hero">
           <div className="video-player-lg" onClick={()=>setSelectedId(null)}>
-            {selectedScene ? (
-              <span className="video-scene-label-overlay">
-                Scene {selectedScene.scene_id} · {(selectedScene.scene_type||"scene").replace(/_/g," ")}
-              </span>
+            {selectedScene && SCENE_VIDEOS[selectedScene.scene_id] ? (
+              <video key={SCENE_VIDEOS[selectedScene.scene_id]}
+                src={SCENE_VIDEOS[selectedScene.scene_id]}
+                className="video-player-video" controls autoPlay
+                onClick={e=>e.stopPropagation()}/>
             ) : (
-              <span className="video-combined-label">Combined · {scenes.length} scenes</span>
+              <>
+                {selectedScene ? (
+                  <span className="video-scene-label-overlay">
+                    Scene {selectedScene.scene_id} · {(selectedScene.scene_type||"scene").replace(/_/g," ")}
+                  </span>
+                ) : (
+                  <span className="video-combined-label">Combined · {scenes.length} scenes</span>
+                )}
+                <div className="video-play-circle">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+              </>
             )}
-            <div className="video-play-circle">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
           </div>
           <div className="video-hero-foot">
             <div className="video-hero-title">
@@ -2535,7 +2554,8 @@ function VideoPage({script, onBack}){
                 <div key={scene.scene_id} className="video-segment">
                   {i > 0 && <VideoArrowD height={40}/>}
                   <VideoClipCard scene={scene} selected={selectedId===scene.scene_id}
-                    onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}/>
+                    onClick={()=>setSelectedId(scene.scene_id)} fmtDur={fmtDur}
+                    videoUrl={SCENE_VIDEOS[scene.scene_id]}/>
                   {dp && (
                     <>
                       <VideoArrowD height={40}/>
@@ -2558,7 +2578,8 @@ function VideoPage({script, onBack}){
                                 <div key={bs.scene_id} className="video-branch-item">
                                   <VideoClipCard scene={bs} choice={choice} branch
                                     selected={selectedId===bs.scene_id}
-                                    onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}/>
+                                    onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}
+                                    videoUrl={SCENE_VIDEOS[bs.scene_id]}/>
                                   {rt && <VideoArrowD
                                     label={routeLabel}
                                     colorClass={isRetry?"retry":"continues"}/>}

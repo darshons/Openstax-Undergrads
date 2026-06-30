@@ -196,6 +196,14 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
   .stage-bar-r{display:flex;align-items:center;gap:8px}
+  .view-mode-ctl{display:flex;align-items:center;gap:6px}
+  .view-mode-lbl{font-size:12px;font-weight:600;color:var(--os-ink-3);letter-spacing:.04em;text-transform:uppercase}
+  .view-mode-select{padding:4px 8px;border-radius:7px;border:1.5px solid var(--os-line);background:var(--os-bg-1);font-size:13px;font-weight:500;color:var(--os-ink-1);cursor:pointer;outline:none}
+  .view-mode-select:focus{border-color:var(--os-navy)}
+  .scene-focused-view{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+  .scene-focused-line{font-size:18px;line-height:1.55;margin:0;color:var(--os-ink-1)}
+  .scene-focused-speaker{font-weight:700;color:var(--os-navy);margin-right:8px;font-style:normal}
+  .scene-focused-empty{font-size:15px;color:var(--os-ink-3);font-style:italic;margin:0}
   .zoom-ctl{display:flex;align-items:center;background:var(--os-bg-3);border-radius:8px;padding:2px;gap:1px}
   .zoom-ctl button{width:26px;height:26px;border-radius:6px;color:var(--os-ink-2);font-size:14px;font-weight:700}
   .zoom-ctl button:hover{background:#fff}
@@ -1301,7 +1309,7 @@ function characterName(characters, id){
   return c ? c.name : id;
 }
 
-function SceneCard({s, characters, decisionPoints, density, isEditing,
+function SceneCard({s, characters, decisionPoints, density, viewMode, isEditing,
                     onStartEdit, onSaveEdit, onCancelEdit, onDelete, onMoveLeft, onMoveRight, onAddDP, addDPDisabled}){
   const padding = density==="compact" ? 16 : density==="comfy" ? 20 : 18;
   const [draft, setDraft] = useState(s);
@@ -1442,37 +1450,74 @@ function SceneCard({s, characters, decisionPoints, density, isEditing,
         <div className="scene-body" style={{padding,gap:density==="compact"?10:12}}>
           <h3 className="scene-title">{s.scene_summary}</h3>
 
-          <div className="scene-cols">
-            <div className="scene-col-main">
-              <div className="scene-block narr">
-                <div className="scene-block-lbl">Dialogue</div>
-                {dialogue.length === 0 ? (
-                  <p style={{color:"var(--os-ink-3)",fontStyle:"normal"}}>(no dialogue)</p>
-                ) : dialogue.map((row, i) => (
-                  <p key={i} style={{margin:i>0?"4px 0 0":0}}>
-                    <b style={{fontStyle:"normal",color:"var(--os-navy)",marginRight:6}}>{characterName(characters, row.character_id)}:</b>
-                    "{row.line}"
+          {(!viewMode || viewMode === "full") && (
+            <div className="scene-cols">
+              <div className="scene-col-main">
+                <div className="scene-block narr">
+                  <div className="scene-block-lbl">Dialogue</div>
+                  {dialogue.length === 0 ? (
+                    <p style={{color:"var(--os-ink-3)",fontStyle:"normal"}}>(no dialogue)</p>
+                  ) : dialogue.map((row, i) => (
+                    <p key={i} style={{margin:i>0?"4px 0 0":0}}>
+                      <b style={{fontStyle:"normal",color:"var(--os-navy)",marginRight:6}}>{characterName(characters, row.character_id)}:</b>
+                      "{row.line}"
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              <div className="scene-col-side">
+                <div className="scene-block visual">
+                  <div className="scene-block-lbl">Setting · Action</div>
+                  <p>{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
+                </div>
+
+                <div className="scene-block onscreen">
+                  <div className="scene-block-lbl">Audio</div>
+                  <p>
+                    {s.audio?.sound_effects && <Fragment>FX: {s.audio.sound_effects}<br/></Fragment>}
+                    {s.audio?.ambience && <Fragment>Ambient: {s.audio.ambience}</Fragment>}
+                    {!s.audio?.sound_effects && !s.audio?.ambience && <span style={{color:"var(--os-ink-3)"}}>(none)</span>}
                   </p>
-                ))}
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="scene-col-side">
-              <div className="scene-block visual">
-                <div className="scene-block-lbl">Setting · Action</div>
-                <p>{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
-              </div>
-
-              <div className="scene-block onscreen">
-                <div className="scene-block-lbl">Audio</div>
-                <p>
-                  {s.audio?.sound_effects && <Fragment>FX: {s.audio.sound_effects}<br/></Fragment>}
-                  {s.audio?.ambience && <Fragment>Ambient: {s.audio.ambience}</Fragment>}
-                  {!s.audio?.sound_effects && !s.audio?.ambience && <span style={{color:"var(--os-ink-3)"}}>(none)</span>}
+          {viewMode === "dialogue" && (
+            <div className="scene-focused-view">
+              {dialogue.length === 0 ? (
+                <p className="scene-focused-empty">(no dialogue)</p>
+              ) : dialogue.map((row, i) => (
+                <p key={i} className="scene-focused-line">
+                  <b className="scene-focused-speaker">{characterName(characters, row.character_id)}:</b>
+                  "{row.line}"
                 </p>
-              </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          {viewMode === "action" && (
+            <div className="scene-focused-view">
+              {(s.setting || s.character_actions) ? (
+                <p className="scene-focused-line">{s.setting}{s.character_actions ? ` — ${s.character_actions}` : ""}</p>
+              ) : (
+                <p className="scene-focused-empty">(no action details)</p>
+              )}
+            </div>
+          )}
+
+          {viewMode === "camera" && (
+            <div className="scene-focused-view">
+              {s.camera ? (
+                <p className="scene-focused-line">
+                  {[s.camera.angle, s.camera.movement, s.camera.lens_effect].filter(Boolean).join(" · ")}
+                </p>
+              ) : (
+                <p className="scene-focused-empty">(no camera details)</p>
+              )}
+            </div>
+          )}
         </div>
         <div className="scene-foot">
           {onAddDP && (
@@ -1714,7 +1759,7 @@ function DPInlineEdit({value, onSave, onCancel, placeholder}){
 }
 
 /* ─── Decision Tree View ─── */
-function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint}){
+function TreeView({script, density, viewMode, editingSceneIdx, setEditingSceneIdx, saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint}){
   const scenes = script.scenes || [];
   const dps = script.decision_points || [];
   const characters = script.characters || [];
@@ -1761,7 +1806,7 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                     <Fragment key={s.scene_id ?? i}>
                       {i > 0 && <div className="connector">{I.arrow}</div>}
                       <SceneCard s={s} characters={characters} decisionPoints={dps}
-                        density={density}
+                        density={density} viewMode={viewMode}
                         isEditing={editingSceneIdx===idx}
                         onStartEdit={()=>setEditingSceneIdx(idx)}
                         onCancelEdit={()=>setEditingSceneIdx(null)}
@@ -1837,7 +1882,7 @@ function TreeView({script, density, editingSceneIdx, setEditingSceneIdx, saveSce
                         <>
                           <div className="tree-vline-sm"/>
                           <SceneCard s={b.scene} characters={characters} decisionPoints={dps}
-                            density="compact"
+                            density="compact" viewMode={viewMode}
                             isEditing={editingSceneIdx===i}
                             onStartEdit={()=>setEditingSceneIdx(i)}
                             onCancelEdit={()=>setEditingSceneIdx(null)}
@@ -2369,6 +2414,7 @@ function App(){
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
   const [zoom, setZoom] = useState(100);
+  const [viewMode, setViewMode] = useState("full");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState("script");
   const [editingSceneIdx, setEditingSceneIdx] = useState(null);
@@ -2533,7 +2579,7 @@ function App(){
         ? <AssetsPage script={script} onBack={()=>setCurrentPage("script")} onViewVideos={()=>setCurrentPage("videos")}/>
         : null}
       {currentPage==="videos" && script
-        ? <VideoPage script={script} onBack={()=>setCurrentPage("assets")}/>
+        ? <VideoPage script={script} onBack={()=>setCurrentPage(videoType === "manim" ? "script" : "assets")}/>
         : null}
       <div className={`main${sidebarOpen?"":" sidebar-collapsed"}`} style={{display:(currentPage==="assets"||currentPage==="videos")?"none":"grid"}}>
         <div className="sidebar-wrap">
@@ -2566,6 +2612,15 @@ function App(){
                   ↩ Undo delete
                 </button>
               )}
+              <div className="view-mode-ctl">
+                <span className="view-mode-lbl">View:</span>
+                <select className="view-mode-select" value={viewMode} onChange={e=>setViewMode(e.target.value)}>
+                  <option value="full">Full script</option>
+                  <option value="dialogue">Dialogue</option>
+                  <option value="action">Action</option>
+                  <option value="camera">Camera</option>
+                </select>
+              </div>
               <div className="zoom-ctl">
                 <button onClick={()=>setZoom(z=>Math.max(50,z-10))}>−</button>
                 <span className="zv">{zoom}%</span>
@@ -2579,10 +2634,14 @@ function App(){
             <div className="assets-next-strip">
               <div className="assets-next-strip-l">
                 <span className="assets-next-step-label">Next step</span>
-                <span className="assets-next-step-desc">Script is ready — review and customize the video assets</span>
+                <span className="assets-next-step-desc">
+                  {videoType === "manim"
+                    ? "Script is ready — preview the generated Manim animations"
+                    : "Script is ready — review and customize the video assets"}
+                </span>
               </div>
-              <button className="btn-assets" onClick={()=>setCurrentPage("assets")}>
-                View Assets {I.arrowRight}
+              <button className="btn-assets" onClick={()=>setCurrentPage(videoType === "manim" ? "videos" : "assets")}>
+                {videoType === "manim" ? "View Videos" : "View Assets"} {I.arrowRight}
               </button>
             </div>
           )}
@@ -2656,6 +2715,7 @@ function App(){
                   <TreeView
                     script={script}
                     density={t.density}
+                    viewMode={viewMode}
                     editingSceneIdx={editingSceneIdx}
                     setEditingSceneIdx={setEditingSceneIdx}
                     saveSceneEdit={saveSceneEdit}

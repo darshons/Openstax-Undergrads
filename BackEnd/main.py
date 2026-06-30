@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from api import api_router
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,7 +30,7 @@ if _UI_DIR.exists():
 @app.get("/")
 def root():
     if _UI_DIR.exists():
-        return FileResponse(str(_UI_DIR / "index.html"))
+        return RedirectResponse(url="/ui/")
     return {"message": "Welcome to the OpenStax Video Scenario Generation API by Team YAMS! Visit /docs for API documentation."}
 
 if __name__ == "__main__":

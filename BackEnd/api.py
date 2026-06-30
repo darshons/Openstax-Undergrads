@@ -97,9 +97,15 @@ def get_dummy_paths(target: str):
         case "script":
             return {"script_path": ""}
         case "images":
-            return {"image_paths": [""]}
+            return {"image_paths": {
+                "character_images": [{"character_id": "", "image_path": ""}],
+                "background_image": {"image_path": ""},
+            }}
         case "video":
-            return {"video_path": ""}
+            return {"video_paths": {
+                "veo_path": "",
+                "manim_path": "",
+            }}
 
 
 @api_router.get("/script/{script_path:path}")

@@ -237,8 +237,14 @@
     overflow:hidden;width:220px;display:flex;flex-direction:column;
     box-shadow:0 1px 4px rgba(0,0,0,.06);transition:.15s}
   .asset-card:hover{border-color:var(--os-navy);box-shadow:0 4px 16px rgba(0,0,0,.1)}
-  .asset-img-wrap{width:100%;height:160px;overflow:hidden;position:relative;background:#eef0f5}
+  .asset-img-wrap{width:100%;height:160px;overflow:hidden;position:relative;background:#eef0f5;cursor:zoom-in}
   .asset-img-wrap img{width:100%;height:100%;object-fit:cover}
+  .asset-lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);
+    display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+  .asset-lightbox img{max-width:88vw;max-height:88vh;object-fit:contain;border-radius:10px;
+    box-shadow:0 24px 80px rgba(0,0,0,.6)}
+  .asset-lightbox-label{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+    font-size:14px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.04em;pointer-events:none}
   .asset-img-placeholder{width:100%;height:100%;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:10px;
     background:linear-gradient(145deg,#eef0f5,#e4e7ef)}
@@ -2285,9 +2291,24 @@ function ExportMenu({script}) {
 function AssetCard({id, label, role, src, category}){
   const [note, setNote] = useState("");
   const [requested, setRequested] = useState(null);
+  const [lightbox, setLightbox] = useState(false);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = e => { if (e.key === "Escape") setLightbox(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
+
   return (
     <div className="asset-card">
-      <div className="asset-img-wrap">
+      {lightbox && src && (
+        <div className="asset-lightbox" onClick={() => setLightbox(false)}>
+          <img src={src} alt={label}/>
+          <span className="asset-lightbox-label">{label}</span>
+        </div>
+      )}
+      <div className="asset-img-wrap" onClick={() => src && setLightbox(true)}>
         {src
           ? <img src={src} alt={label}/>
           : <div className="asset-img-placeholder">

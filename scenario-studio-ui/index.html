@@ -335,8 +335,10 @@
   .video-clip-card:hover .video-clip-play{color:rgba(255,255,255,.9)}
   .video-clip-dur{position:absolute;bottom:6px;right:8px;font-size:9.5px;
     color:rgba(255,255,255,.45);font-family:"JetBrains Mono",monospace}
-  .video-clip-correct-badge{position:absolute;top:7px;right:7px;font-size:8.5px;font-weight:700;
-    color:#2ecc71;background:rgba(46,204,113,.15);border-radius:3px;padding:1px 5px}
+  .video-clip-answer-icon{position:absolute;top:7px;right:7px;width:28px;height:28px;
+    border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .video-clip-answer-icon.correct{background:rgba(39,174,96,.25)}
+  .video-clip-answer-icon.incorrect{background:rgba(192,57,43,.25)}
   .video-clip-foot{padding:8px 10px 10px}
   .video-clip-type{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
     color:var(--os-ink-3)}
@@ -2289,7 +2291,14 @@ function VideoClipCard({scene, selected, onClick, fmtDur, branch, choice}){
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </div>
         <span className="video-clip-dur">{fmtDur(dur)}</span>
-        {choice?.is_correct && <span className="video-clip-correct-badge">✓ Correct</span>}
+        {choice && (
+          <div className={`video-clip-answer-icon ${choice.is_correct?"correct":"incorrect"}`}>
+            {choice.is_correct
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            }
+          </div>
+        )}
       </div>
       <div className="video-clip-foot">
         <div className="video-clip-type">{choice ? `${choice.choice_id} · ${type}` : type}</div>

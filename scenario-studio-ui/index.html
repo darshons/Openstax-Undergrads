@@ -1063,46 +1063,121 @@ const ROUTE_TYPES = ["introduction","true_choice","false_choice"];
    Lets the "Load sample script" tweak preview the storyboard without
    hitting the LLM. Matches /api/initial_script's response.script. */
 const SAMPLE_SCRIPT = {
-  title:"A Tour Inside the Mitochondrion",
-  learning_goal:"Understand how cellular respiration turns glucose into ATP across glycolysis, the citric acid cycle, and oxidative phosphorylation.",
-  target_audience:"Intro biology undergraduates",
-  total_duration_seconds:360,
-  visual_style:"Clean 3D molecular animation with diagrammatic overlays; warm neutral palette.",
-  characters:[
-    {character_id:"A", name:"Maya", role:"Curious student narrator",
-     appearance:{skin_tone:"warm beige",hair:"black, shoulder-length",build:"average",uniform:"hoodie + jeans",distinguishing_features:"silver hoop earrings"},
-     emotional_baseline:"engaged, asks questions"},
-    {character_id:"B", name:"Dr. Chen", role:"Biology instructor",
-     appearance:{skin_tone:"medium",hair:"short grey",build:"slim",uniform:"white lab coat over teal shirt",distinguishing_features:"round glasses"},
-     emotional_baseline:"warm, patient"},
+  title: "What Do You Say Next?",
+  learning_goal: "Identify and apply the therapeutic communication technique of seeking clarification in response to ambiguous nonverbal cues from a patient, distinguishing it from nontherapeutic responses such as providing false reassurance or changing the subject.",
+  target_audience: "Pre-licensure nursing students, first or second year",
+  total_duration_seconds: 75,
+  visual_style: "2D semi-flat limited animation. Characters have clean outlines, flat shading with subtle gradient, and muted clinical color palette. Emotional expression conveyed through head turns, eyebrow movement, hand gestures, and body weight shifts.",
+  characters: [
+    {
+      character_id: "nurse_maya",
+      name: "Maya",
+      role: "Nursing student (player perspective stand-in / on-screen character)",
+      appearance: {skin_tone:"Medium warm brown", hair:"Dark brown, pulled back in a low bun", build:"Average height, slim to medium build", uniform:"Light blue scrub top and matching pants, hospital ID badge"},
+      emotional_baseline: "Attentive, calm, professionally warm"
+    },
+    {
+      character_id: "patient_carl",
+      name: "Carl",
+      role: "Patient, 58-year-old male, admitted for hypertension management",
+      appearance: {skin_tone:"Light olive", hair:"Short salt-and-pepper hair, slightly disheveled", build:"Medium height, stocky build", uniform:"Standard hospital gown, light green with white print"},
+      emotional_baseline: "Subdued, guardedly cooperative, carrying unspoken tension"
+    }
   ],
-  scenes:[
-    {scene_id:1, type:"narrative", scene_summary:"Hook: a sliced apple browning",
-     duration_seconds:20, setting:"Sunlit kitchen counter",
-     character_actions:"Maya watches an apple slice slowly brown.",
-     camera:{angle:"close-up",movement:"slow push-in",lens_effect:"shallow depth of field"},
-     audio:{dialogue:[{character_id:"A",line:"Why does this happen so fast?"}],
-            sound_effects:"soft ambient kitchen",ambience:"morning light"},
-     routes_to:{decision_point_id:1, type:"introduction"}},
-    {scene_id:2, type:"narrative", scene_summary:"Inside the cell",
-     duration_seconds:45, setting:"Stylized animated cytoplasm",
-     character_actions:"Dr. Chen narrates as a glucose molecule splits.",
-     camera:{angle:"isometric",movement:"orbit",lens_effect:"none"},
-     audio:{dialogue:[{character_id:"B",line:"Glucose gets broken in half — that's glycolysis."}],
-            sound_effects:"subtle whoosh on each enzymatic step",ambience:"soft synth pad"},
-     routes_to:{decision_point_id:1, type:"introduction"}},
+  scenes: [
+    {
+      scene_id: 1,
+      type: "narrative",
+      scene_summary: "Maya enters Carl's room for morning check-in. Carl is physically closed off — arms folded, jaw tight, eyes drifting to the window when the doctor's visit comes up.",
+      narration_text: "Maya enters from the left carrying a small clipboard, approaches Carl's bedside. Carl sits up in bed, arms folded, giving short answers.",
+      duration_seconds: 28,
+      setting: "Single-occupancy hospital room, daytime. Soft window light. Vitals monitor in background.",
+      character_actions: "Maya enters carrying clipboard, approaches Carl's bedside. Carl glances up but keeps arms folded and gives short answers.",
+      camera: {angle:"Medium two-shot showing both characters.", movement:"Static.", lens_effect:"Slightly warm, neutral depth."},
+      audio: {
+        dialogue: [
+          {character_id:"nurse_maya", line:"Good morning, Carl. I'm Maya. I'll be your nurse today. Mind if I check in with you for a few minutes?"},
+          {character_id:"patient_carl", line:"Sure. Go ahead."},
+          {character_id:"nurse_maya", line:"How are you feeling this morning? Any pain or discomfort I should know about?"},
+          {character_id:"patient_carl", line:"No, I'm fine."},
+          {character_id:"nurse_maya", line:"Okay. The doctor mentioned she'll be by later to go over your results with you."},
+          {character_id:"patient_carl", line:"Right. Yeah. I know."}
+        ],
+        sound_effects: "Soft ambient hospital room tone. Faint monitor beep.",
+        ambience: "Quiet hospital room."
+      },
+      routes_to: {type:"decision_point", decision_point_id:1}
+    },
+    {
+      scene_id: 2,
+      type: "consequence",
+      scene_summary: "Maya offers false reassurance — 'I'm sure you'll be fine' — and moves on to vitals. Carl's expression flattens; the opportunity to connect is lost.",
+      narration_text: "Maya gives a reassuring smile, turns toward the vitals monitor. Carl frowns slightly.",
+      duration_seconds: 18,
+      setting: "Same hospital room, continuous from Scene 1.",
+      character_actions: "Maya places a hand near the bed rail, gives a reassuring smile, then turns toward the vitals monitor. Carl's expression flattens.",
+      camera: {angle:"Medium two-shot, then close on Carl's face.", movement:"Static cuts only.", lens_effect:"Same warm neutral as Scene 1."},
+      audio: {
+        dialogue: [
+          {character_id:"nurse_maya", line:"I'm sure you'll be fine. The team here is really good. Let me go ahead and get your vitals."},
+          {character_id:"patient_carl", line:"Mm. Okay."}
+        ],
+        sound_effects: "Monitor beep continues softly.",
+        ambience: "Same quiet hospital room ambience."
+      },
+      routes_to: null
+    },
+    {
+      scene_id: 3,
+      type: "resolution",
+      scene_summary: "Maya pauses, names Carl's nonverbal cue directly, and asks what's on his mind. Carl opens up about being scared of the doctor's news. A genuine connection forms.",
+      narration_text: "Maya pauses, sets her clipboard down, and shifts posture to face Carl directly. Carl's shoulders drop and he opens up.",
+      duration_seconds: 22,
+      setting: "Same hospital room, continuous from Scene 1.",
+      character_actions: "Maya pauses, sets clipboard on bedside table, shifts to face Carl directly. Carl's shoulders drop, he unfolds his arms, and opens up about his fears.",
+      camera: {angle:"Medium two-shot with closer framing during dialogue.", movement:"Static cuts only.", lens_effect:"Same warm neutral. Slightly brighter feel."},
+      audio: {
+        dialogue: [
+          {character_id:"nurse_maya", line:"Carl, I noticed you crossed your arms when I mentioned the doctor coming by. Is there something on your mind about that?"},
+          {character_id:"patient_carl", line:"I just... I don't know what she's going to tell me. I'm a little scared, honestly."},
+          {character_id:"nurse_maya", line:"That makes a lot of sense. It's okay to feel that way — and I'm glad you told me. We can talk through what to expect before she comes in."}
+        ],
+        sound_effects: "Soft ambient hospital room tone continues.",
+        ambience: "Same quiet hospital room. Slightly warmer feel."
+      },
+      routes_to: null
+    }
   ],
-  decision_points:[
-    {decision_point_id:1, question_text:"What does the cell do with pyruvate next?",
-     associated_introduction_scene_id:2,
-     choices:[
-       {choice_id:"A", text:"Feed it into the citric acid cycle", is_correct:true,
-        misconception:null, routes_to_scene:3},
-       {choice_id:"B", text:"Convert it to glycogen for storage", is_correct:false,
-        misconception:"That happens elsewhere — glycogen synthesis isn't part of respiration.",
-        routes_to_scene:3},
-     ]},
-  ],
+  decision_points: [
+    {
+      decision_point_id: 1,
+      question_text: "Carl says he's fine, but his arms are crossed, his jaw is tight, and his eyes drift to the window when you mention the doctor's visit. What do you do next?",
+      associated_introduction_scene_id: 1,
+      choices: [
+        {
+          choice_id: "A",
+          text: "Name what you observed and ask Carl directly: \"I noticed you crossed your arms when I mentioned the doctor — is there something on your mind?\"",
+          is_correct: true,
+          misconception: null,
+          routes_to_scene: 3
+        },
+        {
+          choice_id: "B",
+          text: "Reassure him that everything will be okay and move on to taking his vitals.",
+          is_correct: false,
+          misconception: "Providing false reassurance ('I'm sure it'll be fine') is nontherapeutic — it discourages further expression and closes off the patient's opportunity to share genuine concerns.",
+          routes_to_scene: 2
+        },
+        {
+          choice_id: "C",
+          text: "The patient said he's fine, so move on — ask about his pain level and begin the physical assessment.",
+          is_correct: false,
+          misconception: "Accepting a patient's verbal 'I'm fine' while ignoring contradicting nonverbal cues reflects passive listening rather than active listening, and fails to seek clarification.",
+          routes_to_scene: 2
+        }
+      ]
+    }
+  ]
 };
 
 /* ─── Icons ─── */
@@ -2164,26 +2239,21 @@ function AssetSection({title, items}){
 }
 
 /* ─── Assets Page ─── */
+const CHAR_IMAGES = {
+  nurse_maya: "/images/Nurse_Maya_reference_image.png",
+};
+
 function AssetsPage({script, onBack, onViewVideos}){
   const characters = (script.characters||[]).map(c=>({
     id: `char-${c.character_id}`,
     label: c.name || `Character ${c.character_id}`,
     role: c.role || c.character_id,
-    src: null, /* REPLACE: e.g. `/assets/characters/${c.character_id}.png` */
+    src: CHAR_IMAGES[c.character_id] || null,
     category: "character",
   }));
 
-  /* REPLACE: update labels and add src paths as backgrounds are generated */
   const backgrounds = [
-    {id:"bg-1", label:"Primary Setting",   role:"Main scene background",  src:null, category:"background"},
-    {id:"bg-2", label:"Secondary Setting", role:"Alternate background",   src:null, category:"background"},
-  ];
-
-  /* REPLACE: update labels and add src paths as assets are generated */
-  const sceneAssets = [
-    {id:"asset-1", label:"Medical Equipment", role:"Primary prop",   src:null, category:"asset"},
-    {id:"asset-2", label:"Patient Chart",     role:"Document prop",  src:null, category:"asset"},
-    {id:"asset-3", label:"Clinical Tool",     role:"Secondary prop", src:null, category:"asset"},
+    {id:"bg-1", label:"Hospital Room", role:"Primary scene background", src:"/images/background_reference_image.png", category:"background"},
   ];
 
   return (
@@ -2210,7 +2280,6 @@ function AssetsPage({script, onBack, onViewVideos}){
       <div className="assets-body">
         <AssetSection title="Characters" items={characters}/>
         <AssetSection title="Backgrounds" items={backgrounds}/>
-        <AssetSection title="Scene Assets" items={sceneAssets}/>
       </div>
     </div>
   );
@@ -2364,7 +2433,7 @@ function App(){
 
   // Full backend script object: {title, learning_goal, target_audience,
   // total_duration_seconds, visual_style, characters[], scenes[], decision_points[]}
-  const [script, setScript] = useState(null);
+  const [script, setScript] = useState(SAMPLE_SCRIPT);
   const [deleteUndoStack, setDeleteUndoStack] = useState([]);
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);

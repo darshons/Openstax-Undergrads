@@ -545,7 +545,7 @@
 
   /* ─── Overview header (editable script.title / learning_goal / target_audience) ─── */
   .overview{background:#fff;border:1px solid var(--os-line);border-radius:12px;
-    padding:24px 28px;margin-bottom:28px;box-shadow:var(--shadow-sm);max-width:900px}
+    padding:24px 28px;margin-bottom:28px;box-shadow:var(--shadow-sm);max-width:1550px}
   .overview-title{font-size:30px;font-weight:900;color:var(--os-ink);margin:0 0 6px;
     letter-spacing:-.015em;line-height:1.2;width:100%;border:0;background:transparent;
     outline:none;font-family:inherit;padding:0}
@@ -1087,7 +1087,7 @@ const SAMPLE_SCRIPT = {
   title: "What Do You Say Next?",
   learning_goal: "Identify and apply the therapeutic communication technique of seeking clarification in response to ambiguous nonverbal cues from a patient, distinguishing it from nontherapeutic responses such as providing false reassurance or changing the subject.",
   target_audience: "Pre-licensure nursing students, first or second year",
-  total_duration_seconds: 75,
+  total_duration_seconds: 112,
   visual_style: "2D semi-flat limited animation. Characters have clean outlines, flat shading with subtle gradient, and muted clinical color palette. Emotional expression conveyed through head turns, eyebrow movement, hand gestures, and body weight shifts. Mouth movement suggests speech without precise phoneme sync. No realistic hair physics, no complex locomotion, no photorealistic textures. All scenes share the same hospital room interior. Screens such as tablets and vitals monitor are all static screens or angled away from camera, and labeled props are kept out of a clear view, so no on-screen text needs to be rendered.",
   characters: [
     {
@@ -1148,37 +1148,52 @@ const SAMPLE_SCRIPT = {
         {clip_id:1, dialogue:[{character_id:"nurse_maya", line:"Carl, I noticed you crossed your arms when I mentioned the doctor coming by. Is there something on your mind about that?"}], character_actions:"Maya pauses, sets her clipboard on the table, and shifts to face Carl more directly — the postural shift still completing as she begins speaking. Carl is looking at her.", camera:{angle:"Medium two-shot, then static cut to closer framing on Maya as she leans forward and asks.", movement:"Static.", lens_effect:"Same warm neutral."}},
         {clip_id:2, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"I just... I don't know what she's going to tell me. I'm a little scared, honestly."}], character_actions:"A beat of silence as Carl processes Maya's question. His shoulders begin to drop as he starts speaking — a slow exhale visible as the words come. His arms are unfolding mid-clip, still moving apart as he finishes his line. Maya listens without any expression that would interrupt him.", camera:{angle:"Carl arms unfolding mid-motion.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
         {clip_id:3, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"nurse_maya", line:"That makes a lot of sense. It's okay to feel that way — and I'm glad you told me. We can talk through what to expect before she comes in."}], character_actions:"Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face — the turn of his head not yet complete at the end of the clip.", camera:{angle:"Medium two-shot, then static cut to closer framing on Maya as she responds, then static cut back to two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
-        {clip_id:4, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"Yeah. Okay. ... Can I ask you something? Do you think it's gonna be bad?"}], character_actions:"Carl gives a small nod, then his fingers fidget with the edge of the blanket as he works up to the question. He looks directly at Maya as he asks — the eye contact holding as the clip ends, a flicker of worry still on his face. Maya's expression stays calm and open, weight settled at the bedside, posture unchanged.", camera:{angle:"Closer framing on Carl as he asks, then static cut to medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}}
+        {clip_id:4, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"Right. Yeah. I know."}], character_actions:"Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl.", camera:{angle:"Closer framing on Carl's closed posture, then static cut to medium two-shot.", movement:"Static.", lens_effect:"Slightly warm, neutral depth. No dramatic focus pulls."}}
       ],
       on_screen_text: null,
-      routes_to: {type:"decision_point", decision_point_id:2}
+      routes_to: {type:"scene", scene_id:4}
     },
     {
       scene_id: 4,
-      type: "consequence",
-      duration_seconds: 14,
+      type: "narrative",
+      duration_seconds: 15,
       setting: "Same hospital room, continuous from Scene 3.",
-      character_actions: "Maya offers a confident, reassuring smile; Carl's brief flicker of relief fades as he registers that his question was deflected, and he closes back up.",
-      camera: {angle:"Medium two-shot, then close on Carl as his expression flattens.", movement:"Static cuts only.", lens_effect:"Same warm neutral as Scene 3, the brighter feel dimming back toward Scene 1's."},
-      audio: {sound_effects:"Monitor beep continues softly.", ambience:"Same quiet hospital room ambience."},
+      character_actions: "Carl, now turned toward Maya and more settled, takes her up on the offer but pushes into the question underneath his fear. Maya holds an open, steady posture and lets him lead.",
+      camera: {angle:"Medium two-shot, with closer framing on Carl as he asks.", movement:"Static cuts only.", lens_effect:"Same warm neutral. Slightly brighter feel."},
+      audio: {sound_effects:"Soft ambient hospital room tone. Faint monitor beep in background.", ambience:"Same quiet hospital room. Slightly warmer feel."},
       clips: [
-        {clip_id:1, setting:"Same hospital room, continuing from Scene 3.", dialogue:[{character_id:"nurse_maya", line:"Honestly? I wouldn't worry too much. Your numbers have looked good to me, so I'm sure it's nothing serious."},{character_id:"patient_carl", line:"Right. Yeah. I know."}], character_actions:"Maya gives a confident, reassuring smile as she speaks. Carl's shoulders, which had begun to drop, draw back up; his arms refold across his chest and his jaw tightens, his gaze settling on the window in a fixed stare as he answers — the arms still finishing their fold as the clip ends.", camera:{angle:"Medium two-shot, then static cut to closer framing on Carl's closed posture.", movement:"Static.", lens_effect:"Same warm neutral, the brighter feel dimming."}}
+        {clip_id:1, dialogue:[{character_id:"patient_carl", line:"Yeah. I think I'd like that."},{character_id:"nurse_maya", line:"Good. We'll take it at your pace."}], character_actions:"Carl's shoulders stay loosened from the previous beat; he gives a small nod toward Maya. Maya returns a calm nod, her weight settled at the bedside — the nod still completing as the clip ends.", camera:{angle:"Medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
+        {clip_id:2, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"Can I ask you something, though? You've seen my chart — all my numbers. Just be straight with me… is it serious?"}], character_actions:"Carl's gaze is fully on Maya now, hands still in his lap, the guardedness replaced by a direct, vulnerable ask. He holds the question and waits — the room quiet, his eyes staying on her face as the clip ends.", camera:{angle:"Closer framing on Carl as he asks.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}}
       ],
       on_screen_text: null,
       routes_to: {type:"decision_point", decision_point_id:2}
     },
     {
       scene_id: 5,
+      type: "consequence",
+      duration_seconds: 15,
+      setting: "Same hospital room, continuous from Scene 4.",
+      character_actions: "Maya offers a confident, soothing read of his numbers. Carl visibly relaxes — which is exactly the problem: he anchors to a prediction she can't actually back.",
+      camera: {angle:"Medium two-shot, then close on Carl's relief.", movement:"Static cuts only.", lens_effect:"Same warm neutral."},
+      audio: {sound_effects:"Monitor beep continues softly.", ambience:"Same quiet hospital room ambience."},
+      clips: [
+        {clip_id:1, dialogue:[{character_id:"nurse_maya", line:"Honestly? Your numbers have looked stable to me. I'd be surprised if it's anything more than a small medication change."},{character_id:"patient_carl", line:"Yeah? Okay. That's a relief."}], character_actions:"Maya speaks with a reassuring, settled expression. Carl's remaining tension releases — shoulders dropping, a relieved half-smile forming as the clip ends. A faint, almost imperceptible hesitation crosses Maya's face as she registers she has committed to a prediction she can't stand behind.", sound_effects:"Monitor beep continues softly.", camera:{angle:"Medium two-shot, then static cut to close on Carl's relief.", movement:"Static.", lens_effect:"Same warm neutral."}}
+      ],
+      on_screen_text: null,
+      routes_to: {type:"decision_point", decision_point_id:2}
+    },
+    {
+      scene_id: 6,
       type: "resolution",
-      duration_seconds: 20,
-      setting: "Same hospital room, continuous from Scene 3.",
-      character_actions: "Maya holds Carl's gaze, speaks honestly without retreating; Carl exhales, his posture staying open, and gives a slow nod of agreement. By the end he is settled, still engaged with Maya rather than the window.",
-      camera: {angle:"Medium two-shot, with closer framing on each character during dialogue.", movement:"Static cuts only.", lens_effect:"Same warm neutral. Slightly brighter feel, sustained."},
+      duration_seconds: 22,
+      setting: "Same hospital room, continuous from Scene 4.",
+      character_actions: "Maya stays honest about what she does not know while staying present, then redirects Carl toward something he can control — the questions he wants answered. Carl settles not because he's been reassured, but because he feels accompanied.",
+      camera: {angle:"Medium two-shot, with closer framing on each character during dialogue.", movement:"Static cuts only.", lens_effect:"Same warm neutral. Slightly brighter feel."},
       audio: {sound_effects:"Soft ambient hospital room tone continues. No abrupt sound cues.", ambience:"Same quiet hospital room. Slightly warmer feel."},
       clips: [
-        {clip_id:1, setting:"Same hospital room, continuing from Scene 3.", dialogue:[{character_id:"nurse_maya", line:"I don't have your results in front of me, so anything I said would just be a guess, and I don't want to guess about something this important. What I can tell you is you won't be hearing it alone."}], character_actions:"Maya keeps steady eye contact, her tone even and warm. She gives a small, grounding nod as she finishes — the nod still settling as the clip ends. Carl watches her, arms staying unfolded in his lap.", camera:{angle:"Closer framing on Maya as she responds.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
-        {clip_id:2, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"...Okay. Yeah. That helps, actually."}], character_actions:"Carl lets out a slow breath and his shoulders ease further down. A small, tired nod — the nod still completing as the clip ends. His gaze stays on Maya rather than drifting to the window.", camera:{angle:"Closer framing on Carl, then static cut to medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
-        {clip_id:3, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"nurse_maya", line:"Want to jot a few questions down together before she comes in? That way you can ask her straight, and nothing slips your mind."}], character_actions:"Maya picks her clipboard back up and angles it so they can both see it, clicking a pen — the pen lifting toward the page as the clip ends, no writing yet. Carl shifts slightly toward her, beginning to lean in. Maya's posture stays open and unhurried.", camera:{angle:"Medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}}
+        {clip_id:1, dialogue:[{character_id:"nurse_maya", line:"I can hear how worried you are. And I won't pretend I know what she's going to say — I haven't seen those results yet."}], character_actions:"Maya keeps an open posture and steady eye contact, giving a slow, grounding nod that is still settling as the clip ends. Carl watches her, the relief-or-disappointment not yet resolved on his face.", camera:{angle:"Closer framing on Maya as she responds.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
+        {clip_id:2, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"nurse_maya", line:"But I'm right here, and I'm not going anywhere. Let's do something — tell me what you want to ask her."}], character_actions:"Maya lifts her clipboard, angled away from camera, pen ready — the lift still completing as the clip ends. Carl's posture is beginning to settle, his attention following her hands.", camera:{angle:"Medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}},
+        {clip_id:3, setting:"Same hospital room, continuing from the previous clip.", dialogue:[{character_id:"patient_carl", line:"Okay. Yeah. Let's write them down."}], character_actions:"Carl exhales and gives a small nod, his weight shifting from guarded to engaged — the nod still completing as the clip ends. Maya's pen is poised, her eyes on Carl rather than the page.", camera:{angle:"Closer framing on Carl, then static cut to medium two-shot.", movement:"Static.", lens_effect:"Same warm neutral. Slightly brighter feel."}}
       ],
       on_screen_text: null,
       routes_to: null
@@ -1207,21 +1222,21 @@ const SAMPLE_SCRIPT = {
     },
     {
       decision_point_id: 2,
-      question_text: "Carl has just trusted you with the fact that he's scared — and now he asks you directly whether you think the news will be bad. You don't have his test results, and interpreting them isn't your role. What do you say next?",
+      question_text: "Carl has opened up and now trusts you. He asks you to interpret his results — 'just be straight with me, is it serious?' You haven't seen the doctor's findings, and predicting them isn't part of your role. How do you respond?",
       choices: [
         {
           choice_id: "A",
-          text: "Be honest that you can't predict the results, and stay with him in the uncertainty: \"I don't have your results in front of me, so anything I said would just be a guess — and I don't want to guess about something this important. What I can tell you is you won't be hearing it alone. Want to write your questions down so you can ask the doctor straight away?\"",
+          text: "Stay honest about what you don't know while staying present: \"I can hear how worried you are. I haven't seen those results yet, so I can't tell you what she'll say — but I'm not going anywhere, and we can write down everything you want to ask her.\"",
           is_correct: true,
           misconception: null,
-          routes_to_scene: 5
+          routes_to_scene: 6
         },
         {
           choice_id: "B",
-          text: "Ease his worry with your best read of the situation: \"Honestly? I wouldn't worry too much — your numbers have looked good to me, so I'm sure it's nothing serious.\"",
+          text: "Reassure him by reading his numbers yourself: \"Honestly, your vitals have looked stable to me — I'd be surprised if it's anything more than a small medication change.\"",
           is_correct: false,
-          misconception: "Offering a personal prediction about the outcome is false reassurance resting on a promise the nurse can't keep. It steps outside the nurse's scope (interpreting results), and it trades the real fear Carl just risked sharing for temporary comfort. If the news turns out to be bad, the reassurance reads as a broken promise and can rupture trust; in the meantime it signals that his feeling is something to be smoothed over rather than explored, which tends to close the disclosure back down.",
-          routes_to_scene: 4
+          misconception: "Offering a clinical interpretation or outcome prediction outside the nurse's scope — even a reassuring one — replaces accurate information with a guess, can directly contradict what the provider is about to say, and risks a serious breach of trust if the news turns out differently. It also steers the patient away from getting answers from the person who actually has them.",
+          routes_to_scene: 5
         }
       ]
     }

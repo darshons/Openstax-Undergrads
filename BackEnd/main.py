@@ -23,9 +23,13 @@ app.add_middleware(
 )
 
 _UI_DIR = Path(__file__).parent.parent / "scenario-studio-ui"
+_DEMO_VIDEOS_DIR = Path(__file__).parent / "Video_Generation_Pipeline" / "output" / "demo"
 
 if _UI_DIR.exists():
     app.mount("/ui", StaticFiles(directory=str(_UI_DIR), html=True), name="ui")
+
+if _DEMO_VIDEOS_DIR.exists():
+    app.mount("/demo-videos", StaticFiles(directory=str(_DEMO_VIDEOS_DIR)), name="demo-videos")
 
 @app.get("/")
 def root():

@@ -2363,7 +2363,7 @@ function VideoPage({script, onBack}){
   }, []);
 
   const branchIds = new Set(
-    dps.flatMap(dp => dp.choices.map(c => c.routes_to_scene).filter(Boolean))
+    dps.flatMap(dp => dp.choices.map(c => c.routes_to_scene).filter(x => x != null))
   );
   const trunkScenes = scenes.filter(s => !branchIds.has(s.scene_id));
 

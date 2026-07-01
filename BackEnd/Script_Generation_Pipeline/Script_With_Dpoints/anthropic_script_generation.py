@@ -107,7 +107,7 @@ def delete_uploaded_file(file_id):
 
     for attempt in range(3):
         try:
-            client.beta.files.delete(file_id)
+            client.beta.files.delete(file_id=file_id)
             return
         except Exception as e:
             if attempt == 2:

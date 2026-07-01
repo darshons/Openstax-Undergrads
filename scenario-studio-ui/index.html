@@ -2351,7 +2351,7 @@ function VideoPage({script, onBack}){
   const dpMap = new Map(dps.map(dp => [dp.decision_point_id, dp]));
   const dpByScene = {};
   scenes.forEach(s => {
-    if (s.routes_to?.type === "decision_point") {
+    if (s.routes_to?.decision_point_id != null) {
       const dp = dpMap.get(s.routes_to.decision_point_id);
       if (dp) dpByScene[s.scene_id] = dp;
     }
@@ -2447,7 +2447,7 @@ function VideoPage({script, onBack}){
                                   <VideoClipCard scene={bs} choice={choice} branch
                                     selected={selectedId===bs.scene_id}
                                     onClick={()=>setSelectedId(bs.scene_id)} fmtDur={fmtDur}/>
-                                  {rt && <VideoArrowD
+                                  {choice.is_correct && rt && <VideoArrowD
                                     label={routeLabel}
                                     colorClass={isRetry?"retry":"continues"}/>}
                                 </div>

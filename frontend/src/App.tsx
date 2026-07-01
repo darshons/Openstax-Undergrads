@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type {
   Script,
   Scene,
@@ -11,8 +11,13 @@ import type {
 } from './types/script';
 import { fetchInitialScript } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
-
-// ── State ──────────────────────────────────────────────────────────────────
+import Sidebar from './components/layout/Sidebar';
+import GeneratePanel from './components/layout/GeneratePanel';
+import StageBar from './components/canvas/StageBar';
+import Canvas from './components/canvas/Canvas';
+import GenOverlay from './components/canvas/GenOverlay';
+import AssetsPage from './components/assets/AssetsPage';
+import VideoPage from './components/video/VideoPage';
 
 export default function App() {
   const [script, setScript] = useState<Script | null>(null);
@@ -25,6 +30,9 @@ export default function App() {
   const [zoom, setZoom] = useState(70);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const sidebarWidthRef = useRef(300);
+  const gridRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState<Page>('script');
 
   const [editingSceneIdx, setEditingSceneIdx] = useState<number | null>(null);
@@ -67,6 +75,40 @@ export default function App() {
       return next;
     });
   }, []);
+
+  // ── Sidebar resize ─────────────────────────────────────────────────────
+
+  function startDrag(e: React.MouseEvent) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebarWidthRef.current;
+    const grid = gridRef.current;
+
+    // Kill the CSS transition so every mousemove applies instantly
+    if (grid) grid.style.transition = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(ev: MouseEvent) {
+      const w = Math.max(200, Math.min(600, startW + ev.clientX - startX));
+      sidebarWidthRef.current = w;
+      // Write directly to the DOM — no React re-render lag
+      if (grid) grid.style.gridTemplateColumns = `${w}px 10px 1fr`;
+    }
+
+    function onUp() {
+      // Restore transition and sync React state
+      if (grid) grid.style.transition = '';
+      setSidebarWidth(sidebarWidthRef.current);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
 
   // ── Script mutations ────────────────────────────────────────────────────
 
@@ -188,25 +230,11 @@ export default function App() {
     }
   }, [selected, model, videoType, userQuery]);
 
-  // ── Derived display values ──────────────────────────────────────────────
+  // ── Derived values ──────────────────────────────────────────────────────
 
   const sceneCount = script?.scenes.length ?? 0;
   const totalSecs = script?.total_duration_seconds ?? 0;
-  const runtimeLabel = totalSecs
-    ? `${Math.floor(totalSecs / 60)}m ${totalSecs % 60}s`
-    : '—';
-
-  const statusClass =
-    busy   ? 'bg-[#fde7d8] text-[#a04412]' :
-    script ? 'bg-[#eef7df] text-[#4d6e1d]' :
-             'bg-[var(--os-bg-3)] text-[var(--os-ink-2)]';
-
-  const statusDotClass =
-    busy   ? 'bg-[var(--os-orange)] [animation:pulse_1.2s_ease-in-out_infinite]' :
-    script ? 'bg-[var(--os-green)] [box-shadow:0_0_0_3px_rgba(156,203,59,.2)]' :
-             'bg-[var(--os-ink-3)]';
-
-  const statusLabel = busy ? 'Generating' : script ? 'Draft ready' : 'Idle';
+  const runtimeLabel = totalSecs ? `${Math.floor(totalSecs / 60)}m ${totalSecs % 60}s` : '—';
 
   // ── Render ──────────────────────────────────────────────────────────────
 
@@ -216,9 +244,8 @@ export default function App() {
       {/* ── Topbar ─────────────────────────────────────────────────────── */}
       <header
         className="flex items-center justify-between px-[18px] bg-white border-b border-[var(--os-line)] z-[5]"
-        style={{ zoom: 0.78 }}
+        style={{ zoom: 1.3 }}
       >
-        {/* Brand */}
         <div className="flex items-center gap-[14px]">
           <div className="flex flex-col gap-[3px]" aria-hidden>
             <span className="block h-[3px] rounded-sm w-[22px] ml-[6px]  bg-[var(--os-green)]" />
@@ -235,19 +262,10 @@ export default function App() {
             <b className="text-[var(--os-ink)] font-bold">Scenario Studio</b> · Internal
           </div>
         </div>
-
-        {/* Breadcrumb + avatar */}
         <div className="flex items-center gap-2 text-[12px] text-[var(--os-ink-2)]">
           <div className="flex items-center gap-2">
-            <span
-              className="w-1.5 h-1.5 rounded-full bg-[var(--os-green)]"
-              style={{ boxShadow: '0 0 0 3px rgba(156,203,59,.22)' }}
-            />
-            <span>
-              Project · <b className="text-[var(--os-ink)] font-bold">
-                {script?.title ?? 'Untitled scenario'}
-              </b>
-            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--os-green)]" style={{ boxShadow: '0 0 0 3px rgba(156,203,59,.22)' }} />
+            <span>Project · <b className="text-[var(--os-ink)] font-bold">{script?.title ?? 'Untitled scenario'}</b></span>
           </div>
           <div
             className="w-[30px] h-[30px] rounded-full text-white text-[11px] font-bold flex items-center justify-center tracking-[0.02em]"
@@ -262,105 +280,130 @@ export default function App() {
       <div className="min-h-0 overflow-hidden">
 
         {currentPage === 'assets' && script && (
-          <div className="h-full flex items-center justify-center bg-[var(--os-bg-2)] text-[var(--os-ink-3)] text-sm">
-            AssetsPage — coming soon
+          <div className="h-full flex flex-col overflow-auto">
+            <AssetsPage
+              script={script}
+              onBack={() => setCurrentPage('script')}
+              onViewVideos={() => setCurrentPage('videos')}
+            />
           </div>
         )}
 
         {currentPage === 'videos' && script && (
-          <div className="h-full flex items-center justify-center bg-[var(--os-bg-2)] text-[var(--os-ink-3)] text-sm">
-            VideoPage — coming soon
+          <div className="h-full flex flex-col overflow-auto">
+            <VideoPage
+              script={script}
+              onBack={() => setCurrentPage('assets')}
+            />
           </div>
         )}
 
         {/* ── Script canvas: sidebar + stage ─────────────────────────── */}
         <div
+          ref={gridRef}
           className={[
             'grid min-h-0 h-full',
             'transition-[grid-template-columns] duration-[220ms] ease-in-out',
             currentPage !== 'script' ? 'hidden' : '',
           ].join(' ')}
-          style={{ gridTemplateColumns: sidebarOpen ? '300px 1fr' : '0px 1fr' }}
+          style={{ gridTemplateColumns: sidebarOpen ? `${sidebarWidth}px 10px 1fr` : '0px 0px 1fr' }}
         >
 
           {/* Sidebar wrap */}
           <div
-            className={[
-              'flex flex-col min-h-0 overflow-hidden bg-white',
-              sidebarOpen ? 'border-r border-[var(--os-line)]' : '',
-            ].join(' ')}
-            style={{ zoom: 0.82 }}
+            className="flex flex-col min-h-0 overflow-hidden bg-white"
+            style={{ zoom: 0.95 }}
           >
-            {/* Sidebar + GeneratePanel will mount here */}
-            <div className="flex-1 flex items-center justify-center text-xs text-[var(--os-ink-3)]">
-              Sidebar
-            </div>
-            <div className="border-t border-[var(--os-line)] px-[18px] py-[14px] shrink-0 text-xs text-[var(--os-ink-3)]">
-              GeneratePanel
-            </div>
+            <Sidebar
+              selected={selected}
+              toggleSec={toggleSec}
+              toggleChap={toggleChap}
+              search={search}
+              setSearch={setSearch}
+              filter={filter}
+              setFilter={setFilter}
+            />
+            <GeneratePanel
+              selected={selected}
+              removeSec={removeSec}
+              onGenerate={runGenerate}
+              busy={busy}
+              hasScript={!!script}
+              model={model}
+              setModel={setModel}
+              videoType={videoType}
+              setVideoType={setVideoType}
+              userQuery={userQuery}
+              setUserQuery={setUserQuery}
+              genError={genError}
+            />
           </div>
+
+          {/* Resize handle */}
+          <div className="resize-handle" onMouseDown={startDrag} />
 
           {/* Stage */}
           <div className="relative min-h-0 flex flex-col overflow-hidden">
-
-            {/* Stage bar */}
-            <div
-              className="flex items-center justify-between px-6 py-3 bg-white border-b border-[var(--os-line)] z-[2] shrink-0"
-              style={{ zoom: 0.82 }}
-            >
-              <div className="flex items-center gap-[14px]">
-                <button
-                  className="flex items-center justify-center w-6 h-6 rounded-md border border-[var(--os-line)] bg-white text-[11px] text-[var(--os-ink-2)] hover:bg-[var(--os-bg-3)] hover:text-[var(--os-ink)]"
-                  onClick={() => setSidebarOpen(o => !o)}
-                  title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-                >
-                  {sidebarOpen ? '‹' : '›'}
-                </button>
-                <h2 className="text-[15px] font-bold text-[var(--os-ink)] m-0">
-                  Storyboard canvas{' '}
-                  <em className="not-italic text-[var(--os-ink-3)] font-normal ml-1.5">
-                    {script ? `${sceneCount} scenes · ${runtimeLabel}` : 'no script yet'}
-                  </em>
-                </h2>
-                <div className={`text-[11.5px] flex items-center gap-1.5 px-[9px] py-[3px] rounded-full font-semibold ${statusClass}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${statusDotClass}`} />
-                  {statusLabel}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {deleteUndoStack.length > 0 && (
-                  <button
-                    className="inline-flex items-center gap-1.5 px-[10px] py-[6px] rounded-md text-[12px] font-semibold text-[var(--os-ink-2)] border border-[var(--os-line)] hover:bg-[var(--os-bg-3)] hover:text-[var(--os-ink)]"
-                    onClick={undoDelete}
-                  >
-                    ↩ Undo delete
-                  </button>
-                )}
-                {/* StageBar controls (view mode, zoom, export) — separate component */}
-                <span className="text-[11px] text-[var(--os-ink-3)] font-medium">
-                  View · Zoom
-                </span>
-              </div>
-            </div>
+            <StageBar
+              script={script}
+              busy={busy}
+              sceneCount={sceneCount}
+              runtimeLabel={runtimeLabel}
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+              deleteUndoStack={deleteUndoStack}
+              undoDelete={undoDelete}
+              zoom={zoom}
+              setZoom={setZoom}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              videoType={videoType}
+              setCurrentPage={setCurrentPage}
+            />
 
             {/* Canvas */}
             <div className="flex-1 min-h-0 relative overflow-auto canvas-bg">
+              {!script && !busy && (
+                <div className="empty">
+                  <div className="empty-card">
+                    <div className="empty-illust"><div /><div /><div /></div>
+                    <h2>Your script will appear here as a storyboard</h2>
+                    <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{ color: 'var(--os-orange)' }}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
+                  </div>
+                </div>
+              )}
               <div
                 className="p-[40px_52px_200px] min-w-[3200px] origin-top-left transition-transform duration-200"
                 style={{ transform: `scale(${zoom / 100})` }}
               >
-                {!script && (
-                  <div className="flex items-center justify-center h-64 text-[var(--os-ink-3)] text-sm italic">
-                    Generate a script to get started
-                  </div>
+                {script && (
+                  <Canvas
+                    script={script}
+                    selected={selected}
+                    sceneCount={sceneCount}
+                    runtimeLabel={runtimeLabel}
+                    viewMode={viewMode}
+                    density="comfy"
+                    editingSceneIdx={editingSceneIdx}
+                    setEditingSceneIdx={setEditingSceneIdx}
+                    editingCharacterIdx={editingCharacterIdx}
+                    setEditingCharacterIdx={setEditingCharacterIdx}
+                    saveSceneEdit={saveSceneEdit}
+                    deleteScene={deleteScene}
+                    moveScene={moveScene}
+                    saveCharacterEdit={saveCharacterEdit}
+                    updateDecisionPoint={updateDecisionPoint}
+                    addDecisionPoint={addDecisionPoint}
+                    updateScriptField={updateScriptField}
+                  />
                 )}
               </div>
+              {busy && <GenOverlay step={genStep} />}
             </div>
 
-          </div>{/* /stage */}
-        </div>{/* /script canvas grid */}
-      </div>{/* /page area */}
+          </div>
+        </div>
+      </div>
 
     </div>
   );

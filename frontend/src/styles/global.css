@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* ── OpenStax design tokens ─────────────────────────────────────────────── */
+:root {
+  --os-navy:         #002569;
+  --os-navy-ink:     #0b1a3d;
+  --os-orange:       #f36f21;
+  --os-orange-tint:  #fde7d8;
+  --os-green:        #9ccb3b;
+  --os-yellow:       #f4c61f;
+  --os-gray:         #5e6a71;
+  --os-line:         #e6e8ec;
+  --os-line-strong:  #cdd2d9;
+  --os-bg:           #ffffff;
+  --os-bg-2:         #fafbfc;
+  --os-bg-3:         #f3f5f8;
+  --os-ink:          #1d2330;
+  --os-ink-2:        #4a525f;
+  --os-ink-3:        #7a828f;
+  --shadow-sm:       0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.03);
+  --shadow-md:       0 4px 14px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+  --shadow-lg:       0 18px 48px -16px rgba(15,23,42,.18), 0 6px 16px rgba(15,23,42,.06);
+}
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--os-bg-2);
+  color: var(--os-ink);
+  font-family: "Lato", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+input, textarea { font-family: inherit; color: inherit; }
+
+/* ── Shared utilities ─────────────────────────────────────────────────────── */
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+/* Canvas dot-grid background */
+.canvas-bg {
+  background:
+    radial-gradient(circle, #d8dde5 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--os-bg-2);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes spin    { to   { transform: rotate(360deg); } }
+@keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }

@@ -138,7 +138,8 @@ def get_dummy_paths(target: str):
         case "video":
             return {"video_paths": {
                 "video_paths": [{"scene_id": "1", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_1.mp4")},
-                                {"scene_id": "2", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_2.mp4")}],
+                                {"scene_id": "2", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_2.mp4")},
+                                {"scene_id": "3", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_3.mp4")}],
                 "manim_path": str(BACKEND_DIR / "demo_manim_video" / "therapeutic_communication_combined.mp4"),
             }}
 

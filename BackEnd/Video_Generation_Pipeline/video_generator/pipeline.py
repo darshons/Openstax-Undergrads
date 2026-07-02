@@ -22,7 +22,9 @@ from .veo_api import (
 )
 
 
-def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, first_clip_seconds=8):
+def run_scene_pipeline(
+    client, scene_id, clip_prompts, reference_images=None, first_clip_seconds=8
+):
     """
     Generate one scene as a single continuous video via Veo extension.
 
@@ -33,7 +35,9 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     if num_clips < 1:
         raise ValueError("clip_prompts is empty — nothing to generate.")
     if first_clip_seconds not in VALID_FIRST_CLIP_SECONDS:
-        raise ValueError(f"first_clip_seconds must be one of {VALID_FIRST_CLIP_SECONDS}.")
+        raise ValueError(
+            f"first_clip_seconds must be one of {VALID_FIRST_CLIP_SECONDS}."
+        )
     if num_clips > MAX_CLIPS:
         raise ValueError(
             f"{num_clips} clips exceeds Veo's extension ceiling of {MAX_CLIPS} "
@@ -51,15 +55,20 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     total_retries = 0
 
     video_obj, attempts = generate_first_clip(
-        client, clip_prompts[0], clip_index=1,
-        reference_images=reference_images, duration_seconds=first_clip_seconds,
+        client,
+        clip_prompts[0],
+        clip_index=1,
+        reference_images=reference_images,
+        duration_seconds=first_clip_seconds,
     )
     total_retries += attempts - 1
 
     i = 1
     try:
         for i, prompt in enumerate(clip_prompts[1:], start=2):
-            video_obj, attempts = generate_extension_clip(client, prompt, video_obj, clip_index=i)
+            video_obj, attempts = generate_extension_clip(
+                client, prompt, video_obj, clip_index=i
+            )
             total_retries += attempts - 1
             if i < num_clips:
                 print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")
@@ -67,7 +76,9 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     except Exception as e:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         completed_clips = i - 1
-        checkpoint = str(OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4")
+        checkpoint = str(
+            OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
+        )
         download_video(client, video_obj, checkpoint)
         print(f"\n  Extension failed at clip {i}: {e}")
         print(f"  Last good video saved: {checkpoint}")
@@ -81,7 +92,9 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
         # Fallback: estimate from clip count when moviepy is unavailable
         if vid_dur is None:
             effective_first = 8 if reference_images else first_clip_seconds
-            vid_dur = round(effective_first + (completed_clips - 1) * EXTENSION_SECONDS, 1)
+            vid_dur = round(
+                effective_first + (completed_clips - 1) * EXTENSION_SECONDS, 1
+            )
         ref_count = len(reference_images) if reference_images else 0
         log_generation(
             scene_id=scene_id,
@@ -104,7 +117,9 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     sprite_label = "sprites" if reference_images else "no_sprites"
-    final_path = str(OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4")
+    final_path = str(
+        OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4"
+    )
     download_video(client, video_obj, final_path)
 
     wall_time = time.time() - start_time
@@ -134,7 +149,9 @@ def run_scene_pipeline(client, scene_id, clip_prompts, reference_images=None, fi
     return final_path
 
 
-def run_scenario_pipeline(client, scenario: dict, reference_images: list = None) -> list:
+def run_scenario_pipeline(
+    client, scenario: dict, reference_images: list = None
+) -> list:
     """
     Build clip prompts for every scene and run the stitching pipeline for each.
     Returns a list of result dicts: {scene_id, success, output_file, error}.
@@ -154,8 +171,22 @@ def run_scenario_pipeline(client, scenario: dict, reference_images: list = None)
                 clip_prompts=clip_prompts,
                 reference_images=reference_images,
             )
-            results.append({"scene_id": scene_id, "success": True, "output_file": final_path, "error": None})
+            results.append(
+                {
+                    "scene_id": scene_id,
+                    "success": True,
+                    "output_file": final_path,
+                    "error": None,
+                }
+            )
         except Exception as e:
-            results.append({"scene_id": scene_id, "success": False, "output_file": None, "error": str(e)})
+            results.append(
+                {
+                    "scene_id": scene_id,
+                    "success": False,
+                    "output_file": None,
+                    "error": str(e),
+                }
+            )
 
     return results

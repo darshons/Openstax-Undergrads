@@ -4,14 +4,11 @@ from pathlib import Path
 import tempfile
 
 
+# This function creates a temporary JSON file containing the background information extracted from the provided JSON script. It returns the path to the temporary JSON file.
 def process_background_json(json_script: str) -> str:
     data = json.loads(json_script)
 
     background_file_path = None
-
-    # PROJECT_DIR = Path(__file__).resolve().parents[1]
-
-    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
 
     dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
 

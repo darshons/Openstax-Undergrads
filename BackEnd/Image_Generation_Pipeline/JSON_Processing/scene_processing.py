@@ -3,16 +3,13 @@ import tempfile
 from pathlib import Path
 
 
+# This function creates a temporary JSON file containing the scene information extracted from the provided JSON script. It returns a dictionary mapping scene IDs to the paths of the temporary JSON files.
 def process_scene_json(
     json_script: str, character_image_file_mapping: dict, scene_id: str | None = None
 ) -> dict:
     data = json.loads(json_script)
 
     scene_file_mapping = {}
-
-    # PROJECT_DIR = Path(__file__).resolve().parents[1]
-
-    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
 
     dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
 

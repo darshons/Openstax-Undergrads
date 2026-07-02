@@ -1,12 +1,19 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 
-from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
-import Script_Generation_Pipeline.Script_With_Dpoints.anthropic_script_generation as anthropic_script_generation
-import Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation as gemini_script_generation
-import Image_Generation_Pipeline.Background_Generation.gemini_background_generate as gemini_background_generation
-import Image_Generation_Pipeline.Character_Generation.gemini_character_generate as gemini_character_generation
-import Image_Generation_Pipeline.Frame_Generation.gemini_frame_generate as gemini_frame_generation
+from Script_Generation_Pipeline import crawl
+from Script_Generation_Pipeline import (
+    generate_script_with_decision_points_anthropic,
+    delete_uploaded_files_anthropic,
+    generate_script_with_decision_points_gemini,
+    delete_uploaded_files_gemini,
+)
+from Image_Generation_Pipeline import (
+    generate_background,
+    generate_characters,
+    generate_opening_frames,
+)
+
 
 from pydantic import BaseModel
 from pathlib import Path
@@ -112,26 +119,18 @@ def generate_initial_script(
     initial_script = None
 
     if scene_information.model_choice == "anthropic":
-        initial_script, file_ids = (
-            anthropic_script_generation.generate_script_with_decision_points(
-                str(md_path), scene_information.user_query
-            )
+        initial_script, file_ids = generate_script_with_decision_points_anthropic(
+            str(md_path), scene_information.user_query
         )
 
-        background_tasks.add_task(
-            anthropic_script_generation.delete_uploaded_files, file_ids
-        )
+        background_tasks.add_task(delete_uploaded_files_anthropic, file_ids)
 
     elif scene_information.model_choice == "gemini":
-        initial_script, file_ids = (
-            gemini_script_generation.generate_script_with_decision_points(
-                str(md_path), scene_information.user_query
-            )
+        initial_script, file_ids = generate_script_with_decision_points_gemini(
+            str(md_path), scene_information.user_query
         )
 
-        background_tasks.add_task(
-            gemini_script_generation.delete_uploaded_files, file_ids
-        )
+        background_tasks.add_task(delete_uploaded_files_gemini, file_ids)
 
     background_tasks.add_task(
         delete_local_files, [md_path]
@@ -162,9 +161,7 @@ def generate_background_image(
         background_image_file_path,
         background_uploaded_file_names,
         background_json_file_path,
-    ) = gemini_background_generation.generate_background(
-        request.script, request.request_id
-    )
+    ) = generate_background(request.script, request.request_id)
 
     local_file_paths_to_delete = background_json_file_path
 
@@ -173,7 +170,7 @@ def generate_background_image(
     uploaded_file_names_to_delete = background_uploaded_file_names
 
     background_tasks.add_task(
-        gemini_script_generation.delete_uploaded_files, uploaded_file_names_to_delete
+        delete_uploaded_files_gemini, uploaded_file_names_to_delete
     )
 
     if background_image_file_path is None:
@@ -208,7 +205,7 @@ def generate_character_images(
     uploaded_file_names_to_delete = character_uploaded_file_names
 
     background_tasks.add_task(
-        gemini_script_generation.delete_uploaded_files, uploaded_file_names_to_delete
+        delete_uploaded_files_gemini, uploaded_file_names_to_delete
     )
 
     if character_image_file_mapping is None or len(character_image_file_mapping) == 0:
@@ -232,9 +229,7 @@ def generate_character_images_impl(
         character_image_file_mapping,
         character_uploaded_file_names,
         character_json_file_paths,
-    ) = gemini_character_generation.generate_characters(
-        script, request_id, character_id
-    )
+    ) = generate_characters(script, request_id, character_id)
 
     return (
         character_image_file_mapping,
@@ -245,7 +240,7 @@ def generate_character_images_impl(
 
 # This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
 @api_router.post("/generate_opening_frames")
-def generate_opening_frames(
+def generate_opening_frame_images(
     request: ImageGenerationRequest,
     background_tasks: BackgroundTasks,
 ) -> dict:
@@ -259,7 +254,7 @@ def generate_opening_frames(
         )
 
     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        generate_opening_frames_impl(
+        generate_opening_frame_images_impl(
             request.script,
             request.background_image_path,
             request.character_image_file_mapping,
@@ -269,9 +264,7 @@ def generate_opening_frames(
 
     background_tasks.add_task(delete_local_files, scene_json_file_paths)
 
-    background_tasks.add_task(
-        gemini_script_generation.delete_uploaded_files, uploaded_file_names
-    )
+    background_tasks.add_task(delete_uploaded_files_gemini, uploaded_file_names)
 
     if (
         opening_scene_frame_file_mapping is None
@@ -289,7 +282,7 @@ def generate_opening_frames(
 
 
 # This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
-def generate_opening_frames_impl(
+def generate_opening_frame_images_impl(
     script: dict[str, Any],
     background_image_path: str,
     character_image_file_mapping: dict[str, str],
@@ -297,7 +290,7 @@ def generate_opening_frames_impl(
     scene_id: str | None = None,
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        gemini_frame_generation.generate_frames(
+        generate_opening_frames(
             script,
             background_image_path,
             character_image_file_mapping,
@@ -353,7 +346,7 @@ def retry_generate_character_image(
         uploaded_file_names_to_delete = character_uploaded_file_names
 
         background_tasks.add_task(
-            gemini_script_generation.delete_uploaded_files,
+            delete_uploaded_files_gemini,
             uploaded_file_names_to_delete,
         )
 
@@ -397,7 +390,7 @@ def retry_generate_opening_frames(
             opening_scene_frame_file_mapping,
             uploaded_file_names,
             scene_json_file_paths,
-        ) = generate_opening_frames_impl(
+        ) = generate_opening_frame_images_impl(
             image_retry_request.image_request.script,
             image_retry_request.image_request.background_image_path,
             image_retry_request.image_request.character_image_file_mapping,
@@ -412,7 +405,7 @@ def retry_generate_opening_frames(
         uploaded_file_names_to_delete = uploaded_file_names
 
         background_tasks.add_task(
-            gemini_script_generation.delete_uploaded_files,
+            delete_uploaded_files_gemini,
             uploaded_file_names_to_delete,
         )
 

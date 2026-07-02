@@ -16,7 +16,7 @@ def setup_async_anthropic_client():
     return client
 
 
-def generate_script_with_decision_points(
+def generate_script_with_decision_points_anthropic(
     markdown_file_path, user_query
 ) -> tuple[dict | None, list[str | None]]:
 
@@ -138,7 +138,7 @@ def generate_script_with_decision_points(
     return output_json, [uploaded_md.id, uploaded_json.id]
 
 
-async def delete_uploaded_files(file_ids: list):
+async def delete_uploaded_files_anthropic(file_ids: list):
     client = setup_async_anthropic_client()
     await asyncio.gather(
         *(delete_uploaded_file(client, file_id) for file_id in file_ids)

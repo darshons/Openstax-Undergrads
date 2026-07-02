@@ -1,11 +1,7 @@
-from Image_Generation_Pipeline.JSON_Processing.scene_processing import (
-    process_scene_json,
-)
+from .._JSON_Processing import process_scene_json
 from google import genai
 from google.genai import types
-from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation import (
-    setup_gemini_client,
-)
+from Script_Generation_Pipeline import setup_gemini_client
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
@@ -13,7 +9,7 @@ import tempfile
 
 
 # This function generates opening frame images for each scene in the provided JSON script, using character and background reference images. It returns a mapping of scene IDs to generated opening frame image file paths, a list of uploaded file names for cleanup, and a list of local JSON file paths for cleanup.
-def generate_frames(
+def generate_opening_frames(
     json_script,
     character_image_file_mapping,
     background_image_file_path,

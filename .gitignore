@@ -43,5 +43,3 @@ __pycache__/
 
 # macOS
 .DS_Store
-test.py
-pyrefly.toml

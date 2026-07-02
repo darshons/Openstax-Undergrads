@@ -40,10 +40,7 @@ def generate_opening_frames(
           "setting": {
         "location": "",
         "scene_description": "",
-        "light_source": "", 
-        "time_of_day": "",
-        "atmosphere": "",
-        "light_source": "", 
+        "light_source": "",
         "time_of_day": "",
         "atmosphere": "",
         "background_furniture": [

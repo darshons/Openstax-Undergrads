@@ -1,14 +1,14 @@
 import os
-from pathlib import Path
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from api import api_router
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from pathlib import Path
 import uvicorn
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+
+load_dotenv(BASE_DIR / "backend.env")
 
 app = FastAPI(title="OpenStax Video Scenario Generation API")
 
@@ -22,20 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_UI_DIR = Path(__file__).parent.parent / "scenario-studio-ui"
-_DEMO_VIDEOS_DIR = Path(__file__).parent / "Video_Generation_Pipeline" / "output" / "demo"
-
-if _UI_DIR.exists():
-    app.mount("/ui", StaticFiles(directory=str(_UI_DIR), html=True), name="ui")
-
-if _DEMO_VIDEOS_DIR.exists():
-    app.mount("/demo-videos", StaticFiles(directory=str(_DEMO_VIDEOS_DIR)), name="demo-videos")
 
 @app.get("/")
 def root():
-    if _UI_DIR.exists():
-        return RedirectResponse(url="/ui/")
-    return {"message": "Welcome to the OpenStax Video Scenario Generation API by Team YAMS! Visit /docs for API documentation."}
+    return {
+        "message": "Welcome to the OpenStax Video Scenario Generation API by Team YAMS! Visit /docs for API documentation."
+    }
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

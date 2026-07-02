@@ -1,0 +1,1 @@
+from .gemini_character_generate import generate_characters

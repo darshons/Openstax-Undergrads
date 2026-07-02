@@ -1,11 +1,7 @@
-from Image_Generation_Pipeline.JSON_Processing.background_processing import (
-    process_background_json,
-)
+from .._JSON_Processing import process_background_json
 from google import genai
 from google.genai import types
-from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation import (
-    setup_gemini_client,
-)
+from Script_Generation_Pipeline import setup_gemini_client
 from PIL import Image
 from io import BytesIO
 from pathlib import Path

@@ -14,7 +14,7 @@ def setup_gemini_client():
 
 
 # This function generates a script with decision points based on the provided Markdown file and user query. It returns the generated JSON script and a list of uploaded file names.
-def generate_script_with_decision_points(
+def generate_script_with_decision_points_gemini(
     markdown_file_path, user_query
 ) -> tuple[dict | None, list[str | None]]:
     client = setup_gemini_client()
@@ -110,7 +110,7 @@ def generate_script_with_decision_points(
 
 
 # This function deletes all uploaded files from the Gemini client and is designed to be called asynchronously.
-async def delete_uploaded_files(file_names: list):
+async def delete_uploaded_files_gemini(file_names: list):
     client = setup_gemini_client()
     await asyncio.gather(
         *(delete_uploaded_file(client, file_name) for file_name in file_names)

@@ -1,132 +1,165 @@
-# OpenStax Chemistry — Limiting Reactant Prototype
+# OpenStax Scenario Studio
 
-A 60–90 second Manim Community Edition prototype demonstrating an interactive
-educational scenario built from OpenStax chemistry content.
+An internal authoring tool that lets OpenStax content editors generate, review, and refine **interactive educational scenario scripts** grounded in real OpenStax textbook content — then hand them off to a video generation pipeline.
 
-## Render
-
-```bash
-pip install manim
-manim -pql limiting_reactant.py LimitingReactantScene
-```
-
-- `-p` previews on completion, `-ql` renders at 480p for fast iteration.
-- For the spec'd 720p30, the file already pins `pixel_width=1280`,
-  `pixel_height=720`, `frame_rate=30` via `config`, so any quality flag
-  produces 720p30. To get the full-quality cached render, drop `-ql`:
-  `manim -p limiting_reactant.py LimitingReactantScene`.
-
-## What the prototype demonstrates
-
-1. **Recurring character with consistent visual identity** — `ProfessorChen`
-   is a `VGroup` subclass with `wave()`, `point_at(obj)`, and `say(text)`
-   methods. Same instance can appear across hundreds of scenarios.
-2. **Subject-specific visual asset** — `Beaker` is a parametric VGroup
-   (`label`, `mass`, `fill_level`, `fill_color`) reusable across any
-   chemistry scenario.
-3. **Textbook-grounded explanation, animated diagrammatically** — MathTex
-   stoichiometry walk-through using 6 g H₂ + 32 g O₂, identifying O₂ as
-   the limiting reactant via mole comparison.
-4. **Pause-and-answer moment** — final scene holds a multiple-choice
-   question frame for ~6 s, ready for a player layer to gate playback
-   on a user response.
-
-## Scene timing
-
-| Scene | Duration | Content |
-| --- | --- | --- |
-| 1. Intro | ~10 s | Chen fades in, waves, poses the problem |
-| 2. Setup | ~20 s | Beakers + balanced equation, Chen points |
-| 3. Concept | ~30 s | Gram→mole conversions, ratio check, O₂ highlighted as limiting |
-| 4. Decision | ~15 s | "Which reactant is limiting?" with A/B/C options |
-
-## Why this beats text-to-video for OpenStax content
-
-- **Deterministic character consistency** — Chen is the same VGroup every
-  render. Veo/Sora can't guarantee her goggles stay on between scenes.
-- **Near-zero per-render cost** — local Manim render vs. per-second
-  generation pricing.
-- **Scientific accuracy** — correct glassware shape, correctly balanced
-  equation, correct stoichiometric arithmetic, correct visual conventions
-  (limiting reactant highlighted, not just narrated).
-- **Composable with OpenStax assets** — the same `Beaker` and `MathTex`
-  primitives that drive this scene can ingest problem JSON straight from
-  the OpenStax textbook to autogenerate scenarios.
-
-## What a production system would extend
-
-- **Illustrator-designed character.** Replace `ProfessorChen`'s primitive
-  body with `SVGMobject("assets/chen.svg")`. The class's public surface
-  (`wave`, `point_at`, `say`) stays unchanged — scenario scripts don't
-  need to know.
-- **Asset library.** Same pattern for `GraduatedCylinder`, `BunsenBurner`,
-  `Erlenmeyer`, `RoundBottomFlask`, `Buret`, then beyond chemistry:
-  `Neuron`, `FreeBodyDiagram`, `SupplyDemandCurve`, `Histogram`.
-- **Voiceover.** Manim's `manim-voiceover` plugin lets you script Chen's
-  speech and auto-sync TTS with animation, removing the static caption
-  bubbles.
-- **Scenario generator.** A small layer that consumes OpenStax problem
-  JSON (`{reactants: [{formula:"H2", mass:6}, ...], question:"..."}`)
-  and emits a `Scene` like this one. The hand-written prototype is the
-  proof that the target output is achievable; the generator becomes the
-  product.
-- **Branching from the decision frame.** The pause-frame becomes a real
-  interactive checkpoint when wrapped in a player that listens for the
-  learner's selection and routes to one of three follow-up Manim scenes
-  (correct, partial, incorrect — each with tailored remediation).
-- **Reusable answer-key & analytics hooks.** The multiple-choice options
-  are already labelled A/B/C in code; a thin export step would emit them
-  to a learning-record store alongside the video.
+Built by Team DJ YAM.
 
 ---
 
-## Getting Started for Developers
+## What it does
 
-### 1. Start the local Postgres database
+1. **Pick a textbook section** from the sidebar (Biology 2e, Clinical Nursing, Anatomy & Physiology, and more).
+2. **Describe a scenario** — e.g. *"A nursing student watches a patient's glucose metabolism in real time."*
+3. **Choose a model** (Anthropic Claude or Google Gemini) and a **video type** (Veo · Scenario or Manim · Graphics).
+4. **Generate** — the backend crawls the relevant OpenStax HTML, feeds it to the LLM, and returns a structured JSON script with scenes, characters, decision points, and a setting description.
+5. **Edit inline** — scene cards, character cards, and a setting panel are all editable in the browser. Decision-point branches are shown as an interactive tree; click a choice pill to mark it as the correct answer.
+6. **Save & export** — submit the finished script back to the backend, or download it as JSON.
 
-```bash
-docker run --name prototype-db \
-  -e POSTGRES_PASSWORD=YourPasswordHere \
-  -e POSTGRES_DB=scenario_db \
-  -p 5432:5432 \
-  -d postgres
+---
+
+## Project structure
+
+```
+.
+├── frontend/                        # React frontend (Vite)
+│   └── src/
+│
+└── backend/                         # FastAPI backend
+    ├── main.py                      # App entry point + CORS config
+    ├── api.py                       # Route handlers (/api/initial_script, /api/modified_script)
+    ├── Script_Generation_Pipeline/
+    │   ├── Preprocessing/           # OpenStax HTML crawler → Markdown
+    │   ├── Script_With_Dpoints/     # Anthropic + Gemini LLM script generators (with branching)
+    │   ├── Script_Without_Dpoints/  # Linear script generators
+    │   ├── Dpoints_Separate/        # Add decision points to an existing linear script
+    │   └── JSON_Templates/          # Output schemas the LLM must follow
+    ├── Image_Generation_Pipeline/
+    │   ├── Character_Generation/
+    │   └── Frame_Generation/
+    └── Video_Generation_Pipeline/
+        ├── scenario.json            # Example scenario
+        ├── test_prompt.py           # Print prompts without calling Veo
+        └── video_generator/         # Generation package — see its README
 ```
 
-### 2. Configure environment variables
+---
 
-```bash
-cp backend/.env.example backend/.env
-# Open backend/.env and replace YourPasswordHere with the password you used above.
-```
+## Running locally
 
-### 3. Create and activate a Python virtual environment
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 4. Install dependencies
-
-```bash
-pip install -r backend/requirements.txt
-```
-
-### 5. Build the database tables
+### 1. Start the backend
 
 ```bash
 cd backend
-python init_db.py
+python3 -m venv venv && source venv/bin/activate
+pip install -r backend_requirement.txt
+
+# Set your API keys
+export ANTHROPIC_API_KEY=sk-ant-...
+export GEMINI_API_KEY=...
+
+python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 6. Seed test data
+Interactive API docs at <http://localhost:8000/docs>.
+
+### 2. Serve the UI
+
+No build step needed — it's plain HTML.
 
 ```bash
-python seed_db.py
+cd scenario-studio-ui
+npx serve .          # serves on :3000
+# or
+python3 -m http.server 8080
 ```
 
-You should see output like:
+Open the printed URL. The UI auto-connects to `http://localhost:8000`; to override, add before `api.js` in `index.html`:
+
+```html
+<script>window.OS_API_BASE = "http://my-backend:9000";</script>
 ```
-Seed complete.
-Created scenario ID: <uuid>
+
+---
+
+## API endpoints
+
+| Method | Path | What it does |
+|--------|------|--------------|
+| `POST` | `/api/initial_script` | Crawls the requested OpenStax section, sends content + user query to the chosen LLM, returns a full script JSON |
+| `POST` | `/api/modified_script` | Receives the user-edited script for downstream processing |
+
+### `POST /api/initial_script` request body
+
+```json
+{
+  "book_title": "Biology 2e",
+  "unit_num": 3,
+  "chapter_num": 9,
+  "page_num": "9.1",
+  "user_query": "A nursing student watches glucose metabolism in real time.",
+  "model_choice": "anthropic",
+  "video_type": "scenario"
+}
 ```
+
+`model_choice`: `"anthropic"` (Claude) or `"gemini"`.  
+`video_type`: `"scenario"` (Veo-style live action) or `"manim"` (animated graphics).
+
+---
+
+## Script JSON shape
+
+The generated script follows the template in `BackEnd/Script_Generation_Pipeline/JSON_Templates/script_gen_with_dpoints.json`. Top-level fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Script title |
+| `learning_goal` | string | What the viewer should understand |
+| `target_audience` | string | Intended learner |
+| `total_duration_seconds` | number | Estimated total runtime |
+| `visual_style` | string | Overall production direction |
+| `setting` | object | Location, lighting, time of day, camera notes, atmosphere |
+| `characters` | array | Name, role, appearance, emotional baseline |
+| `scenes` | array | Ordered scenes with dialogue, setting, actions, audio, routing |
+| `decision_points` | array | Questions with A/B/C choices, correct answer, scene routing |
+
+See `scenario-studio-ui/docs/data-contracts.md` for the full schema.
+
+---
+
+## Video generation
+
+Once a script is finalized, `backend/Video_Generation_Pipeline/video_generator` takes the exported JSON and produces MP4 videos using Google Veo.
+
+```bash
+cd backend/Video_Generation_Pipeline
+export GEMINI_API_KEY=your-key-here
+
+# Generate all scenes
+python -m video_generator.cli --scenario scenario.json
+
+# Generate one scene with a specific model
+python -m video_generator.cli --scenario scenario.json --scene-id 1 --model veo-3.1-fast
+
+# Preview prompts without making API calls
+python test_prompt.py
+```
+
+Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
+
+---
+
+## UI features at a glance
+
+- **Decision tree view** — trunk scenes flow horizontally; branching scenes drop below each decision point. Click a wrong-answer pill to mark it correct without scrolling to the DP card.
+- **Inline editing** — every field on every scene, character, and setting card is editable. Large text stays readable in edit mode.
+- **Undo duplicate** — the ↩ Undo duplicate button in the toolbar restores the previous state after any scene duplication.
+- **Choice reordering** — ↑ / ↓ buttons in decision-point cards let you reorder choices so the correct answer isn't locked to position A.
+- **Zoom** — 50 %–150 % canvas zoom in the toolbar.
+- **Export** — downloads the current script as `scenario_script.json`.
+
+---
+
+## License
+
+Internal OpenStax project — add your org's license before making this repo public.

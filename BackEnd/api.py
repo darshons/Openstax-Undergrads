@@ -10,7 +10,9 @@ import Image_Generation_Pipeline.Frame_Generation.gemini_frame_generate as gemin
 
 from pydantic import BaseModel
 from pathlib import Path
+import os
 import re
+import tempfile
 from typing import Any
 import os
 import uuid
@@ -21,6 +23,8 @@ import tempfile
 class SceneInformation(BaseModel):
     book_title: str
     unit_num: int
+    chapter_num: int | None = None
+    page_num: str | None = None
     chapter_num: int | None = None
     page_num: str | None = None
     user_query: str
@@ -99,9 +103,11 @@ def generate_initial_script(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"
+    md_path = output_dir / f"{'_'.join(parts)}.md"
 
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(merged)
+
 
     # script generation functionality call
     initial_script = None

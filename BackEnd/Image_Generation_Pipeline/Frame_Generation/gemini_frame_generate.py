@@ -22,6 +22,7 @@ def generate_frames(
     # Set up Gemini client
     client = setup_gemini_client()
 
+
     # Define system prompts for opening and ending frame generation
     opening_frame_system_prompt = """
     You are generating an opening scene image for an interactive training simulation.
@@ -40,9 +41,12 @@ def generate_frames(
     
 {
         "visual_style": "",
-        "setting": {
+          "setting": {
         "location": "",
         "scene_description": "",
+        "light_source": "", 
+        "time_of_day": "",
+        "atmosphere": "",
         "light_source": "", 
         "time_of_day": "",
         "atmosphere": "",
@@ -128,16 +132,21 @@ def generate_frames(
     The resulting image should function as an establishing shot for the scenario, providing a clear visual introduction to the scene and its initial state before the main events occur.
     """
 
+
     # ending_frame_system_prompt = """
     # You are generating an ending scene image for an interactive training simulation.
 
+
     # Your task is to create exactly one high-quality still image that represents the final moment of the scene described in the provided JSON input.
 
+
     # The purpose of this image is to serve as the scene's ending frame. It should depict the state of the scenario immediately before the learner is prompted to make a decision or proceed to the next segment. The image should clearly communicate the outcome of the events that have occurred within the scene and present all relevant visual information available at that moment.
+
 
     # The user prompt will provide:
     # • Character reference images that define the appearance of all characters.
     # • Background reference image that defines the appearance of all relevant environmental elements.
+    # • A JSON object detailing the scene description and character information.
     # • A JSON object detailing the scene description and character information.
     # • An opening frame image generated for the same scene, which visually represents the initial state of the scenario.
 
@@ -187,6 +196,7 @@ def generate_frames(
     #     }
     # ],
     # "scene":
+    # "scene":
     #     {
     #     "scene_id": 1,
     #     "type": "narrative",
@@ -212,6 +222,7 @@ def generate_frames(
     #     }
     # }
 
+
     # Image Generation Instructions:
     # • Generate exactly one image.
     # • Depict only the ending moment of the scene.
@@ -220,6 +231,7 @@ def generate_frames(
     # • Do not depict events, outcomes, consequences, or information that occur after the scene ends.
     # • Use the `visual_style` field to determine the artistic style, realism level, rendering quality, and overall visual presentation.
     # • Include all important characters, objects, and environmental details that would be visible at the end of the scene.
+    # • Focus exclusively on visual content.
     # • Focus exclusively on visual content.
     # • Do not include dialogue, narration, captions, subtitles, labels, or text within the image under any circumstances.
     # • Ensure the image clearly establishes the final state of the situation
@@ -256,8 +268,10 @@ def generate_frames(
     # The resulting ending frame image should function as a concluding keyframe for the scenario, providing a clear visual representation of the scene's final state and all information available to the learner immediately before the next interaction point.
     # """
 
+
     # Define the model to use for image generation
     MODEL = "gemini-3.1-flash-image"
+
 
     # Configure content generation settings for opening and ending frames
     opening_frame_config = types.GenerateContentConfig(
@@ -265,10 +279,13 @@ def generate_frames(
         response_modalities=["IMAGE"],
     )
 
+
     # ending_frame_config = types.GenerateContentConfig(
     #     system_instruction=ending_frame_system_prompt,
     #     response_modalities=["IMAGE"],
+    #     response_modalities=["IMAGE"],
     # )
+
 
     # Process the JSON to create individual JSON files for each scene -> Mapping of scene_id to local JSON file path
     scene_json_file_mapping = process_scene_json(
@@ -285,18 +302,24 @@ def generate_frames(
     # dir_path = PROJECT_DIR / "Frame_Image_Output"
 
     # Mapping to keep track of uploaded character images (character_id to uploaded file name and file object)
+    # Mapping to keep track of uploaded character images (character_id to uploaded file name and file object)
     uploaded_character_image_mapping = {}
+
 
     # Mapping to keep track of uploaded scene JSON files (scene_id to uploaded file name and file object)
     uploaded_scene_json_mapping = {}
 
+
     # Mapping to keep track of uploaded opening frame images (scene_id to uploaded file name and file object) - needed for reference in ending frame generation prompts
     # uploaded_opening_frame_mapping = {}
+
 
     # Mappings to keep track of generated opening and ending frame file paths (scene_id to local file path)
     opening_scene_frame_file_mapping = {}
 
+
     # ending_scene_frame_file_mapping = {}
+
 
     # Upload the background reference image to Gemini and store its uploaded file name for reference in prompts
     uploaded_background_image = client.files.upload(
@@ -374,6 +397,7 @@ def generate_frames(
         {uploaded_background_image.name}
         """
 
+
         response = client.models.generate_content(
             model=MODEL,
             contents=[
@@ -413,6 +437,7 @@ def generate_frames(
 
         # uploaded_opening_frame_mapping[scene_id] = (uploaded_opening_frame.name, uploaded_opening_frame)
 
+
         # ENDING FRAME GENERATION
         # ending_frame_user_query = f"""
         # Generate an ending scene frame image based on the uploaded JSON file:
@@ -423,18 +448,22 @@ def generate_frames(
         # Character reference images:
         # {character_references}
 
+
         # Background reference image:
         # {uploaded_background_image.name}
+
 
         # Opening Frame Image:
         # {uploaded_opening_frame_mapping[scene_id][0]}
         # """
+
 
         # response = client.models.generate_content(
         #     model=MODEL,
         #     contents=[ending_frame_user_query, uploaded_json, *[uploaded_character_image for _, uploaded_character_image in uploaded_character_image_mapping.values()], uploaded_background_image, uploaded_opening_frame_mapping[scene_id][1]],
         #     config=ending_frame_config
         # )
+
 
         # for part in response.candidates[0].content.parts:
         #     if part.inline_data:

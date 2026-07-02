@@ -1,4 +1,4 @@
-from anthropic import Anthropic, AsyncAnthropic
+from anthropic import Anthropic
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -76,6 +76,7 @@ def generate_script_with_decision_points(
     # JSON File Template
     PROJECT_DIR = Path(__file__).resolve().parents[1]
 
+
     json_file_path = PROJECT_DIR / "JSON_Templates" / "script_gen_with_dpoints.json"
 
     uploaded_json = client.beta.files.upload(
@@ -146,12 +147,10 @@ async def delete_uploaded_files(file_ids: list):
     )
 
 
-async def delete_uploaded_file(client, file_id: str):
     for attempt in range(3):
         try:
-            await client.beta.files.delete(file_id)
-            print(f"Successfully deleted {file_id}")
-            break
+            client.beta.files.delete(file_id=file_id)
+            return
         except Exception as e:
             if attempt == 2:
                 print(f"Failed to delete {file_id}: {e}")

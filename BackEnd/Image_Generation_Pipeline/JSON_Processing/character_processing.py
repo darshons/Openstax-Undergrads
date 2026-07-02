@@ -10,9 +10,13 @@ def process_character_json(
 
     characters_file_mapping = {}
 
-    PROJECT_DIR = Path(__file__).resolve().parents[1]
+    # PROJECT_DIR = Path(__file__).resolve().parents[1]
 
-    dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+
+    dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
+
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     for character in data["characters"]:
         # only process the requested character if character_id is given

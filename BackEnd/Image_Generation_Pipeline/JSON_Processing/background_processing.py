@@ -1,6 +1,7 @@
 import json
 import tempfile
 from pathlib import Path
+import tempfile
 
 
 def process_background_json(json_script: str) -> str:
@@ -8,9 +9,13 @@ def process_background_json(json_script: str) -> str:
 
     background_file_path = None
 
-    PROJECT_DIR = Path(__file__).resolve().parents[1]
+    # PROJECT_DIR = Path(__file__).resolve().parents[1]
 
-    dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+
+    dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
+
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     background_json = {"visual_style": data["visual_style"], "setting": data["setting"]}
 

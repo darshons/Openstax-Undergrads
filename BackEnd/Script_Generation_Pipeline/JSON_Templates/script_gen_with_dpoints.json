@@ -22,10 +22,9 @@
   "setting": {
     "location": "",
     "scene_description": "",
-    "lighting": {
-      "source": "",
-      "time_of_day": ""
-    },
+    "light_source": "", 
+    "time_of_day": "",
+    "atmosphere": "",
     "background_furniture": [
     {
       "name": "",
@@ -314,4 +313,3 @@
     }
   ]
 }
-

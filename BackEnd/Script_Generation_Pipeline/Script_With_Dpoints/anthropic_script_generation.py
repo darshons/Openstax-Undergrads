@@ -67,9 +67,7 @@ def generate_script_with_decision_points(
 
     MODEL = "claude-sonnet-4-6"
 
-    TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens
-
-    assert TOKEN_LIMIT is not None, f"max_tokens is not available for model {MODEL}"
+    TOKEN_LIMIT = client.models.retrieve(MODEL).max_tokens or 8096
 
     uploaded_md = client.beta.files.upload(
         file=("textbook_content", open(markdown_file_path, "rb"), "text/plain")
@@ -126,16 +124,17 @@ def generate_script_with_decision_points(
     if not response or not response.content or not response.content[0]:
         return output_json, [uploaded_md.id, uploaded_json.id]
 
-    output = response.content[0]
+    raw = response.content[0]
 
     assert isinstance(
-        output, BetaTextBlock
-    ), f"Expected a BetaTextBlock, got {type(output).__name__}"
+        raw, BetaTextBlock
+    ), f"Expected a BetaTextBlock, got {type(raw).__name__}"
 
-    output_json = output.text
-    output_json = output_json.strip("```json").strip("```")
-    output_json = output_json.strip()
-    output_json = json.loads(output_json)
+    # Extract JSON robustly
+    raw_text = raw.text
+    start = raw_text.find("{")
+    end = raw_text.rfind("}") + 1
+    output_json = json.loads(raw_text[start:end])
 
     return output_json, [uploaded_md.id, uploaded_json.id]
 

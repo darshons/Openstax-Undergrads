@@ -9,7 +9,7 @@ from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation imp
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
-import os
+import tempfile
 
 
 def generate_background(
@@ -43,10 +43,9 @@ def generate_background(
      "setting": {
     "location": "",
     "scene_description": "",
-    "lighting": {
-      "source": "",
-      "time_of_day": ""
-    },
+    "light_source": "", 
+    "time_of_day": "",
+    "atmosphere": "",
     "background_furniture": [
     {
       "name": "",
@@ -98,9 +97,13 @@ def generate_background(
 
     background_json_path = process_background_json(json_script)
 
-    PROJECT_DIR = Path(__file__).resolve().parents[1]
+    # PROJECT_DIR = Path(__file__).resolve().parents[1]
 
-    dir_path = PROJECT_DIR / "Background_Image_Output"
+    # dir_path = PROJECT_DIR / "Background_Image_Output"
+
+    dir_path = Path(tempfile.gettempdir()) / "Background_Image_Output"
+
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     uploaded_file_names = []
 

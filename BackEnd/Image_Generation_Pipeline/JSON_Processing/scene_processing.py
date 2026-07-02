@@ -10,9 +10,13 @@ def process_scene_json(
 
     scene_file_mapping = {}
 
-    PROJECT_DIR = Path(__file__).resolve().parents[1]
+    # PROJECT_DIR = Path(__file__).resolve().parents[1]
 
-    dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
+
+    dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
+
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     scene_fields = ["scene_id", "scene_summary", "initial_character_positions"]
 

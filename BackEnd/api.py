@@ -14,39 +14,39 @@ import re
 from typing import Any
 import os
 import uuid
+import tempfile
 
 
 # This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
 class SceneInformation(BaseModel):
     book_title: str
     unit_num: int
-    chapter_num: int | None
-    page_num: str | None
+    chapter_num: int | None = None
+    page_num: str | None = None
     user_query: str
     model_choice: str
+    video_type: str
 
 
 # This Class defines the structure of the request body for generating images
 class ImageGenerationRequest(BaseModel):
     script: dict[str, Any]
-    background_image_path: (
-        str | None
-    )  # This field is optional and will be used when generating opening frames
-    character_image_file_mapping: (
-        dict[str, str] | None
-    )  # This field is optional and will be used when generating opening frames
+    background_image_path: str | None = None
+    # This field is optional and will be used when generating opening frames
+    character_image_file_mapping: dict[str, str] | None = None
+    # This field is optional and will be used when generating opening frames
     request_id: str
 
 
 # This Class defines the structure of the request body for retrying image generation
 class ImageRetryRequest(BaseModel):
     image_request: ImageGenerationRequest
-    user_feedback: (
-        str | None
-    )  # This field is optional and will be used when retrying image generation based on user feedback
-    image_id: (
-        str | None
-    )  # This field is optional and will be used when retrying character image generation or opening frame generation
+    user_feedback: str | None = (
+        None  # This field is optional and will be used when retrying image generation based on user feedback
+    )
+    image_id: str | None = (
+        None  # This field is optional and will be used when retrying character image generation or opening frame generation
+    )
 
 
 # Function to delete local files after processing to clean up the server storage
@@ -93,9 +93,10 @@ def generate_initial_script(
     if scene_information.page_num is not None:
         parts.append(f"p-{scene_information.page_num}")
 
-    # Make absolute position in the project folder
-    PROJECT_DIR = Path(__file__).resolve().parent
-    output_dir = PROJECT_DIR / "Script_Generation_Pipeline" / "Textbook_Context"
+    # Write the merged textbook markdown to a writable directory.
+    # On Vercel (and other serverless hosts) the deployment filesystem is read-only except for the system temp dir, so default there
+    output_dir = Path(tempfile.gettempdir()) / "Textbook_Context"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"
 
@@ -416,14 +417,20 @@ def retry_generate_opening_frames(
         ):
             raise HTTPException(
                 status_code=500,
-                detail="Opening frame generation failed. No images were returned.",
+                detail="Opening frame generation failed. No image was returned.",
             )
 
         return {
-            "message": "Opening frame generation completed",
+            "message": "Opening frame generation retry completed",
             "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
         }
     else:
         return (
             {}
         )  # Implement logic to handle user feedback and retry opening frame generation
+
+
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@api_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(video_path, media_type="video/mp4")

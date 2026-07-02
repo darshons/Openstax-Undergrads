@@ -136,7 +136,7 @@ def generate_initial_script(
         delete_local_files, [md_path]
     )  # delete the merged markdown file after processing
 
-    uuid = generate_uuid()
+    request_id = generate_uuid()
 
     if initial_script is None or len(initial_script) == 0:
         raise HTTPException(
@@ -147,7 +147,7 @@ def generate_initial_script(
     return {
         "message": "Initial script generation completed",
         "script": initial_script,
-        "request_id": uuid,
+        "request_id": request_id,
     }
 
 

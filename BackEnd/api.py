@@ -110,7 +110,6 @@ def generate_initial_script(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"
-    md_path = output_dir / f"{'_'.join(parts)}.md"
 
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(merged)

@@ -190,7 +190,22 @@ def fetch_abl_catalog(abl_url: str) -> list:
     print(f"      {n} books found in catalog")
     return catalog
 
-_STOP_WORDS = {"of", "the", "and", "a", "an", "in", "for", "to", "by", "at", "vol", "volume"}
+
+_STOP_WORDS = {
+    "of",
+    "the",
+    "and",
+    "a",
+    "an",
+    "in",
+    "for",
+    "to",
+    "by",
+    "at",
+    "vol",
+    "volume",
+}
+
 
 def _key_tokens(s: str) -> frozenset:
     """Significant lowercase tokens from a title or slug, ignoring stop words."""

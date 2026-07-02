@@ -104,9 +104,7 @@ def burn_captions(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Generate scenario videos using Veo."
-    )
+    parser = argparse.ArgumentParser(description="Generate scenario videos using Veo.")
     parser.add_argument(
         "--scenario",
         required=True,
@@ -158,13 +156,16 @@ def main():
         visual_style = scenario["visual_style"]
         for scene in scenes:
             clip_prompts = build_clip_prompts(scene, characters, visual_style)
-            print(f"\n{'#'*60}\nSCENE {scene['scene_id']}  ({len(clip_prompts)} clips)\n{'#'*60}")
+            print(
+                f"\n{'#'*60}\nSCENE {scene['scene_id']}  ({len(clip_prompts)} clips)\n{'#'*60}"
+            )
             for i, p in enumerate(clip_prompts, start=1):
                 print(f"\n{'='*60}\nCLIP {i}\n{'='*60}\n{p}\n")
         return
 
     init_output_dir()
     from google import genai
+
     client = genai.Client(api_key=args.api_key)
 
     filtered_scenario = {**scenario, "scenes": scenes}
@@ -177,7 +178,9 @@ def main():
     if args.add_captions:
         for result in results:
             if result["success"]:
-                scene = next((s for s in scenes if s["scene_id"] == result["scene_id"]), None)
+                scene = next(
+                    (s for s in scenes if s["scene_id"] == result["scene_id"]), None
+                )
                 if scene:
                     all_dialogue = [
                         line

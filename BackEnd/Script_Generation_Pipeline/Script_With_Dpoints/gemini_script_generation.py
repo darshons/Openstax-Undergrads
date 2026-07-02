@@ -7,11 +7,13 @@ import json
 import asyncio
 
 
+# This function sets up the Gemini client using the API key from environment variables.
 def setup_gemini_client():
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     return client
 
 
+# This function generates a script with decision points based on the provided Markdown file and user query. It returns the generated JSON script and a list of uploaded file names.
 def generate_script_with_decision_points(
     markdown_file_path, user_query
 ) -> tuple[dict | None, list[str | None]]:
@@ -79,7 +81,7 @@ def generate_script_with_decision_points(
     # JSON File Template[
     PROJECT_DIR = Path(__file__).resolve().parents[1]
 
-    json_file_path = PROJECT_DIR / "JSON_Templates" / "script_gen_with_dpoints.json"
+    json_file_path = PROJECT_DIR / "_JSON_Templates" / "script_gen_with_dpoints.json"
 
     uploaded_json = client.files.upload(
         file=json_file_path,
@@ -107,6 +109,7 @@ def generate_script_with_decision_points(
     return output_json, [uploaded_md_file.name, uploaded_json.name]
 
 
+# This function deletes all uploaded files from the Gemini client and is designed to be called asynchronously.
 async def delete_uploaded_files(file_names: list):
     client = setup_gemini_client()
     await asyncio.gather(
@@ -117,7 +120,7 @@ async def delete_uploaded_files(file_names: list):
 async def delete_uploaded_file(client, file_name: str):
     for attempt in range(3):
         try:
-            client.files.delete(file_name)
+            await client.aio.files.delete(name=file_name)
             print(f"Successfully deleted {file_name}")
             return
         except Exception as e:

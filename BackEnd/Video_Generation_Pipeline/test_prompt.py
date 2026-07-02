@@ -1,4 +1,4 @@
-#test_prompts.py - free check, builds prompts without calling Veo
+# test_prompts.py - free check, builds prompts without calling Veo
 from video_generator.prompt_builder import build_clip_prompts
 from video_generator.scenario_loader import load_scenario
 

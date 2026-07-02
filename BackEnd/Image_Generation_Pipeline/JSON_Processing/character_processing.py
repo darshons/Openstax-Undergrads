@@ -3,16 +3,13 @@ import tempfile
 from pathlib import Path
 
 
+# This function creates a temporary JSON file containing the character information extracted from the provided JSON script. It returns a dictionary mapping character IDs to the paths of the temporary JSON files.
 def process_character_json(
     json_script: str, character_id: str | None = None
 ) -> dict[str, str]:
     data = json.loads(json_script)
 
     characters_file_mapping = {}
-
-    # PROJECT_DIR = Path(__file__).resolve().parents[1]
-
-    # dir_path = PROJECT_DIR / "Filtered_JSON_Output"
 
     dir_path = Path(tempfile.gettempdir()) / "Filtered_JSON_Output"
 

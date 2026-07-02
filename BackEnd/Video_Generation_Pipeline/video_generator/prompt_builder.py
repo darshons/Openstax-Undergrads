@@ -87,7 +87,9 @@ Dialogue: {dialogue_block}
 Audio: {sound_block}"""
 
         if scene.get("on_screen_text"):
-            prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+            prompt += (
+                f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+            )
 
         consistency_lines = []
         for char in characters:
@@ -125,7 +127,9 @@ Audio: {sound_block}
 Do not introduce any additional characters into frame."""
 
         if scene.get("on_screen_text"):
-            prompt += f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+            prompt += (
+                f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
+            )
 
     # ------------------------------------------------------------------
     # Text overlay control
@@ -152,31 +156,43 @@ def build_clip_prompts(scene: dict, characters: list, visual_style: str) -> list
     """
     clips = scene.get("clips")
     if not clips:
-        raise ValueError(f"Scene {scene.get('scene_id')} has no 'clips' to build clips from.")
+        raise ValueError(
+            f"Scene {scene.get('scene_id')} has no 'clips' to build clips from."
+        )
 
     shared_audio = scene.get("audio", {})
     prompts = []
     for i, clip in enumerate(clips):
         clip_camera = clip.get("camera")
         if clip_camera is None:
-            print(f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera.")
+            print(
+                f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera."
+            )
             clip_camera = scene.get("camera", {})
 
         clip_scene = {
             "scene_id": scene.get("scene_id"),
             "setting": clip.get("setting", scene.get("setting", "")),
-            "character_actions": clip.get("character_actions", scene.get("character_actions", "")),
+            "character_actions": clip.get(
+                "character_actions", scene.get("character_actions", "")
+            ),
             "camera": clip_camera,
             "audio": {
                 "dialogue": clip.get("dialogue", []),
-                "sound_effects": clip.get("sound_effects", shared_audio.get("sound_effects", "none")),
+                "sound_effects": clip.get(
+                    "sound_effects", shared_audio.get("sound_effects", "none")
+                ),
                 "ambience": clip.get("ambience", shared_audio.get("ambience", "none")),
             },
         }
-        #on_screen_text is an "at end" overlay - only the final clip carries it
+        # on_screen_text is an "at end" overlay - only the final clip carries it
         if i == len(clips) - 1 and scene.get("on_screen_text"):
             clip_scene["on_screen_text"] = scene["on_screen_text"]
 
-        prompts.append(build_veo_prompt(clip_scene, characters, visual_style, is_continuation=(i > 0)))
+        prompts.append(
+            build_veo_prompt(
+                clip_scene, characters, visual_style, is_continuation=(i > 0)
+            )
+        )
 
     return prompts

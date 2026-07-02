@@ -12,6 +12,7 @@ from pathlib import Path
 import tempfile
 
 
+# This function generates character reference images based on the provided JSON script.
 def generate_characters(
     json_script, request_id, character_id=None
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
@@ -85,10 +86,6 @@ def generate_characters(
 
     characters_json_file_mapping = process_character_json(json_script, character_id)
 
-    # PROJECT_DIR = Path(__file__).resolve().parents[1]
-
-    # dir_path = PROJECT_DIR / "Character_Image_Output"
-
     dir_path = Path(tempfile.gettempdir()) / "Character_Image_Output"
 
     dir_path.mkdir(parents=True, exist_ok=True)
@@ -143,26 +140,3 @@ def generate_characters(
         uploaded_file_names,
         list(characters_json_file_mapping.values()),
     )
-
-
-# def delete_local_files(file_paths):
-#     for file_path in file_paths:
-#         os.remove(file_path)
-
-# def delete_uploaded_files(client, file_names):
-#     for file in file_names:
-#         client.files.delete(name=file)
-
-# if __name__ == "__main__":
-#     json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
-
-#     with open(json_file_path, "r") as f:
-#         json_script = f.read()
-
-#     character_image_file_mapping, uploaded_file_names, character_json_file_paths = generate_characters(json_script, request_id="test")
-
-#     delete_local_files(character_json_file_paths)
-
-#     delete_uploaded_files(setup_gemini_client(), uploaded_file_names)
-
-#     print(character_image_file_mapping)

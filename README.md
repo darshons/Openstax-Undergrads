@@ -32,7 +32,7 @@ Built by Team DJ YAM.
     │   ├── Script_With_Dpoints/     # Anthropic + Gemini LLM script generators (with branching)
     │   ├── Script_Without_Dpoints/  # Linear script generators
     │   ├── Dpoints_Separate/        # Add decision points to an existing linear script
-    │   └── JSON_Templates/          # Output schemas the LLM must follow
+    │   └── _JSON_Templates/          # Output schemas the LLM must follow
     ├── Image_Generation_Pipeline/
     │   ├── Character_Generation/
     │   └── Frame_Generation/
@@ -109,7 +109,7 @@ Open the printed URL. The UI auto-connects to `http://localhost:8000`; to overri
 
 ## Script JSON shape
 
-The generated script follows the template in `BackEnd/Script_Generation_Pipeline/JSON_Templates/script_gen_with_dpoints.json`. Top-level fields:
+The generated script follows the template in `BackEnd/Script_Generation_Pipeline/_JSON_Templates/script_gen_with_dpoints.json`. Top-level fields:
 
 | Field | Type | Description |
 |-------|------|-------------|

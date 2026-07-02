@@ -108,7 +108,6 @@ def generate_initial_script(
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(merged)
 
-
     # script generation functionality call
     initial_script = None
 

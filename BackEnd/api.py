@@ -32,8 +32,6 @@ class SceneInformation(BaseModel):
     unit_num: int
     chapter_num: int | None = None
     page_num: str | None = None
-    chapter_num: int | None = None
-    page_num: str | None = None
     user_query: str
     model_choice: str
     video_type: str

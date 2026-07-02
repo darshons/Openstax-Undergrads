@@ -17,6 +17,7 @@ def generate_background(
 ) -> tuple[str | None, list[str | None], list[str]]:
     client = setup_gemini_client()
 
+
     system_prompt = """
     You are generating a background visual asset for an interactive training simulation.
     
@@ -40,9 +41,12 @@ def generate_background(
 
 {
     "visual_style": "",
-     "setting": {
+       "setting": {
     "location": "",
     "scene_description": "",
+    "light_source": "", 
+    "time_of_day": "",
+    "atmosphere": "",
     "light_source": "", 
     "time_of_day": "",
     "atmosphere": "",
@@ -86,7 +90,9 @@ def generate_background(
 
     """
 
+
     MODEL = "gemini-3.1-flash-image"
+
 
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
@@ -115,6 +121,7 @@ def generate_background(
     )
 
     user_query = f"Generate a background reference image based on the background description in the uploaded JSON file: {uploaded_json.name}."
+
 
     response = client.models.generate_content(
         model=MODEL, contents=[user_query, uploaded_json], config=config

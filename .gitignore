@@ -1,7 +1,5 @@
-# Environment
-*.env
-
 # Python
+.venv/
 venv/
 __pycache__/
 *.pyc
@@ -11,6 +9,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+*.py[cod]
+*$py.class
 cleanup.py
 
 # macOS
@@ -19,6 +19,25 @@ cleanup.py
 # IDE
 .vscode/
 .idea/
+
+# Next.js
+.next/
+out/
+
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.*
+*.env
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+/output
 
 #Pyrefly
 pyrefly.toml

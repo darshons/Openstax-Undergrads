@@ -117,7 +117,7 @@ async def delete_uploaded_files(file_names: list):
 async def delete_uploaded_file(client, file_name: str):
     for attempt in range(3):
         try:
-            await client.aio.files.delete(name=file_name)
+            client.files.delete(file_name)
             print(f"Successfully deleted {file_name}")
             return
         except Exception as e:

@@ -1,7 +1,6 @@
 import json
 import tempfile
 from pathlib import Path
-import tempfile
 
 
 # This function creates a temporary JSON file containing the background information extracted from the provided JSON script. It returns the path to the temporary JSON file.

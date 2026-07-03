@@ -1,13 +1,17 @@
-from Image_Generation_Pipeline.JSON_Processing.background_processing import process_background_json
+from .._JSON_Processing import process_background_json
 from google import genai
 from google.genai import types
-from Script_Generation_Pipeline.Script_With_Dpoints.gemini_script_generation import setup_gemini_client
+from Script_Generation_Pipeline import setup_gemini_client
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
-import os
+import tempfile
 
-def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]:
+
+# This function generates a background reference image based on the provided JSON script.
+def generate_background(
+    json_script, request_id
+) -> tuple[str | None, list[str | None], list[str]]:
     client = setup_gemini_client()
 
     system_prompt = """
@@ -36,7 +40,7 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
        "setting": {
     "location": "",
     "scene_description": "",
-    "light_source": "", 
+    "light_source": "",
     "time_of_day": "",
     "atmosphere": "",
     "background_furniture": [
@@ -83,54 +87,48 @@ def generate_background(json_script) -> tuple[list[Path], list[str], list[Path]]
 
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
-        response_modalities=["IMAGE"],    
+        response_modalities=["IMAGE"],
     )
+
+    background_image_file_path = None
 
     background_json_path = process_background_json(json_script)
 
-    PROJECT_DIR = Path(__file__).resolve().parents[1]
+    dir_path = Path(tempfile.gettempdir()) / "Background_Image_Output"
 
-    dir_path = PROJECT_DIR / "Background_Image_Output"
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     uploaded_file_names = []
 
-    uploaded_json = client.files.upload(file=background_json_path, config=types.UploadFileConfig(display_name=f"background_description", mime_type="application/json"))
+    uploaded_json = client.files.upload(
+        file=background_json_path,
+        config=types.UploadFileConfig(
+            display_name=f"background_description", mime_type="application/json"
+        ),
+    )
 
     user_query = f"Generate a background reference image based on the background description in the uploaded JSON file: {uploaded_json.name}."
 
     response = client.models.generate_content(
-        model=MODEL,
-        contents=[user_query, uploaded_json],
-        config=config
+        model=MODEL, contents=[user_query, uploaded_json], config=config
     )
 
+    if (
+        not response.candidates
+        or not response.candidates[0]
+        or not response.candidates[0].content
+        or not response.candidates[0].content.parts
+    ):
+        return background_image_file_path, uploaded_file_names, [background_json_path]
+
     for part in response.candidates[0].content.parts:
-        if part.inline_data:
+        if part.inline_data and part.inline_data.data:
             image = Image.open(BytesIO(part.inline_data.data))
-            image.save(dir_path / f"background_reference_image.png")
+            background_image_file_path = str(
+                dir_path / f"{request_id}_background_reference_image.png"
+            )
+            image.save(background_image_file_path)
 
     uploaded_file_names.append(uploaded_json.name)
 
-    background_image_file_path = str(dir_path / f"background_reference_image.png")
-
     return background_image_file_path, uploaded_file_names, [background_json_path]
-
-def delete_local_files(file_paths):
-    for file_path in file_paths:
-        os.remove(file_path)
-
-def delete_uploaded_files(client, file_names):
-    for file in file_names:
-        client.files.delete(name=file)
-
-if __name__ == "__main__":
-    json_file_path = "/Users/youssef/Desktop/work/Openstax-Undergrads/BackEnd/Script_Generation_Pipeline/Script_Outputs/output_script_with_decision_points_gemini_new.json"
-
-    with open(json_file_path, "r") as f:
-        json_script = f.read()
-        
-    background_image_file_path, uploaded_file_names, background_json_file_path = generate_background(json_script)
-    
-    delete_local_files(background_json_file_path)
-    
-    delete_uploaded_files(setup_gemini_client(), uploaded_file_names)    

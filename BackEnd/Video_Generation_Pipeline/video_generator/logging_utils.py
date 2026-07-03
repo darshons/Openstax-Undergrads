@@ -45,39 +45,41 @@ def log_generation(
 ):
     entries = load_log()
     entry = {
-        "timestamp":               datetime.now().isoformat(),
-        "scene_id":                scene_id,
-        "model":                   model_key,
-        "model_api_name":          model_api_name or model_key,
-        "resolution":              resolution,
-        "aspect_ratio":            aspect_ratio,
-        "prompt":                  prompt,
-        "prompt_char_count":       len(prompt) if prompt else None,
-        "reference_images_count":  reference_images_count,
-        "output_file":             output_file,
-        "file_size_mb":            file_size_mb,
-        "video_duration_seconds":  video_duration_seconds,
-        "generation_time":         round(duration_seconds, 1),
-        "retry_count":             retry_count,
-        "estimated_cost_usd":      estimated_cost_usd,
-        "success":                 success,
-        "error":                   error,
-        "error_type":              error_type,
+        "timestamp": datetime.now().isoformat(),
+        "scene_id": scene_id,
+        "model": model_key,
+        "model_api_name": model_api_name or model_key,
+        "resolution": resolution,
+        "aspect_ratio": aspect_ratio,
+        "prompt": prompt,
+        "prompt_char_count": len(prompt) if prompt else None,
+        "reference_images_count": reference_images_count,
+        "output_file": output_file,
+        "file_size_mb": file_size_mb,
+        "video_duration_seconds": video_duration_seconds,
+        "generation_time": round(duration_seconds, 1),
+        "retry_count": retry_count,
+        "estimated_cost_usd": estimated_cost_usd,
+        "success": success,
+        "error": error,
+        "error_type": error_type,
     }
     entries.append(entry)
     save_log(entries)
     return entry
 
 
-def save_checkpoint_metadata(scene_id: int, clip_index: int, checkpoint_file: str, error: Exception):
+def save_checkpoint_metadata(
+    scene_id: int, clip_index: int, checkpoint_file: str, error: Exception
+):
     entries = load_log()
     entry = {
-        "timestamp":        datetime.now().isoformat(),
-        "scene_id":         scene_id,
-        "type":             "checkpoint",
-        "clips_completed":  clip_index - 1,
-        "checkpoint_file":  checkpoint_file,
-        "error":            str(error),
+        "timestamp": datetime.now().isoformat(),
+        "scene_id": scene_id,
+        "type": "checkpoint",
+        "clips_completed": clip_index - 1,
+        "checkpoint_file": checkpoint_file,
+        "error": str(error),
     }
     entries.append(entry)
     save_log(entries)

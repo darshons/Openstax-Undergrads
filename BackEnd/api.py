@@ -1,18 +1,30 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 
-from Script_Generation_Pipeline.Preprocessing.html_crawler import crawl
-import Script_Generation_Pipeline.script_with_dpoints.anthropic_script_generation as anthropic_script_generation
-import Script_Generation_Pipeline.script_with_dpoints.gemini_script_generation as gemini_script_generation
+from Script_Generation_Pipeline import crawl
+from Script_Generation_Pipeline import (
+    generate_script_with_decision_points_anthropic,
+    delete_uploaded_files_anthropic,
+    generate_script_with_decision_points_gemini,
+    delete_uploaded_files_gemini,
+)
+from Image_Generation_Pipeline import (
+    generate_background,
+    generate_characters,
+    generate_opening_frames,
+)
+
 
 from pydantic import BaseModel
 from pathlib import Path
-import os
 import re
-import tempfile
 from typing import Any
-import json
+import os
+import uuid
+import tempfile
 
+
+# This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
 class SceneInformation(BaseModel):
     book_title: str
     unit_num: int
@@ -20,22 +32,56 @@ class SceneInformation(BaseModel):
     page_num: str | None = None
     user_query: str
     model_choice: str
-    video_type: str = "scenario"
+    video_type: str
 
-class ModifiedScript(BaseModel):
+
+# This Class defines the structure of the request body for generating images
+class ImageGenerationRequest(BaseModel):
     script: dict[str, Any]
+    background_image_path: str | None = None
+    # This field is optional and will be used when generating opening frames
+    character_image_file_mapping: dict[str, str] | None = None
+    # This field is optional and will be used when generating opening frames
+    request_id: str
 
 
+# This Class defines the structure of the request body for retrying image generation
+class ImageRetryRequest(BaseModel):
+    image_request: ImageGenerationRequest
+    user_feedback: str | None = (
+        None  # This field is optional and will be used when retrying image generation based on user feedback
+    )
+    image_id: str | None = (
+        None  # This field is optional and will be used when retrying character image generation or opening frame generation
+    )
+
+
+# Function to delete local files after processing to clean up the server storage
+def delete_local_files(file_paths):
+    for file_path in file_paths:
+        os.remove(file_path)
+        print(f"Successfully deleted {file_path}")
+
+
+# Function to generate a unique identifier (UUID) associated with each request to ensure that files are uniquely named and avoid conflicts
+def generate_uuid():
+    return str(uuid.uuid4())
+
+
+# API router instance to define the endpoints for the FastAPI application
 api_router = APIRouter()
+
 
 # This endpoint will be called by the frontend to generate the initial script based on the user's query and the relevant textbook content (currently with decision points included)
 @api_router.post("/initial_script")
-def generate_initial_script(scene_information: SceneInformation, background_tasks: BackgroundTasks) -> dict:
+def generate_initial_script(
+    scene_information: SceneInformation, background_tasks: BackgroundTasks
+) -> dict:
     ## parser functionality call
     parsedResult = crawl(
         scene_information.book_title,
         unit_num=scene_information.unit_num,
-        chapter_num=scene_information.chapter_num, 
+        chapter_num=scene_information.chapter_num,
         page_num=scene_information.page_num,
     )
 
@@ -45,19 +91,18 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     # Build a more descriptive name
     def _slugify(s: str) -> str:
         return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
- 
+
     parts = [_slugify(scene_information.book_title)]
-    if scene_information.unit_num is not None: parts.append(f"unit-{scene_information.unit_num}")
-    if scene_information.chapter_num is not None: parts.append(f"ch-{scene_information.chapter_num}")
-    if scene_information.page_num is not None: parts.append(f"p-{scene_information.page_num}")
- 
-    # Write the merged textbook markdown to a writable directory. On Vercel (and
-    # other serverless hosts) the deployment filesystem is read-only except for
-    # the system temp dir, so default there; allow an override via env var.
-    output_dir = Path(
-        os.getenv("TEXTBOOK_CONTEXT_DIR")
-        or (Path(tempfile.gettempdir()) / "Textbook_Context")
-    )
+    if scene_information.unit_num is not None:
+        parts.append(f"unit-{scene_information.unit_num}")
+    if scene_information.chapter_num is not None:
+        parts.append(f"ch-{scene_information.chapter_num}")
+    if scene_information.page_num is not None:
+        parts.append(f"p-{scene_information.page_num}")
+
+    # Write the merged textbook markdown to a writable directory.
+    # On Vercel (and other serverless hosts) the deployment filesystem is read-only except for the system temp dir, so default there
+    output_dir = Path(tempfile.gettempdir()) / "Textbook_Context"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     md_path = output_dir / f"{'_'.join(parts)}.md"
@@ -69,86 +114,188 @@ def generate_initial_script(scene_information: SceneInformation, background_task
     initial_script = None
 
     if scene_information.model_choice == "anthropic":
-        initial_script, file_ids = anthropic_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
+        initial_script, file_ids = generate_script_with_decision_points_anthropic(
+            str(md_path), scene_information.user_query
+        )
 
-        for file_id in file_ids:
-            background_tasks.add_task(anthropic_script_generation.delete_uploaded_file, file_id)
+        background_tasks.add_task(delete_uploaded_files_anthropic, file_ids)
 
     elif scene_information.model_choice == "gemini":
-        initial_script, file_ids = gemini_script_generation.generate_script_with_decision_points(str(md_path), scene_information.user_query)
+        initial_script, file_ids = generate_script_with_decision_points_gemini(
+            str(md_path), scene_information.user_query
+        )
 
-        for file_name in file_ids:
-            background_tasks.add_task(gemini_script_generation.delete_uploaded_file, file_name)
+        background_tasks.add_task(delete_uploaded_files_gemini, file_ids)
 
-    background_tasks.add_task(delete_md_file, md_path)
-    
-    return {"message": "Initial script generation completed", "script": initial_script}
+    background_tasks.add_task(
+        delete_local_files, [md_path]
+    )  # delete the merged markdown file after processing
 
-# This endpoint will be called by the frontend once the user has finished modifying the initial script and is ready to generate the image frames
-@api_router.post("/modified_script")
-def generate_final_script(modified_script: ModifiedScript) -> dict:
-    print("Received modified script:", modified_script.script)
-    return {"message": "Final script generation request received"}
+    request_id = generate_uuid()
 
+    if initial_script is None or len(initial_script) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Initial script generation failed. No script was returned.",
+        )
 
-@api_router.get("/dummy_paths")
-def get_dummy_paths(target: str):
-    BACKEND_DIR = Path(__file__).parent
-
-    match target:
-        case "script":
-            return {
-                "script_path": str(
-                    BACKEND_DIR / "Video_Generation_Pipeline" / "scenario.json"
-                )
-            }
-        case "images":
-            return {
-                "image_paths": {
-                    "character_images": [
-                        {
-                            "character_id": "patient_carl",
-                            "image_path": str(
-                                BACKEND_DIR
-                                / "Video_Generation_Pipeline"
-                                / "reference_images"
-                                / "patient_Carl_reference_image.png"
-                            ),
-                        },
-                        {
-                            "character_id": "nurse_maya",
-                            "image_path": str(
-                                BACKEND_DIR
-                                / "Video_Generation_Pipeline"
-                                / "reference_images"
-                                / "Nurse_Maya_reference_image.png"
-                            ),
-                        },
-                    ],
-                    "background_image": {
-                        "image_path": str(
-                            BACKEND_DIR
-                            / "Video_Generation_Pipeline"
-                            / "reference_images"
-                            / "background_reference_image.png"
-                        )
-                    },
-                }
-            }
-        case "video":
-            return {"video_paths": {
-                "video_paths": [{"scene_id": "1", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_1.mp4")},
-                                {"scene_id": "2", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_2.mp4")},
-                                {"scene_id": "3", "video_path": str(BACKEND_DIR / "Video_Generation_Pipeline" / "output" / "demo" / "demo_scene_3.mp4")}],
-                "manim_path": str(BACKEND_DIR / "demo_manim_video" / "therapeutic_communication_combined.mp4"),
-            }}
+    return {
+        "message": "Initial script generation completed",
+        "script": initial_script,
+        "request_id": request_id,
+    }
 
 
-@api_router.get("/script/{script_path:path}")
-def get_script(script_path: str):
-    with open(script_path, "r") as f:
-        script = json.load(f)
-    return {"script": script}
+# This endpoint will be called by the frontend to generate the reference background image
+@api_router.post("/generate_background_image")
+def generate_background_image(
+    request: ImageGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
+
+    (
+        background_image_file_path,
+        background_uploaded_file_names,
+        background_json_file_path,
+    ) = generate_background(request.script, request.request_id)
+
+    local_file_paths_to_delete = background_json_file_path
+
+    background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+    uploaded_file_names_to_delete = background_uploaded_file_names
+
+    background_tasks.add_task(
+        delete_uploaded_files_gemini, uploaded_file_names_to_delete
+    )
+
+    if background_image_file_path is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Background image generation failed. No image was returned.",
+        )
+
+    return {
+        "message": "Reference image generation completed",
+        "background_image_file_path": background_image_file_path,
+    }
+
+
+# This endpoint will be called by the frontend to generate the reference character images
+@api_router.post("/generate_character_images")
+def generate_character_images(
+    request: ImageGenerationRequest,
+    background_tasks: BackgroundTasks,
+) -> dict:
+
+    (
+        character_image_file_mapping,
+        character_uploaded_file_names,
+        character_json_file_paths,
+    ) = generate_character_images_impl(request.script, request.request_id)
+
+    local_file_paths_to_delete = character_json_file_paths
+
+    background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+    uploaded_file_names_to_delete = character_uploaded_file_names
+
+    background_tasks.add_task(
+        delete_uploaded_files_gemini, uploaded_file_names_to_delete
+    )
+
+    if character_image_file_mapping is None or len(character_image_file_mapping) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Character image generation failed. No images were returned.",
+        )
+
+    return {
+        "message": "Reference image generation completed",
+        "character_image_file_mapping": character_image_file_mapping,
+    }
+
+
+# This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
+def generate_character_images_impl(
+    script: dict[str, Any], request_id: str, retry_id: str | None = None
+) -> tuple[dict[str, str], list[str | None], list[str]]:
+
+    (
+        character_image_file_mapping,
+        character_uploaded_file_names,
+        character_json_file_paths,
+    ) = generate_characters(script, request_id, retry_id)
+
+    return (
+        character_image_file_mapping,
+        character_uploaded_file_names,
+        character_json_file_paths,
+    )
+
+
+# This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
+@api_router.post("/generate_opening_frames")
+def generate_opening_frame_images(
+    request: ImageGenerationRequest,
+    background_tasks: BackgroundTasks,
+) -> dict:
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
+        generate_opening_frame_images_impl(
+            request.script,
+            request.background_image_path,
+            request.character_image_file_mapping,
+            request.request_id,
+        )
+    )
+
+    background_tasks.add_task(delete_local_files, scene_json_file_paths)
+
+    background_tasks.add_task(delete_uploaded_files_gemini, uploaded_file_names)
+
+    if (
+        opening_scene_frame_file_mapping is None
+        or len(opening_scene_frame_file_mapping) == 0
+    ):
+        raise HTTPException(
+            status_code=500,
+            detail="Opening frame generation failed. No images were returned.",
+        )
+
+    return {
+        "message": "Opening frame generation completed",
+        "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
+    }
+
+
+# This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
+def generate_opening_frame_images_impl(
+    script: dict[str, Any],
+    background_image_path: str,
+    character_image_file_mapping: dict[str, str],
+    request_id: str,
+    retry_id: str | None = None,
+) -> tuple[dict[str, str], list[str | None], list[str]]:
+    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
+        generate_opening_frames(
+            script,
+            background_image_path,
+            character_image_file_mapping,
+            request_id,
+            retry_id=retry_id,
+        )
+    )
+
+    return opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths
+
 
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
 @api_router.get("/image/{image_path:path}")
@@ -156,12 +303,130 @@ def get_image(image_path: str):
     return FileResponse(image_path, media_type="image/png")
 
 
+# This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
+@api_router.post("/retry_generate_background_image")
+def retry_generate_background_image(
+    image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
+) -> dict:
+    if image_retry_request.user_feedback is None:
+        return generate_background_image(
+            image_retry_request.image_request, background_tasks
+        )
+    else:
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
+
+
+# This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided
+@api_router.post("/retry_generate_character_image")
+def retry_generate_character_image(
+    image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
+) -> dict:
+    if image_retry_request.user_feedback is None:
+        (
+            character_image_file_mapping,
+            character_uploaded_file_names,
+            character_json_file_paths,
+        ) = generate_character_images_impl(
+            image_retry_request.image_request.script,
+            image_retry_request.image_request.request_id,
+            retry_id=image_retry_request.image_id,
+        )
+
+        local_file_paths_to_delete = character_json_file_paths
+
+        background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+        uploaded_file_names_to_delete = character_uploaded_file_names
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini,
+            uploaded_file_names_to_delete,
+        )
+
+        if (
+            character_image_file_mapping is None
+            or len(character_image_file_mapping) == 0
+        ):
+            raise HTTPException(
+                status_code=500,
+                detail="Character image generation failed. No images were returned.",
+            )
+
+        return {
+            "message": "Reference image generation completed",
+            "character_image_file_mapping": character_image_file_mapping,
+        }
+
+    else:
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
+
+
+# This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
+@api_router.post("/retry_generate_opening_frames")
+def retry_generate_opening_frames(
+    image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
+) -> dict:
+    if image_retry_request.user_feedback is None:
+
+        if (
+            image_retry_request.image_request.background_image_path is None
+            or image_retry_request.image_request.character_image_file_mapping is None
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
+            )
+
+        (
+            opening_scene_frame_file_mapping,
+            uploaded_file_names,
+            scene_json_file_paths,
+        ) = generate_opening_frame_images_impl(
+            image_retry_request.image_request.script,
+            image_retry_request.image_request.background_image_path,
+            image_retry_request.image_request.character_image_file_mapping,
+            image_retry_request.image_request.request_id,
+            retry_id=image_retry_request.image_id,
+        )
+
+        local_file_paths_to_delete = scene_json_file_paths
+
+        background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
+
+        uploaded_file_names_to_delete = uploaded_file_names
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini,
+            uploaded_file_names_to_delete,
+        )
+
+        if (
+            opening_scene_frame_file_mapping is None
+            or len(opening_scene_frame_file_mapping) == 0
+        ):
+            raise HTTPException(
+                status_code=500,
+                detail="Opening frame generation failed. No image was returned.",
+            )
+
+        return {
+            "message": "Opening frame generation retry completed",
+            "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
+        }
+    else:
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
+
+
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
 @api_router.get("/video/{video_path:path}")
 def get_video(video_path: str):
     return FileResponse(video_path, media_type="video/mp4")
-
-
-def delete_md_file(file_path: Path):
-    file_path.unlink()
-    print(f"Successfully deleted {file_path}")

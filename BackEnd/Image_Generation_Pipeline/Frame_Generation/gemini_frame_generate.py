@@ -11,8 +11,8 @@ import tempfile
 # This function generates opening frame images for each scene in the provided JSON script, using character and background reference images. It returns a mapping of scene IDs to generated opening frame image file paths, a list of uploaded file names for cleanup, and a list of local JSON file paths for cleanup.
 def generate_opening_frames(
     json_script,
-    character_image_file_mapping,
     background_image_file_path,
+    character_image_file_mapping,
     request_id,
     scene_id: str | None = None,
 ) -> tuple[dict[str, str], list[str | None], list[str]]:

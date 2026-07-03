@@ -363,9 +363,10 @@ def retry_generate_character_image(
         }
 
     else:
-        return (
-            {}
-        )  # Implement logic to handle user feedback and retry character image generation
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
 
 
 # This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided

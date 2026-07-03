@@ -219,14 +219,14 @@ def generate_character_images(
 
 # This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
 def generate_character_images_impl(
-    script: dict[str, Any], request_id: str, character_id: str | None = None
+    script: dict[str, Any], request_id: str, retry_id: str | None = None
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
 
     (
         character_image_file_mapping,
         character_uploaded_file_names,
         character_json_file_paths,
-    ) = generate_characters(script, request_id, character_id)
+    ) = generate_characters(script, request_id, retry_id)
 
     return (
         character_image_file_mapping,
@@ -284,7 +284,7 @@ def generate_opening_frame_images_impl(
     background_image_path: str,
     character_image_file_mapping: dict[str, str],
     request_id: str,
-    scene_id: str | None = None,
+    retry_id: str | None = None,
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
         generate_opening_frames(
@@ -292,7 +292,7 @@ def generate_opening_frame_images_impl(
             background_image_path,
             character_image_file_mapping,
             request_id,
-            scene_id=scene_id,
+            retry_id=retry_id,
         )
     )
 
@@ -333,7 +333,7 @@ def retry_generate_character_image(
         ) = generate_character_images_impl(
             image_retry_request.image_request.script,
             image_retry_request.image_request.request_id,
-            character_id=image_retry_request.image_id,
+            retry_id=image_retry_request.image_id,
         )
 
         local_file_paths_to_delete = character_json_file_paths
@@ -392,7 +392,7 @@ def retry_generate_opening_frames(
             image_retry_request.image_request.background_image_path,
             image_retry_request.image_request.character_image_file_mapping,
             image_retry_request.image_request.request_id,
-            scene_id=image_retry_request.image_id,
+            retry_id=image_retry_request.image_id,
         )
 
         local_file_paths_to_delete = scene_json_file_paths

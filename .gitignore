@@ -11,7 +11,7 @@ dist/
 build/
 *.py[cod]
 *$py.class
-cleanup.py
+upload_cleanup.py
 
 # macOS
 .DS_Store

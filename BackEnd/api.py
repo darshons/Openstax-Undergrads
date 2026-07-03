@@ -422,9 +422,10 @@ def retry_generate_opening_frames(
             "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
         }
     else:
-        return (
-            {}
-        )  # Implement logic to handle user feedback and retry opening frame generation
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
 
 
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend

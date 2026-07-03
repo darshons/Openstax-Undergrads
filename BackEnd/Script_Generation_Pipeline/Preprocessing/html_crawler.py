@@ -46,7 +46,7 @@ from pathlib import Path
 ABL_URL = os.environ.get("ABL_URL", "https://corgi.ce.openstax.org/api/abl/")
 TOC_URL_TEMPLATE = os.environ.get(
     "TOC_URL_TEMPLATE",
-    " https://openstax-web-hosting-content-primary.s3.amazonaws.com/apps/archive/20260407.195030/contents/{book_uuid}@{commit_sha}.json",
+    "https://openstax-web-hosting-content-primary.s3.amazonaws.com/apps/archive/20260407.195030/contents/{book_uuid}@{commit_sha}.json",
 )
 PAGE_URL_TEMPLATE = os.environ.get(
     "PAGE_URL_TEMPLATE",

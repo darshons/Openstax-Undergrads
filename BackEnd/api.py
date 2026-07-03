@@ -315,9 +315,10 @@ def retry_generate_background_image(
             image_retry_request.image_request, background_tasks
         )
     else:
-        return (
-            {}
-        )  # Implement logic to handle user feedback and retry background image generation
+        raise HTTPException(
+            status_code=501,
+            detail="Retry with user_feedback is not implemented yet.",
+        )
 
 
 # This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided

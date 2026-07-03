@@ -5,15 +5,15 @@ from pathlib import Path
 
 from .logging_utils import OUTPUT_DIR, log_generation
 
-#MODELS
+# MODELS
 VEO_MODELS = {
-    "veo-3.1":      "veo-3.1-generate-preview",
+    "veo-3.1": "veo-3.1-generate-preview",
     "veo-3.1-fast": "veo-3.1-fast-generate-preview",
     "veo-3.1-lite": "veo-3.1-lite-generate-preview",
-    "veo-2":        "veo-2.0-generate-001",
+    "veo-2": "veo-2.0-generate-001",
 }
 
-#STITCH PIPELINE SETTINGS
+# STITCH PIPELINE SETTINGS
 MODEL = "veo-3.1-generate-preview"
 MODEL_KEY = "veo-3.1"
 RESOLUTION = "720p"
@@ -23,15 +23,19 @@ POLL_INTERVAL = 10
 # Paths to reference image PNGs for character consistency (first clip only).
 # Place files in reference_images/ and list them here, e.g.:
 #   REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png"]
-REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png", "reference_images/background_reference_image.png"]
+REFERENCE_IMAGES = [
+    "reference_images/maya.png",
+    "reference_images/carl.png",
+    "reference_images/background_reference_image.png",
+]
 
-#DURATION CONSTRAINTS
+# DURATION CONSTRAINTS
 VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
 EXTENSION_SECONDS = 7
 MAX_CLIPS = 21
-#PROCESSING SETTLE
+# PROCESSING SETTLE
 EXTENSION_SETTLE_SECONDS = 30
-#TRANSIENT RETRY
+# TRANSIENT RETRY
 MAX_GENERATION_RETRIES = 4
 RETRY_BASE_DELAY_SECONDS = 30
 RETRYABLE_ERROR_CODES = {13}  # RESOURCE_EXHAUSTED, INTERNAL, UNAVAILABLE
@@ -39,10 +43,10 @@ RETRYABLE_ERROR_CODES = {13}  # RESOURCE_EXHAUSTED, INTERNAL, UNAVAILABLE
 # $/second of output video. Veo 3.1 models generate audio by default → Video+Audio tier.
 # Source: https://cloud.google.com/generative-ai-studio/pricing
 VEO_COST_PER_SECOND = {
-    "veo-3.1":      {"720p": 0.40, "1080p": 0.40, "4k": 0.60},
+    "veo-3.1": {"720p": 0.40, "1080p": 0.40, "4k": 0.60},
     "veo-3.1-fast": {"720p": 0.10, "1080p": 0.12, "4k": 0.30},
     "veo-3.1-lite": {"720p": 0.05, "1080p": 0.08},
-    "veo-2":        {"720p": 0.50},
+    "veo-2": {"720p": 0.50},
 }
 
 
@@ -52,6 +56,7 @@ class _VeoRetryableError(RuntimeError):
 
 class _VeoExhaustedError(RuntimeError):
     """Raised when generate_with_retry exhausts all attempts. Carries attempts_used."""
+
     def __init__(self, label: str, attempts_used: int, last_err: Exception):
         super().__init__(
             f"{label}: still failing after {attempts_used} attempts. Last error: {last_err}"
@@ -74,7 +79,9 @@ def _is_retryable_operation_error(error):
     if code in RETRYABLE_ERROR_CODES:
         return True
     msg = message.lower()
-    return "internal server issue" in msg or "internal error" in msg or "try again" in msg
+    return (
+        "internal server issue" in msg or "internal error" in msg or "try again" in msg
+    )
 
 
 def _classify_error(error: Exception) -> str:
@@ -88,7 +95,9 @@ def _classify_error(error: Exception) -> str:
     return "unknown"
 
 
-def estimate_cost(model_key: str, resolution: str, duration_seconds: float) -> float | None:
+def estimate_cost(
+    model_key: str, resolution: str, duration_seconds: float
+) -> float | None:
     rate = VEO_COST_PER_SECOND.get(model_key, {}).get(resolution)
     if rate is None or duration_seconds is None:
         return None
@@ -98,6 +107,7 @@ def estimate_cost(model_key: str, resolution: str, duration_seconds: float) -> f
 def get_video_duration(path: str) -> float | None:
     try:
         from moviepy import VideoFileClip
+
         clip = VideoFileClip(path)
         dur = clip.duration
         clip.close()
@@ -108,6 +118,7 @@ def get_video_duration(path: str) -> float | None:
 
 def create_reference_image_configs(reference_images: list) -> list:
     from google.genai.types import VideoGenerationReferenceImage, Image as GenaImage
+
     configs = []
     for img_path in reference_images:
         with open(img_path, "rb") as f:
@@ -132,10 +143,14 @@ def poll_until_done(client, operation):
     if getattr(operation, "error", None):
         if _is_retryable_operation_error(operation.error):
             print(" failed (transient).")
-            raise _VeoRetryableError(f"Veo generation failed (transient): {operation.error}")
+            raise _VeoRetryableError(
+                f"Veo generation failed (transient): {operation.error}"
+            )
         print(" failed.")
         raise RuntimeError(f"Veo generation failed: {operation.error}")
-    if not getattr(operation, "response", None) or not getattr(operation.response, "generated_videos", None):
+    if not getattr(operation, "response", None) or not getattr(
+        operation.response, "generated_videos", None
+    ):
         print(" failed (empty response).")
         raise RuntimeError(
             "Veo returned no videos — operation completed but response is empty. "
@@ -173,7 +188,9 @@ def generate_with_retry(generate_fn, label):
     raise _VeoExhaustedError(label, MAX_GENERATION_RETRIES, last_err)
 
 
-def generate_first_clip(client, prompt, clip_index=1, reference_images=None, duration_seconds=8):
+def generate_first_clip(
+    client, prompt, clip_index=1, reference_images=None, duration_seconds=8
+):
     """
     Generates the opening clip for a scene.
 
@@ -190,7 +207,9 @@ def generate_first_clip(client, prompt, clip_index=1, reference_images=None, dur
         ref_image_configs = create_reference_image_configs(reference_images)
 
     if ref_image_configs and duration_seconds != 8:
-        print(f" Note: reference images force 8s; ignoring duration_seconds={duration_seconds}")
+        print(
+            f" Note: reference images force 8s; ignoring duration_seconds={duration_seconds}"
+        )
         duration_seconds = 8
 
     print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s)...")
@@ -254,5 +273,3 @@ def download_video(client, video_obj, output_file):
     size_mb = os.path.getsize(output_file) / (1024 * 1024)
     print(f"  Saved: {output_file} ({size_mb:.1f} MB)")
     return output_file
-
-

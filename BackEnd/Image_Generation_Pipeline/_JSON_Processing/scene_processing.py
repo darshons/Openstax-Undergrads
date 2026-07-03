@@ -4,10 +4,7 @@ from pathlib import Path
 
 
 # This function creates a temporary JSON file containing the scene information extracted from the provided JSON script. It returns a dictionary mapping scene IDs to the paths of the temporary JSON files.
-def process_scene_json(
-    json_script: str, character_image_file_mapping: dict, scene_id: str | None = None
-) -> dict:
-    data = json.loads(json_script)
+def process_scene_json(json_script: dict, retry_id: str | None = None) -> dict:
 
     scene_file_mapping = {}
 
@@ -17,17 +14,17 @@ def process_scene_json(
 
     scene_fields = ["scene_id", "scene_summary", "initial_character_positions"]
 
-    for scene in data["scenes"]:
-        # only process the requested scene if scene_id is given
-        if scene_id is not None and scene["scene_id"] != scene_id:
+    for scene in json_script["scenes"]:
+        # only process the requested scene if retry_id is given
+        if retry_id is not None and scene["scene_id"] != int(retry_id):
             continue
 
         filtered_scene = {key: scene[key] for key in scene_fields}
 
         scene_json = {
-            "visual_style": data["visual_style"],
-            "setting": data["setting"],
-            "characters": data["characters"],
+            "visual_style": json_script["visual_style"],
+            "setting": json_script["setting"],
+            "characters": json_script["characters"],
             "scene": filtered_scene,
         }
 
@@ -40,7 +37,7 @@ def process_scene_json(
 
         scene_file_mapping[scene["scene_id"]] = temp_file.name
 
-        if scene_id is not None:
+        if retry_id is not None:
             break
 
     return scene_file_mapping

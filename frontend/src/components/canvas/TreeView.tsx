@@ -221,7 +221,7 @@ export default function TreeView({
                   Decision Point {seg.dp.decision_point_id}
                   <button
                     className="icon-btn"
-                    style={{ marginLeft: 'auto', color: 'rgba(255,255,255,.5)' }}
+                    style={{ marginLeft: 'auto', color: '#fff', opacity: 0.6 }}
                     title="Delete this decision point and its branch scenes"
                     onClick={() => deleteDecisionPoint(getDpIdx(seg.dp.decision_point_id))}
                   >

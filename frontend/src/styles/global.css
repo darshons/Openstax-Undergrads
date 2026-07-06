@@ -298,6 +298,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .btn-add-dp-disabled{opacity:.4;cursor:not-allowed}
 .icon-btn{width:30px;height:30px;border-radius:6px;color:var(--os-ink-3);display:flex;align-items:center;justify-content:center}
 .icon-btn:hover{background:#fff;color:var(--os-ink);box-shadow:var(--shadow-sm)}
+.tree-dp-badge .icon-btn:hover{background:none;box-shadow:none;opacity:1;color:#fff}
 .connector{display:flex;align-items:center;flex-shrink:0;color:var(--os-line-strong);position:relative}
 .connector::before{content:"";position:absolute;left:-2px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--os-line-strong);transform:translateY(-50%)}
 .connector svg{display:block}
@@ -431,7 +432,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .tree-dp-node{background:var(--os-navy);color:#fff;border-radius:14px;padding:22px 52px;text-align:center;box-shadow:var(--shadow-md);min-width:700px;max-width:1100px}
 .tree-dp-badge{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px;font-family:"JetBrains Mono",monospace}
 .tree-dp-question{font-size:20px;font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px;cursor:text}
-.dp-edit-hint{opacity:.45;font-size:12px;flex-shrink:0;color:rgba(255,255,255,.9);transition:.12s}
+.dp-edit-hint{opacity:.55;font-size:12px;flex-shrink:0;color:#fff;transition:.12s;cursor:pointer}
 .tree-dp-question:hover .dp-edit-hint{opacity:1}
 .dp-inline-edit{display:flex;flex-direction:column;gap:6px;width:100%}
 .dp-inline-ta{width:100%;padding:8px 10px;border:1.5px solid var(--os-navy);border-radius:7px;font-size:15px;font-family:inherit;resize:vertical;outline:none;background:#fff}

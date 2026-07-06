@@ -111,11 +111,14 @@ export default function StageBar({
           </div>
         </div>
         <div className="stage-bar-r">
-          {deleteUndoStack.length > 0 && (
-            <button className="btn btn-ghost btn-sm" onClick={undoDelete} title={`Undo last delete (${deleteUndoStack.length} available)`}>
-              ↩ Undo delete
-            </button>
-          )}
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={undoDelete}
+            disabled={deleteUndoStack.length === 0}
+            title={deleteUndoStack.length > 0 ? `Undo last delete (${deleteUndoStack.length} available)` : 'Nothing to undo'}
+          >
+            ↩ Undo{deleteUndoStack.length > 0 ? ` (${deleteUndoStack.length})` : ''}
+          </button>
           <div className="view-mode-ctl">
             <span className="view-mode-lbl">View:</span>
             <select className="view-mode-select" value={viewMode} onChange={e => setViewMode(e.target.value as ViewMode)}>

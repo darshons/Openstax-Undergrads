@@ -20,6 +20,7 @@ interface CanvasProps {
   saveCharacterEdit: (idx: number, draft: Character) => void;
   updateDecisionPoint: (idx: number, dp: DecisionPoint) => void;
   addDecisionPoint: (sceneIdx: number) => void;
+  deleteDecisionPoint: (dpIdx: number) => void;
   updateScriptField: <K extends keyof Script>(k: K, v: Script[K]) => void;
 }
 
@@ -28,7 +29,7 @@ export default function Canvas({
   editingSceneIdx, setEditingSceneIdx,
   editingCharacterIdx, setEditingCharacterIdx,
   saveSceneEdit, deleteScene, moveScene, saveCharacterEdit,
-  updateDecisionPoint, addDecisionPoint, updateScriptField,
+  updateDecisionPoint, addDecisionPoint, deleteDecisionPoint, updateScriptField,
 }: CanvasProps) {
   return (
     <>
@@ -104,6 +105,7 @@ export default function Canvas({
         moveScene={moveScene}
         updateDecisionPoint={updateDecisionPoint}
         addDecisionPoint={addDecisionPoint}
+        deleteDecisionPoint={deleteDecisionPoint}
       />
     </>
   );

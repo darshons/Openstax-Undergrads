@@ -197,6 +197,30 @@ export default function App() {
     });
   }, []);
 
+  const deleteDecisionPoint = useCallback((dpIdx: number) => {
+    if (!script) return;
+    setDeleteUndoStack(prev => [...prev, script]);
+    setScript(curr => {
+      if (!curr) return curr;
+      const dps = curr.decision_points ?? [];
+      const dp = dps[dpIdx];
+      if (!dp) return curr;
+      const branchIds = new Set(
+        dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null),
+      );
+      const updatedScenes = curr.scenes
+        .filter(s => !branchIds.has(s.scene_id))
+        .map(s => {
+          if (s.scene_id === dp.associated_introduction_scene_id) {
+            const { routes_to: _, ...rest } = s;
+            return rest as Scene;
+          }
+          return s;
+        });
+      return { ...curr, scenes: updatedScenes, decision_points: dps.filter((_, i) => i !== dpIdx) };
+    });
+  }, [script]);
+
   // ── Generation ──────────────────────────────────────────────────────────
 
   const runGenerate = useCallback(async () => {
@@ -394,6 +418,7 @@ export default function App() {
                     saveCharacterEdit={saveCharacterEdit}
                     updateDecisionPoint={updateDecisionPoint}
                     addDecisionPoint={addDecisionPoint}
+                    deleteDecisionPoint={deleteDecisionPoint}
                     updateScriptField={updateScriptField}
                   />
                 )}

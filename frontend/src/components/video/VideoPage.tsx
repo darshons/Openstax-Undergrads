@@ -211,10 +211,16 @@ export default function VideoPage({ script, onBack }: VideoPageProps) {
                                     onClick={() => setSelectedId(bs.scene_id)}
                                     videoUrl={sceneVideos[bs.scene_id]}
                                   />
-                                  {choice.is_correct && rt && (
+                                  {!choice.is_correct && isRetry && 'decision_point_id' in rt! && (
                                     <VideoArrowD
-                                      label={routeLabel ?? undefined}
-                                      colorClass={isRetry ? 'retry' : 'continues'}
+                                      label={`↩ retry · DP ${rt!.decision_point_id}`}
+                                      colorClass="retry"
+                                    />
+                                  )}
+                                  {choice.is_correct && isContinue && 'scene_id' in rt! && (
+                                    <VideoArrowD
+                                      label={`→ Scene ${rt!.scene_id}`}
+                                      colorClass="continues"
                                     />
                                   )}
                                 </div>

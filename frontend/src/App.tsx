@@ -8,8 +8,15 @@ import type {
   ViewMode,
   ModelChoice,
   VideoType,
+  AssetImages,
+  AssetsStep,
 } from './types/script';
-import { fetchInitialScript } from './lib/api';
+import {
+  fetchInitialScript,
+  generateBackgroundImage,
+  generateCharacterImages,
+  generateOpeningFrames,
+} from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
 import Sidebar from './components/layout/Sidebar';
 import GeneratePanel from './components/layout/GeneratePanel';
@@ -22,6 +29,10 @@ import VideoPage from './components/video/VideoPage';
 export default function App() {
   const [script, setScript] = useState<Script | null>(null);
   const [deleteUndoStack, setDeleteUndoStack] = useState<Script[]>([]);
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [assetImages, setAssetImages] = useState<AssetImages>({ bgPath: null, charPaths: {}, framePaths: {} });
+  const [assetsStep, setAssetsStep] = useState<AssetsStep>('idle');
+  const [assetsError, setAssetsError] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -233,6 +244,10 @@ export default function App() {
     setBusy(true);
     setGenStep(0);
     setScript(null);
+    setRequestId(null);
+    setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
+    setAssetsStep('idle');
+    setAssetsError(null);
     setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
@@ -242,10 +257,11 @@ export default function App() {
     }, 900);
 
     try {
-      const result = await fetchInitialScript(req);
+      const { script: result, requestId: rid } = await fetchInitialScript(req);
       clearInterval(stepper);
       setGenStep(4);
       setScript(result);
+      setRequestId(rid);
     } catch (err) {
       clearInterval(stepper);
       setGenError(err instanceof Error ? err.message : 'Generation failed');
@@ -253,6 +269,29 @@ export default function App() {
       setBusy(false);
     }
   }, [selected, model, videoType, userQuery]);
+
+  // ── Asset image generation ─────────────────────────────────────────────
+
+  const generateAssets = useCallback(async () => {
+    if (!script || !requestId) return;
+    setAssetsStep('generating');
+    setAssetsError(null);
+    try {
+      // Background and character generation are independent — run in parallel
+      const [bgPath, charPaths] = await Promise.all([
+        generateBackgroundImage(script, requestId),
+        generateCharacterImages(script, requestId),
+      ]);
+      setAssetImages(prev => ({ ...prev, bgPath, charPaths }));
+      // Opening frames require both background and character images
+      const framePaths = await generateOpeningFrames(script, requestId, bgPath, charPaths);
+      setAssetImages({ bgPath, charPaths, framePaths });
+      setAssetsStep('done');
+    } catch (err) {
+      setAssetsError(err instanceof Error ? err.message : 'Asset generation failed');
+      setAssetsStep('error');
+    }
+  }, [script, requestId]);
 
   // ── Derived values ──────────────────────────────────────────────────────
 
@@ -307,6 +346,11 @@ export default function App() {
           <div className="h-full flex flex-col overflow-auto">
             <AssetsPage
               script={script}
+              requestId={requestId}
+              assetImages={assetImages}
+              assetsStep={assetsStep}
+              assetsError={assetsError}
+              onGenerateAssets={generateAssets}
               onBack={() => setCurrentPage('script')}
               onViewVideos={() => setCurrentPage('videos')}
             />

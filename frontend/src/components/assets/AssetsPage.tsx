@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { Script } from '../../types/script';
+import type { Script, AssetImages, AssetsStep } from '../../types/script';
+import { imageUrl } from '../../lib/api';
 import { I } from '../shared/Icons';
 
 interface AssetItem {
@@ -97,29 +98,61 @@ function AssetSection({ title, items }: { title: string; items: AssetItem[] }) {
 
 interface AssetsPageProps {
   script: Script;
+  requestId: string | null;
+  assetImages: AssetImages;
+  assetsStep: AssetsStep;
+  assetsError: string | null;
+  onGenerateAssets: () => void;
   onBack: () => void;
   onViewVideos: () => void;
 }
 
-export default function AssetsPage({ script, onBack, onViewVideos }: AssetsPageProps) {
+export default function AssetsPage({
+  script,
+  requestId,
+  assetImages,
+  assetsStep,
+  assetsError,
+  onGenerateAssets,
+  onBack,
+  onViewVideos,
+}: AssetsPageProps) {
+  const { bgPath, charPaths, framePaths } = assetImages;
+  const generating = assetsStep === 'generating';
+
   const characters: AssetItem[] = (script.characters ?? []).map(c => ({
     id: `char-${c.character_id}`,
     label: c.name || `Character ${c.character_id}`,
     role: c.role || c.character_id,
-    src: null,
+    src: charPaths[c.character_id] ? imageUrl(charPaths[c.character_id]) : null,
     category: 'character',
   }));
 
-  const backgrounds: AssetItem[] = [
-    { id: 'bg-1', label: 'Primary Setting',   role: 'Main scene background', src: null, category: 'background' },
-    { id: 'bg-2', label: 'Secondary Setting', role: 'Alternate background',  src: null, category: 'background' },
-  ];
+  const backgrounds: AssetItem[] = [{
+    id: 'bg-1',
+    label: 'Primary Setting',
+    role: script.setting?.location || 'Main scene background',
+    src: bgPath ? imageUrl(bgPath) : null,
+    category: 'background',
+  }];
 
-  const sceneAssets: AssetItem[] = [
-    { id: 'asset-1', label: 'Medical Equipment', role: 'Primary prop',   src: null, category: 'asset' },
-    { id: 'asset-2', label: 'Patient Chart',     role: 'Document prop',  src: null, category: 'asset' },
-    { id: 'asset-3', label: 'Clinical Tool',     role: 'Secondary prop', src: null, category: 'asset' },
-  ];
+  const branchIds = new Set(
+    (script.decision_points ?? []).flatMap(dp =>
+      dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null),
+    ),
+  );
+
+  const frameItems: AssetItem[] = (script.scenes ?? [])
+    .filter(s => !branchIds.has(s.scene_id))
+    .map(s => ({
+      id: `frame-${s.scene_id}`,
+      label: `Scene ${s.scene_id} Opening Frame`,
+      role: s.scene_summary || s.description || '',
+      src: framePaths[String(s.scene_id)] ? imageUrl(framePaths[String(s.scene_id)]) : null,
+      category: 'frame',
+    }));
+
+  const showCards = generating || assetsStep === 'done' || bgPath !== null;
 
   return (
     <div className="assets-page">
@@ -131,19 +164,75 @@ export default function AssetsPage({ script, onBack, onViewVideos }: AssetsPageP
         </div>
         <div style={{ width: 140 }} />
       </div>
-      <div className="assets-next-strip">
-        <div className="assets-next-strip-l">
-          <span className="assets-next-step-label">Next step</span>
-          <span className="assets-next-step-desc">Assets confirmed — preview the generated video clips</span>
+
+      {assetsStep === 'idle' && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Step 1 of 2</span>
+            <span className="assets-next-step-desc">Generate AI reference images for characters, backgrounds, and scene frames</span>
+          </div>
+          <button className="btn-assets" onClick={onGenerateAssets} disabled={!requestId}>
+            Generate Assets {I.sparkle}
+          </button>
         </div>
-        <button className="btn-assets" onClick={onViewVideos}>
-          View Videos {I.arrowRight}
-        </button>
-      </div>
+      )}
+
+      {generating && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Generating…</span>
+            <span className="assets-next-step-desc">
+              {!bgPath && !Object.keys(charPaths).length
+                ? 'Creating background and character reference images…'
+                : 'Creating scene opening frames…'}
+            </span>
+          </div>
+          <div style={{ padding: '0 24px', color: 'var(--os-ink-3)', fontSize: 13 }}>
+            <span style={{ display: 'inline-block', animation: 'assets-pulse 1.4s ease-in-out infinite' }}>●</span>
+            {' '}Working
+          </div>
+        </div>
+      )}
+
+      {assetsStep === 'error' && (
+        <div className="assets-next-strip" style={{ background: '#fff5f5', borderColor: '#fcc' }}>
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label" style={{ color: '#c0392b' }}>Generation failed</span>
+            <span className="assets-next-step-desc">{assetsError}</span>
+          </div>
+          <button className="btn-assets" onClick={onGenerateAssets}>Retry</button>
+        </div>
+      )}
+
+      {assetsStep === 'done' && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Next step</span>
+            <span className="assets-next-step-desc">Assets confirmed - preview the generated video clips</span>
+          </div>
+          <button className="btn-assets" onClick={onViewVideos}>
+            View Videos {I.arrowRight}
+          </button>
+        </div>
+      )}
+
       <div className="assets-body">
-        <AssetSection title="Characters" items={characters} />
-        <AssetSection title="Backgrounds" items={backgrounds} />
-        <AssetSection title="Scene Assets" items={sceneAssets} />
+        {assetsStep === 'idle' && (
+          <div className="empty" style={{ minHeight: 300 }}>
+            <div className="empty-card">
+              <div className="empty-illust"><div /><div /><div /></div>
+              <h2>No assets generated yet</h2>
+              <p>Click <b style={{ color: 'var(--os-orange)' }}>Generate Assets</b> above to create AI reference images for this scenario.</p>
+            </div>
+          </div>
+        )}
+        {showCards && (
+          <>
+            <AssetSection title="Characters" items={characters} />
+            <AssetSection title="Background" items={backgrounds} />
+            <AssetSection title="Scene Opening Frames" items={frameItems} />
+          </>
+        )}
       </div>
     </div>
   );

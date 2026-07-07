@@ -165,6 +165,16 @@ export interface Script {
   decision_points: DecisionPoint[];
 }
 
+// ── Asset image state ──────────────────────────────────────────────────────
+
+export interface AssetImages {
+  bgPath: string | null;
+  charPaths: Record<string, string>; // character_id → absolute server path
+  framePaths: Record<string, string>; // scene_id (string) → absolute server path
+}
+
+export type AssetsStep = 'idle' | 'generating' | 'done' | 'error';
+
 // ── Generate request (matches SceneInformation Pydantic model in api.py) ──
 
 export interface GenerateRequest {

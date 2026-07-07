@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Script, Scene, Choice } from '../../types/script';
 
 function fmtDur(s: number) {
@@ -73,19 +73,6 @@ export default function VideoPage({ script, onBack }: VideoPageProps) {
   const scenes = script.scenes ?? [];
   const dps = script.decision_points ?? [];
 
-  useEffect(() => {
-    fetch('/api/dummy_paths?target=video')
-      .then(r => r.json())
-      .then(data => {
-        const map: Record<number, string> = {};
-        for (const { scene_id, video_path } of (data?.video_paths?.video_paths ?? [])) {
-          const filename = (video_path as string).split('/').pop();
-          map[parseInt(scene_id)] = `/demo-videos/${filename}`;
-        }
-        setSceneVideos(map);
-      })
-      .catch(() => {});
-  }, []);
 
   const branchIds = new Set(
     dps.flatMap(dp => dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null)),

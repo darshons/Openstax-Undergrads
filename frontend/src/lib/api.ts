@@ -64,6 +64,5 @@ export async function generateOpeningFrames(
 
 /** Convert an absolute server-side file path into a URL served by the backend. */
 export function imageUrl(serverPath: string): string {
-  const clean = serverPath.startsWith('/') ? serverPath.slice(1) : serverPath;
-  return `/api/image/${clean}`;
+  return `/api/image/${serverPath}`;
 }

@@ -27,7 +27,7 @@ from .scene_planner import extract_occupancy_table, plan_scene
 from .script_adapter import adapt
 from .video_renderer import VideoRenderer, truncate_error_log
 
-MAX_SCENE_REPAIRS = 5   # escalating repair rounds (each round runs line->block->full)
+MAX_SCENE_REPAIRS = 7   # escalating repair rounds (each round runs line->block->full)
 MAX_CRITIC_ROUNDS = 2   # grid-critic re-render rounds after a successful render
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 

@@ -18,14 +18,17 @@ from .asset_kit import (
 )
 from .code_generator import CodeGenerator, load_prompt
 from .gemini_client import DEFAULT_MODEL, GeminiClient
+from .grid_overlay import overlay_grid
 from .logging_utils import RunStatus
 from .manifest import build_manifest, compute_golden_path
 from .prompt_builder import build_code_prompt
-from .scene_planner import plan_scene
+from .repair import scope_refine_repair
+from .scene_planner import extract_occupancy_table, plan_scene
 from .script_adapter import adapt
 from .video_renderer import VideoRenderer, truncate_error_log
 
-MAX_SCENE_REPAIRS = 5
+MAX_SCENE_REPAIRS = 5   # escalating repair rounds (each round runs line->block->full)
+MAX_CRITIC_ROUNDS = 2   # grid-critic re-render rounds after a successful render
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -113,6 +116,7 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
 
         try:
             plan = plan_scene(spec, scene, asset_api, client)
+            occupancy = extract_occupancy_table(plan)
             with open(os.path.join(scene_dir, "plan.txt"), "w", encoding="utf-8") as f:
                 f.write(plan)
 
@@ -120,38 +124,67 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
                 build_code_prompt(spec, scene, plan, asset_api),
                 label=f"scene_{scene.scene_id}_code",
             )
+            scene_name = f"Scene{scene.scene_id}"
+            scene_version = 0
 
-            video_path = None
-            for attempt in range(MAX_SCENE_REPAIRS + 1):
-                code_path = os.path.join(code_dir, f"scene_{scene.scene_id}_v{attempt}.py")
-                with open(code_path, "w", encoding="utf-8") as f:
-                    f.write(code)
-                ok, stderr = renderer.render(
-                    code_path, media_dir, scene_name=f"Scene{scene.scene_id}"
-                )
+            def write_version(source: str) -> str:
+                nonlocal scene_version
+                path = os.path.join(code_dir, f"scene_{scene.scene_id}_v{scene_version}.py")
+                with open(path, "w", encoding="utf-8") as fh:
+                    fh.write(source)
+                scene_version += 1
+                return path
+
+            # ---- render + ScopeRefine repair loop ----
+            code_path = write_version(code)
+            ok, stderr = renderer.render(code_path, media_dir, scene_name=scene_name)
+            for round_i in range(MAX_SCENE_REPAIRS):
                 if ok:
-                    video_path = renderer.find_scene_video(media_dir, code_path)
-                    status.log_event(
-                        event="scene_rendered", scene_id=scene.scene_id, attempts=attempt + 1
-                    )
                     break
                 error = truncate_error_log(stderr)
                 with open(code_path.replace(".py", "_error.log"), "w", encoding="utf-8") as f:
                     f.write(stderr)
                 status.log_event(
                     event="render_failed", scene_id=scene.scene_id,
-                    attempt=attempt + 1, error_tail=error.splitlines()[-1] if error else "",
+                    round=round_i + 1, error_tail=error.splitlines()[-1] if error else "",
                 )
-                if attempt == MAX_SCENE_REPAIRS:
-                    break
-                code, response = codegen.fix_code_errors(plan, code, error)
-                if any(marker in response for marker in banned):
-                    status.log_event(event="repair_refused", scene_id=scene.scene_id)
-                    break
+                code_path = write_version(code)
+                code, ok, stderr = scope_refine_repair(
+                    scene.scene_id, code, stderr, plan, code_path,
+                    codegen, renderer, media_dir, scene_name, log=print,
+                )
 
-            if video_path is None:
-                status.scene_failed(scene.scene_id, "render failed after repairs")
+            if not ok:
+                status.scene_failed(scene.scene_id, "render failed after ScopeRefine repairs")
+                status.log_event(event="scene_failed", scene_id=scene.scene_id)
                 continue
+
+            video_path = renderer.find_scene_video(media_dir, code_path)
+            status.log_event(event="scene_rendered", scene_id=scene.scene_id, versions=scene_version)
+
+            # ---- forced grid critic (>=1 pass; TEA's critic never fired on
+            # first-try-clean scenes, so layout defects shipped unexamined) ----
+            for critic_round in range(MAX_CRITIC_ROUNDS):
+                snap = renderer.snapshot(
+                    video_path, os.path.join(scene_dir, f"snapshot_v{critic_round}.png")
+                )
+                grid_img = overlay_grid(snap, os.path.join(scene_dir, f"grid_v{critic_round}.png"),
+                                        return_type="image")
+                new_code, response = codegen.visual_self_reflection_grid(code, grid_img, occupancy)
+                if "<LGTM>" in new_code or any(m in response for m in banned):
+                    status.log_event(event="grid_critic_pass", scene_id=scene.scene_id,
+                                     round=critic_round + 1, verdict="clean")
+                    break
+                status.log_event(event="grid_critic_fix", scene_id=scene.scene_id,
+                                 round=critic_round + 1)
+                code = new_code
+                code_path = write_version(code)
+                ok, stderr = renderer.render(code_path, media_dir, scene_name=scene_name)
+                if not ok:
+                    # critic's fix broke the render; keep the last good video
+                    status.log_event(event="grid_critic_regressed", scene_id=scene.scene_id)
+                    break
+                video_path = renderer.find_scene_video(media_dir, code_path)
 
             final_path = os.path.join(scene_dir, f"scene_{scene.scene_id}.mp4")
             shutil.copy(video_path, final_path)

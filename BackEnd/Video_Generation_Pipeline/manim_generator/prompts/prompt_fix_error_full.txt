@@ -18,7 +18,7 @@ Requirements:
 1. Fix the reported error; explain the root cause briefly.
 2. Preserve every `with self.voiceover(...)` block, the dialogue text and order, all `service.set_voice(...)` calls, and all imports (`from assets import *`, `from kokoro_voiceover import KokoroService`).
 3. Do NOT redraw characters or the backdrop from primitives — keep all asset-kit calls (`build_*`, `make_speech_bubble`, `make_lower_third`) intact.
-4. If the error is a hallucinated API (function/class/parameter that does not exist), replace it with a correct core-Manim v0.18 construction per the API reference above.
+4. If the error is a hallucinated API (function/class/parameter that does not exist), replace it with a correct core-Manim v0.18 construction per the API reference above. NEVER import a Manim class from a submodule (e.g. `from manim.animation.movement import Wiggle`) — everything comes from the single top-level `from manim import *`. If an ImportError names a Manim class, delete that import line; it is already available.
 5. If external assets (images, audio, video, SVG) or plugins are referenced, remove them and rebuild the visual from Manim primitives.
 6. Preserve all original code that is not causing the reported error.
 7. Keep `FadeOut(Group(*self.mobjects))` using `Group`, never `VGroup`.

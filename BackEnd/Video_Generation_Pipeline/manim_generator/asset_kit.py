@@ -12,7 +12,8 @@ import os
 import re
 
 from .code_generator import CodeGenerator
-from .prompt_builder import build_asset_kit_prompt
+from .grid_overlay import overlay_grid
+from .prompt_builder import build_asset_kit_prompt, build_character_block
 from .script_adapter import ScenarioSpec
 from .video_renderer import VideoRenderer, truncate_error_log
 
@@ -27,8 +28,9 @@ def generate_asset_kit(
     build_dir: str,
     log=print,
 ) -> str:
-    """Generate assets.py, prove it renders (AssetLineup), and return its path.
-    Falls back to a parameterized generic kit if the LLM kit never renders."""
+    """Generate assets.py, prove it renders (AssetLineup), critique the lineup
+    frame once against the character descriptions, and return its path. Falls
+    back to a parameterized generic kit if the LLM kit never renders."""
     os.makedirs(build_dir, exist_ok=True)
     prompt = build_asset_kit_prompt(spec)
     code, _ = codegen.generate_scene_code(prompt, label="asset_kit")
@@ -43,6 +45,7 @@ def generate_asset_kit(
         ok, stderr = renderer.render(assets_path, media_dir, scene_name="AssetLineup")
         if ok:
             log(f"[asset_kit] lineup rendered on attempt {attempt + 1}")
+            _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log)
             return assets_path
         error = truncate_error_log(stderr)
         log(f"[asset_kit] render failed (attempt {attempt + 1}): {error.splitlines()[-1] if error else 'unknown'}")
@@ -61,6 +64,32 @@ def generate_asset_kit(
             "LLM problem:\n" + truncate_error_log(stderr)
         )
     return assets_path
+
+
+def _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log):
+    """One grid-critic pass over the lineup frame; apply the fix only if it
+    still renders (never let a critique regress a working kit)."""
+    try:
+        video = renderer.find_scene_video(media_dir, assets_path)
+        if not video:
+            return
+        snap = renderer.snapshot(video, os.path.join(build_dir, "lineup_snapshot.png"))
+        grid_img = overlay_grid(snap, os.path.join(build_dir, "lineup_grid.png"), return_type="image")
+        fixed, _ = codegen.critique_asset_lineup(code, grid_img, build_character_block(spec))
+        if "<LGTM>" in fixed:
+            log("[asset_kit] lineup critique: clean")
+            return
+        with open(assets_path, "w", encoding="utf-8") as f:
+            f.write(fixed)
+        ok, _ = renderer.render(assets_path, media_dir, scene_name="AssetLineup")
+        if ok:
+            log("[asset_kit] lineup critique: applied a fix")
+        else:
+            with open(assets_path, "w", encoding="utf-8") as f:
+                f.write(code)
+            log("[asset_kit] lineup critique fix regressed render — reverted")
+    except Exception as e:
+        log(f"[asset_kit] lineup critique skipped ({type(e).__name__}: {e})")
 
 
 def extract_asset_api(assets_path: str) -> str:

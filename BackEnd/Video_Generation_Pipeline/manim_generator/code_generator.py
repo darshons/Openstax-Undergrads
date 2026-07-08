@@ -89,6 +89,21 @@ class CodeGenerator:
         fixed = self._extract_code_with_retries(response_text, CODE_PATTERN, label="grid_critic")
         return fixed, response_text
 
+    def critique_asset_lineup(self, code: str, grid_image: Image.Image,
+                             character_block: str) -> tuple[str, str]:
+        """Critique the asset-kit lineup frame against the character
+        descriptions. Returns ("<LGTM>", response) or (fixed_assets, response)."""
+        prompt = fill_prompt(
+            load_prompt("prompt_asset_lineup_critique"),
+            code=code,
+            character_block=character_block,
+        )
+        response_text = self.client.generate(prompt, image=grid_image, label="lineup_critique")
+        if "<LGTM>" in response_text:
+            return "<LGTM>", response_text
+        fixed = self._extract_code_with_retries(response_text, CODE_PATTERN, label="lineup_critique")
+        return fixed, response_text
+
     # ---------------- extraction ----------------
 
     def _extract_code_with_retries(self, response_text: str, pattern: str,

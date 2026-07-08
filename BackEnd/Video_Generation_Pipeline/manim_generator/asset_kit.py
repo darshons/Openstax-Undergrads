@@ -32,28 +32,34 @@ def generate_asset_kit(
     frame once against the character descriptions, and return its path. Falls
     back to a parameterized generic kit if the LLM kit never renders."""
     os.makedirs(build_dir, exist_ok=True)
-    prompt = build_asset_kit_prompt(spec)
-    code, _ = codegen.generate_scene_code(prompt, label="asset_kit")
-
     assets_path = os.path.join(build_dir, "assets.py")
     media_dir = os.path.join(build_dir, "media")
-    contract = "The asset-kit module contract from the generation prompt:\n" + prompt
 
-    for attempt in range(ASSET_KIT_MAX_REPAIRS + 1):
-        with open(assets_path, "w", encoding="utf-8") as f:
-            f.write(code)
-        ok, stderr = renderer.render(assets_path, media_dir, scene_name="AssetLineup")
-        if ok:
-            log(f"[asset_kit] lineup rendered on attempt {attempt + 1}")
-            _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log)
-            return assets_path
-        error = truncate_error_log(stderr)
-        log(f"[asset_kit] render failed (attempt {attempt + 1}): {error.splitlines()[-1] if error else 'unknown'}")
-        if attempt == ASSET_KIT_MAX_REPAIRS:
-            break
-        code, _ = codegen.fix_code_errors(contract, code, error)
+    # The whole LLM path is best-effort: any unrecoverable error (a hard API
+    # failure, exhausted retries, malformed output) drops to the parameterized
+    # fallback kit rather than crashing the entire scenario run.
+    try:
+        prompt = build_asset_kit_prompt(spec)
+        code, _ = codegen.generate_scene_code(prompt, label="asset_kit")
+        contract = "The asset-kit module contract from the generation prompt:\n" + prompt
 
-    log("[asset_kit] LLM kit never rendered — using the parameterized fallback kit")
+        for attempt in range(ASSET_KIT_MAX_REPAIRS + 1):
+            with open(assets_path, "w", encoding="utf-8") as f:
+                f.write(code)
+            ok, stderr = renderer.render(assets_path, media_dir, scene_name="AssetLineup")
+            if ok:
+                log(f"[asset_kit] lineup rendered on attempt {attempt + 1}")
+                _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log)
+                return assets_path
+            error = truncate_error_log(stderr)
+            log(f"[asset_kit] render failed (attempt {attempt + 1}): {error.splitlines()[-1] if error else 'unknown'}")
+            if attempt == ASSET_KIT_MAX_REPAIRS:
+                break
+            code, _ = codegen.fix_code_errors(contract, code, error)
+        log("[asset_kit] LLM kit never rendered — using the parameterized fallback kit")
+    except Exception as e:
+        log(f"[asset_kit] LLM generation errored ({type(e).__name__}: {e}) — using the fallback kit")
+
     fallback = build_fallback_kit(spec)
     with open(assets_path, "w", encoding="utf-8") as f:
         f.write(fallback)

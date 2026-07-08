@@ -65,7 +65,11 @@ def main():
     if report["speaker_attribution"] is None:
         print("Speaker attrib.: SKIPPED (early stop — dialogue match failed)")
     else:
-        print(f"Speaker attrib.: {'PASS' if report['speaker_attribution']['attribution_passed'] else 'FAIL'}")
+        sa = report["speaker_attribution"]
+        print(f"Speaker attrib.: {'PASS' if sa['attribution_passed'] else 'FAIL'}")
+        if sa["ambiguous_segments"] or sa["inconclusive_segments"]:
+            print(f"  ⚠ {sa['ambiguous_segments']} ambiguous (multiple speakers detected), "
+                  f"{sa['inconclusive_segments']} inconclusive segment(s) excluded from judgment")
     print(f"Estimated cost : ${report['estimated_cost_usd']}")
     print(f"Overall        : {'PASS' if report['passed'] else 'FAIL'}")
     print(f"\nTranscript: {report['transcript_path']}")

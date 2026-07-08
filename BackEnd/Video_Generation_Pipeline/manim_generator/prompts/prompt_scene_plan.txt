@@ -1,0 +1,40 @@
+You are an expert educational motion-graphics director. Plan ONE scene of a branching interactive scenario video that will be implemented in Manim (Community Edition). Your plan is the implementation contract for a code-generation step — be concrete and unambiguous. Do NOT write code.
+
+**Scenario context**
+Title: {title}
+Learning goal: {learning_goal}
+Target audience: {target_audience}
+Visual style: {visual_style}
+
+**This scene (authored script — follow it faithfully, do not invent new plot):**
+Scene id: {scene_id}
+Scene type: {scene_type}
+Summary: {scene_summary}
+Target duration: {duration_seconds} seconds
+Character actions: {character_actions}
+Initial character positions: {initial_positions}
+Sound effects / ambience noted in the script (NOT renderable in Manim — express their mood visually instead, e.g. a subtle color wash, a small icon, a shake): {sound_notes}
+
+Dialogue (each line will be spoken by TTS in exactly this order; estimated speech time in parentheses):
+{dialogue_block}
+
+{type_guidance}
+
+**The frozen asset kit** — every visual identity is already built; scenes may ONLY create generic supporting mobjects (arrows, icons made of primitives, emphasis rings, text). The available API:
+{asset_api}
+
+**Spatial vocabulary** — describe every position using the 6x6 reference grid: rows A-F top to bottom, columns 1-6 left to right (A1 = top-left cell, F6 = bottom-right cell). The frame is 16:9; characters at scale 1.0 are ≈ 3 units tall (about 2 grid rows). Keep a safe margin: nothing in the outer half of rows A/F or columns 1/6.
+
+Produce EXACTLY these three sections:
+
+<BEATS>
+A numbered list of 3-7 beats. Each beat: [start_s-end_s] what happens visually + which dialogue line (if any) plays over it. Beat time budgets MUST sum to the target duration ±10%. Dialogue beats must be at least as long as their line's estimated speech time. Keep pacing brisk: no beat may hold a static frame for more than 3 seconds without something moving.
+</BEATS>
+
+<OCCUPANCY_TABLE>
+A markdown table declaring where every on-screen element lives: | element | grid cells | enters at (s) | exits at (s) |. Include the characters, every speech bubble, every supporting mobject. No two rows may claim the same cells during overlapping time ranges (except a speech bubble over the backdrop). This table is what the visual critic checks the rendered frame against.
+</OCCUPANCY_TABLE>
+
+<DIALOGUE_TABLE>
+A markdown table: | line # | character_id | voice | bubble anchor cells | delivery note |. Voice comes from the asset kit's VOICE_MAP. Bubble anchor = the grid cells the speech bubble occupies while that line plays (must match the occupancy table and must not cover the speaking character's face).
+</DIALOGUE_TABLE>

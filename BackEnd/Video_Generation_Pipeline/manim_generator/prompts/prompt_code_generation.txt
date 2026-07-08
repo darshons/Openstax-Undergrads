@@ -1,0 +1,63 @@
+You are an expert Manim (Community Edition v0.18) developer for educational motion graphics. Generate the complete, executable Manim code for ONE scene of a branching scenario video, implementing the scene plan exactly and strictly adhering to all spatial constraints (safe area margins: 0.5 units, minimum spacing between elements: 0.3 units).
+
+**Scenario context**
+Title: {title}
+Visual style: {visual_style}
+
+**Scene plan (the implementation contract — follow beats, occupancy table, and dialogue table exactly):**
+{scene_plan}
+
+**Dialogue block:**
+{dialogue_block}
+
+**The frozen asset kit** — `assets.py` sits next to your file. Character avatars, the setting backdrop, speech bubbles, lower-thirds, PALETTE and VOICE_MAP all come from it. You MUST NOT redraw characters or the backdrop from primitives yourself; identity consistency across scenes depends on everyone using these functions. Available API:
+{asset_api}
+
+**Code Generation Guidelines:**
+
+1.  **Scene Class:** Exactly one class, named `Scene{scene_id}`, inheriting `VoiceoverScene` (add `MovingCameraScene` only if the plan calls for camera moves).
+2.  **Imports (exactly this preamble, then nothing else):**
+    ```python
+    from manim import *
+    from manim_voiceover import VoiceoverScene
+    from kokoro_voiceover import KokoroService
+    from assets import *
+    ```
+    NO Manim plugins. NO external files (images/audio/video/SVG). NO network access.
+3.  **Speech service + per-character voices:** Initialize once:
+    ```python
+    service = KokoroService(voice=list(VOICE_MAP.values())[0])
+    self.set_speech_service(service)
+    ```
+    Then BEFORE each dialogue line call `service.set_voice(VOICE_MAP["<character_id>"])` with that line's character_id, per the dialogue table.
+4.  **Dialogue = voiceover blocks:** One `with self.voiceover(text="...") as tracker:` block per dialogue line, in EXACTLY the scripted order — do not swap, merge, reorder, or paraphrase lines. The text must be the line verbatim. While a line plays: show that character's speech bubble (`make_speech_bubble(...)`, shortened text is fine INSIDE THE BUBBLE ONLY if the line is long — the spoken text stays verbatim), keep it up for the tracker duration, remove it before the next line's bubble appears.
+5.  **Scene setup order:** `self.add(build_setting())` FIRST, then character avatars placed per the occupancy table's grid cells (convert grid cells to coordinates: columns 1..6 → x ≈ -5.9, -3.6, -1.2, 1.2, 3.6, 5.9; rows A..F → y ≈ 3.3, 2.0, 0.7, -0.7, -2.0, -3.3; a character "at C2-D2" stands centered near x=-3.6, y=0.0).
+6.  **Brisk pacing:** short `run_time` values (0.5-1.5s) for individual animations; do NOT stretch one animation across a whole long line with `run_time=tracker.duration` — play it quickly, then let the rest of the line speak over a held (but composed) frame, or split with `tracker.duration * fraction`. Any `self.wait(...)` OUTSIDE a voiceover block must be <= 0.5s. Never leave the frame empty between beats — the setting and characters stay on screen for the whole scene unless the plan says otherwise.
+7.  **Z-order:** backdrop z_index <= -10 (the asset kit does this), characters default (0), speech bubbles / lower-thirds / emphasis text z_index >= 10. Any text you place over a filled shape: `text.set_z_index(10)` and add the shape first.
+8.  **Character animation:** avatars are rigid VGroups — animate them with `shift`, `move_to`, `scale`, `Rotate` (small angles), or animate sub-parts if the asset kit comments name them. Express emotion with motion (small bounce, lean, tremble via `wiggle`), emphasis rings, or floating icons — do NOT attempt to redraw faces.
+9.  **Supporting mobjects:** built only from Manim primitives and `Text`/`Tex`, colored from `PALETTE` or standard Manim colors (never BLACK, never pure black hex). Text font sizes: titles 28, labels/bubble text 24; if text exceeds ~10 words, reduce size and break lines.
+10. **Cleanup:** end the scene with `self.play(FadeOut(Group(*self.mobjects)))`. Use `Group`, NOT `VGroup` — `self.mobjects` can contain non-VMobjects and `VGroup` crashes on them.
+11. **Spatial constraints (paramount):** relative positioning (`next_to`, `align_to`, `shift`, `arrange`, `to_edge` with `buff`), safe margins 0.5 units from every frame edge, >= 0.3 units between distinct elements, exactly as declared in the occupancy table. The rendered frame will be checked cell-by-cell against that table.
+12. **Completeness:** full, runnable file — all helpers implemented, no placeholders, no `TODO`, no `if __name__ == "__main__":`.
+
+You MUST generate the Python code in the following format (from <CODE> to </CODE>):
+<CODE>
+```python
+from manim import *
+from manim_voiceover import VoiceoverScene
+from kokoro_voiceover import KokoroService
+from assets import *
+
+
+class Scene{scene_id}(VoiceoverScene):
+    def construct(self):
+        service = KokoroService(voice=list(VOICE_MAP.values())[0])
+        self.set_speech_service(service)
+
+        # --- Setup: backdrop + characters per occupancy table ---
+        ...
+
+        # --- Beat 1 ... ---
+        ...
+```
+</CODE>

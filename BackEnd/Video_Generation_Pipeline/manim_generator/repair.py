@@ -10,6 +10,7 @@ carries the RITL-truncated error tail plus the De-Hallucinator API signatures
 matched in the failing region.
 """
 
+import ast
 import re
 
 from . import api_kb
@@ -19,8 +20,26 @@ from .video_renderer import VideoRenderer, extract_failing_line, truncate_error_
 LINE_CONTEXT = 3           # lines of context on each side of the failing line
 LINE_ATTEMPTS = 2
 BLOCK_ATTEMPTS = 2
+# A surgical fix should not balloon the region. If the model returns a
+# replacement far larger than what it replaced, it ignored the "only these
+# lines" instruction (observed: a 6-line block "fixed" into 400+ lines of
+# prose-as-code). Reject it and let the next scope / full regen handle it.
+MAX_REPLACEMENT_GROWTH = 3.0
 
 _FIXED_LINES = re.compile(r"<FIXED_LINES>\s*```python\n?(.*?)```", re.DOTALL)
+
+
+def _replacement_is_sane(replacement: str, original_span: int) -> bool:
+    new_lines = replacement.strip().count("\n") + 1
+    return new_lines <= max(12, original_span * MAX_REPLACEMENT_GROWTH)
+
+
+def _parses(source: str) -> bool:
+    try:
+        ast.parse(source)
+        return True
+    except SyntaxError:
+        return False
 
 
 def _region(lines: list[str], start: int, end: int, mark: bool) -> str:
@@ -103,15 +122,26 @@ def scope_refine_repair(
             match = _FIXED_LINES.search(response)
             if not match:
                 continue
+            scope = template_name.rsplit("_", 1)[-1]
+            # Guard against a runaway "surgical" fix corrupting the file: reject
+            # a replacement that balloons the region or breaks the parse, and
+            # move on WITHOUT poisoning the working copy.
+            if not _replacement_is_sane(match.group(1), end - start + 1):
+                log(f"[repair] scene {scene_id} {scope}-scope fix rejected (too large), escalating")
+                break
             candidate = _apply_replacement(lines, start, end, match.group(1))
+            if not _parses(candidate):
+                log(f"[repair] scene {scene_id} {scope}-scope fix rejected (won't parse), retrying")
+                continue
             with open(code_path, "w", encoding="utf-8") as f:
                 f.write(candidate)
             ok, new_stderr = renderer.render(code_path, media_dir, scene_name=scene_name)
-            scope = template_name.rsplit("_", 1)[-1]
             if ok:
                 log(f"[repair] scene {scene_id} fixed at {scope} scope")
                 return candidate, True, ""
-            # keep going; update the working copy + error for the next scope
+            # Accept the candidate as the new working copy only if it parses
+            # (it does, checked above) AND it did not make things worse. Keep
+            # the failing-line tracking pointed at the newest render.
             lines = candidate.split("\n")
             stderr = new_stderr
             error = truncate_error_log(new_stderr)

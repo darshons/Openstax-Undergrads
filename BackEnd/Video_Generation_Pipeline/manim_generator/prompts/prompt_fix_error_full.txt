@@ -22,6 +22,8 @@ Requirements:
 5. If external assets (images, audio, video, SVG) or plugins are referenced, remove them and rebuild the visual from Manim primitives.
 6. Preserve all original code that is not causing the reported error.
 7. Keep `FadeOut(Group(*self.mobjects))` using `Group`, never `VGroup`.
+8. There is NO `self.time` attribute — if the code reads it, remove that; sequence animations by order and time them with `run_time=tracker.duration`. `rate_func` takes a function (`linear`, `smooth`), `run_time` takes a number.
+9. Emit ONE clean corrected file — no "let me redo this" commentary, no alternative attempts left in the code.
 
 You MUST only output the following format (from <THINKING> to </FULL_CORRECTED_CODE>). You MUST NOT use any other format.
 

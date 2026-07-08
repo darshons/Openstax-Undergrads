@@ -444,7 +444,12 @@ from Video_Generation_Pipeline.manim_generator.script_adapter import (
     adapt,
 )
 
-MANIM_OUTPUT_ROOT = os.environ.get("MANIM_OUTPUT_ROOT", "output/manim_runs")
+# Anchor the output root at the repo root so it is the same directory whether
+# the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MANIM_OUTPUT_ROOT = os.environ.get(
+    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
+)
 # One worker: scenario renders must be serial (parallel manim subprocesses
 # deadlock), and this also means one scenario is generated at a time.
 _manim_executor = ThreadPoolExecutor(max_workers=1)

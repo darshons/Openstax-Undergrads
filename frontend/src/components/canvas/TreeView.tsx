@@ -109,11 +109,12 @@ interface TreeViewProps {
   moveScene: (from: number, to: number) => void;
   updateDecisionPoint: (idx: number, dp: DecisionPoint) => void;
   addDecisionPoint: (sceneIdx: number) => void;
+  deleteDecisionPoint: (dpIdx: number) => void;
 }
 
 export default function TreeView({
   script, density, viewMode, editingSceneIdx, setEditingSceneIdx,
-  saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint,
+  saveSceneEdit, deleteScene, moveScene, updateDecisionPoint, addDecisionPoint, deleteDecisionPoint,
 }: TreeViewProps) {
   const scenes = script.scenes ?? [];
   const dps = script.decision_points ?? [];
@@ -121,29 +122,57 @@ export default function TreeView({
   const sceneIdxMap = new Map(scenes.map((s, i) => [s.scene_id, i]));
   const segments = buildTreeSegments(scenes, dps);
   const [editingChoice, setEditingChoice] = useState<{ dpId: number; idx: number } | null>(null);
+  const [editingMisconception, setEditingMisconception] = useState<{ dpId: number; idx: number } | null>(null);
   const [editingDPQ, setEditingDPQ] = useState<number | null>(null);
 
   const getDpIdx = (dpId: number) => dps.findIndex(d => d.decision_point_id === dpId);
 
+  const updateDP = (dpId: number, patch: Partial<DecisionPoint>) => {
+    const dpIdx = getDpIdx(dpId);
+    if (dpIdx < 0) return;
+    updateDecisionPoint(dpIdx, { ...dps[dpIdx], ...patch });
+  };
+
   const setCorrectChoice = (dpId: number, choiceIdx: number) => {
     const dpIdx = getDpIdx(dpId);
     if (dpIdx < 0) return;
-    const dp = dps[dpIdx];
-    updateDecisionPoint(dpIdx, { ...dp, choices: dp.choices.map((c, i) => ({ ...c, is_correct: i === choiceIdx })) });
+    updateDecisionPoint(dpIdx, { ...dps[dpIdx], choices: dps[dpIdx].choices.map((c, i) => ({ ...c, is_correct: i === choiceIdx })) });
   };
 
   const saveChoiceText = (dpId: number, choiceIdx: number, text: string) => {
     const dpIdx = getDpIdx(dpId);
     if (dpIdx < 0) return;
-    const dp = dps[dpIdx];
-    updateDecisionPoint(dpIdx, { ...dp, choices: dp.choices.map((c, i) => i === choiceIdx ? { ...c, text } : c) });
+    updateDecisionPoint(dpIdx, { ...dps[dpIdx], choices: dps[dpIdx].choices.map((c, i) => i === choiceIdx ? { ...c, text } : c) });
     setEditingChoice(null);
   };
 
-  const saveQuestionText = (dpId: number, text: string) => {
+  const saveMisconception = (dpId: number, choiceIdx: number, text: string) => {
     const dpIdx = getDpIdx(dpId);
     if (dpIdx < 0) return;
-    updateDecisionPoint(dpIdx, { ...dps[dpIdx], question_text: text });
+    updateDecisionPoint(dpIdx, { ...dps[dpIdx], choices: dps[dpIdx].choices.map((c, i) => i === choiceIdx ? { ...c, misconception: text } : c) });
+    setEditingMisconception(null);
+  };
+
+  const addChoice = (dpId: number) => {
+    const dpIdx = getDpIdx(dpId);
+    if (dpIdx < 0) return;
+    const dp = dps[dpIdx];
+    const used = new Set(dp.choices.map(c => c.choice_id));
+    const nextId = ['A','B','C','D','E','F'].find(id => !used.has(id)) ?? String(dp.choices.length + 1);
+    updateDecisionPoint(dpIdx, {
+      ...dp,
+      choices: [...dp.choices, { choice_id: nextId, text: 'New choice', is_correct: false, routes_to_scene: null, misconception: '' }],
+    });
+  };
+
+  const deleteChoice = (dpId: number, choiceIdx: number) => {
+    const dpIdx = getDpIdx(dpId);
+    if (dpIdx < 0) return;
+    updateDecisionPoint(dpIdx, { ...dps[dpIdx], choices: dps[dpIdx].choices.filter((_, i) => i !== choiceIdx) });
+  };
+
+  const saveQuestionText = (dpId: number, text: string) => {
+    updateDP(dpId, { question_text: text });
     setEditingDPQ(null);
   };
 
@@ -188,7 +217,17 @@ export default function TreeView({
             <div key={`dp-${seg.dp.decision_point_id}`} className="tree-branch-frame">
               <div className="tree-vline" />
               <div className="tree-dp-node">
-                <div className="tree-dp-badge">Decision Point {seg.dp.decision_point_id}</div>
+                <div className="tree-dp-badge">
+                  Decision Point {seg.dp.decision_point_id}
+                  <button
+                    className="icon-btn"
+                    style={{ marginLeft: 'auto', color: '#fff', opacity: 0.6 }}
+                    title="Delete this decision point and its branch scenes"
+                    onClick={() => deleteDecisionPoint(getDpIdx(seg.dp.decision_point_id))}
+                  >
+                    {I.trash}
+                  </button>
+                </div>
                 {editingDPQ === seg.dp.decision_point_id ? (
                   <DPInlineEdit
                     value={seg.dp.question_text}
@@ -206,6 +245,8 @@ export default function TreeView({
               <div className="tree-branch-row">
                 {seg.branches.map((b, bi) => {
                   const i = b.scene ? (sceneIdxMap.get(b.scene.scene_id) ?? -1) : -1;
+                  const isEditingThisChoice = editingChoice?.dpId === seg.dp.decision_point_id && editingChoice?.idx === bi;
+                  const isEditingThisMisconception = editingMisconception?.dpId === seg.dp.decision_point_id && editingMisconception?.idx === bi;
                   return (
                     <div key={b.choice.choice_id ?? bi} className="tree-branch-col">
                       <div className="tree-vline-sm" />
@@ -213,17 +254,20 @@ export default function TreeView({
                         <div className="choice-pill-hd">
                           <span className="choice-id-label">{b.choice.choice_id}</span>
                           {b.choice.is_correct ? (
-                            <span className="correct-badge">✓ Correct answer</span>
+                            <span className="correct-badge">✓ Correct</span>
                           ) : (
                             <button className="mark-correct-btn" onClick={() => setCorrectChoice(seg.dp.decision_point_id, bi)} title="Mark as correct answer">
-                              Mark as correct
+                              Mark correct
                             </button>
                           )}
                           <button className="icon-btn" style={{ width: 22, height: 22, marginLeft: 'auto' }} title="Edit choice text" onClick={() => setEditingChoice({ dpId: seg.dp.decision_point_id, idx: bi })}>
                             {I.edit}
                           </button>
+                          <button className="icon-btn" style={{ width: 22, height: 22, color: 'var(--os-ink-3)' }} title="Delete choice" onClick={() => deleteChoice(seg.dp.decision_point_id, bi)}>
+                            {I.trash}
+                          </button>
                         </div>
-                        {editingChoice?.dpId === seg.dp.decision_point_id && editingChoice?.idx === bi ? (
+                        {isEditingThisChoice ? (
                           <DPInlineEdit
                             value={b.choice.text}
                             onSave={text => saveChoiceText(seg.dp.decision_point_id, bi, text)}
@@ -233,6 +277,26 @@ export default function TreeView({
                         ) : (
                           <span className="choice-text">{b.choice.text}</span>
                         )}
+                        <div className="choice-misconception-row">
+                          {isEditingThisMisconception ? (
+                            <DPInlineEdit
+                              value={b.choice.misconception ?? ''}
+                              onSave={text => saveMisconception(seg.dp.decision_point_id, bi, text)}
+                              onCancel={() => setEditingMisconception(null)}
+                              placeholder="Why this is wrong (misconception)…"
+                            />
+                          ) : (
+                            <div
+                              className="choice-misconception"
+                              onClick={() => setEditingMisconception({ dpId: seg.dp.decision_point_id, idx: bi })}
+                              title="Click to edit misconception"
+                            >
+                              {b.choice.misconception
+                                ? <><span className="choice-misconception-label">Misconception:</span> {b.choice.misconception}</>
+                                : <span className="choice-misconception-empty">+ Add misconception</span>}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       {b.scene ? (
                         <>
@@ -258,6 +322,12 @@ export default function TreeView({
                     </div>
                   );
                 })}
+                <div className="add-choice-col">
+                  <div className="tree-vline-sm" />
+                  <button className="add-choice-btn" onClick={() => addChoice(seg.dp.decision_point_id)}>
+                    {I.plus} Add choice
+                  </button>
+                </div>
               </div>
             </div>
           );

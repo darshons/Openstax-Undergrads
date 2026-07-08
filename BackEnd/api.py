@@ -52,9 +52,6 @@ class ImageRetryRequest(BaseModel):
     user_feedback: str | None = (
         None  # This field is optional and will be used when retrying image generation based on user feedback
     )
-    retry_type: str | None = (
-        None  # This field is optional and will be used to specify the type of retry either semantic or structural
-    )
     retry_image_id: str | None = (
         None  # This field is optional and will be used when retrying character image generation or opening frame generation
     )
@@ -328,16 +325,10 @@ def retry_generate_background_image(
                 status_code=404,
                 detail="Original background reference image not found.",
             )
-        if not image_retry_request.retry_type:
-            raise HTTPException(
-                status_code=400,
-                detail="Retry type must be specified for feedback-based retry.",
-            )
 
         updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
             str(original_image_path),
             image_retry_request.user_feedback,
-            image_retry_request.retry_type,
         )
 
         background_tasks.add_task(
@@ -409,16 +400,10 @@ def retry_generate_character_image(
                 status_code=404,
                 detail="Original character reference image not found.",
             )
-        if not image_retry_request.retry_type:
-            raise HTTPException(
-                status_code=400,
-                detail="Retry type must be specified for feedback-based retry.",
-            )
 
         updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
             str(original_image_path),
             image_retry_request.user_feedback,
-            image_retry_request.retry_type,
         )
 
         background_tasks.add_task(
@@ -501,16 +486,9 @@ def retry_generate_opening_frames(
                 status_code=404,
                 detail="Original opening frame reference image not found.",
             )
-        if not image_retry_request.retry_type:
-            raise HTTPException(
-                status_code=400,
-                detail="Retry type must be specified for feedback-based retry.",
-            )
 
         updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
-            str(original_image_path),
-            image_retry_request.user_feedback,
-            image_retry_request.retry_type,
+            str(original_image_path), image_retry_request.user_feedback
         )
 
         background_tasks.add_task(

@@ -8,7 +8,7 @@ import tempfile
 
 
 def retry_with_feedback(
-    original_image_path: str, user_query: str, feedback_type: str
+    original_image_path: str, user_query: str
 ) -> tuple[str | None, list[str | None]]:
     """
     This function takes an image path and a user query as input, uploads the image to the Gemini client,
@@ -21,226 +21,130 @@ def retry_with_feedback(
     """
     client = setup_gemini_client()
 
-    structural_edit_sys_prompt = """
+    image_edit_sys_prompt = """
     You are an expert image editing model.
 
-    Your task is to modify the provided input image according to the user's feedback and produce a new edited version of the image.
+    Your task is to modify an existing image according to the user's instructions. Treat the user's feedback as a request to revise the image, not to generate a completely new one.
 
-    General principles:
+    Primary Objective:
+    Apply the requested changes while preserving every aspect of the image that the user did not ask to modify.
+    The edited image should appear as though it is the original image with only the necessary revisions made.
 
-    1. Preserve the original image whenever possible.
-    - Only change elements that are required to satisfy the user's request.
-
-    2. Interpret user feedback as edit instructions.
-    Examples include:
-    - Move, resize, rotate, or reposition objects
-    - Add or remove objects
-    - Change colors or materials
-    - Modify lighting or shadows
-    - Correct geometry or proportions
-    - Improve symmetry or alignment
-    - Adjust perspective
-    - Change background elements
-    - Fix visual artifacts
-
-    3. Preserve identity and consistency.
-    - Keep the same people, objects, scene, and artistic style unless explicitly instructed otherwise.
-    - Maintain object identity across edits.
-    - Preserve textures and visual details whenever possible.
-
-    4. Structural edits.
-    When repositioning or resizing objects:
-    - Maintain realistic perspective.
-    - Preserve correct occlusion.
-    - Ensure lighting and shadows remain physically consistent.
-    - Avoid introducing distortions or impossible geometry.
-
-    5. Color edits.
-    When changing colors:
-    - Modify only the requested regions.
-    - Preserve shading, reflections, highlights, and material properties.
-    - Maintain natural color harmony unless instructed otherwise.
-
-    6. Additions.
-    When adding new objects:
-    - Match the existing style, lighting, perspective, and resolution.
-    - Blend seamlessly into the scene.
-    - Respect existing object interactions and depth ordering.
-
-    7. Removals.
-    When removing objects:
-    - Fill the missing region naturally using surrounding context.
-    - Avoid visible artifacts or repeated textures.
-
-    8. Ambiguous instructions.
-    If the user's request is ambiguous:
-    - Choose the smallest reasonable modification.
-    - Never invent major scene changes.
-
-    9. Image quality.
-        Always produce a clean, artifact-free result with:
-        - realistic geometry
-        - consistent lighting
-        - accurate shadows
-        - sharp details
-        - natural textures
-
-    The edited image should satisfy the user's requested changes while remaining as faithful as possible to the original image.
-    """
-
-    semantic_editing_sys_prompt = """
-    You are an expert image editing model.
-
-    Your task is to modify the provided input image according to the user's semantic feedback and produce a new edited version of the image.
-
-    Semantic feedback describes what should happen in the scene. Your responsibility is to infer the visual changes necessary to communicate the requested meaning while preserving the original image as much as possible.
-
-    General Principles:
-
-    1. Preserve the original image whenever possible.
-    - Only change elements that are required to satisfy the user's request.
-    - Preserve image quality and consistency throughout the edit.
-
-    2. Interpret user feedback as semantic edit instructions.
-
-    The user's request may describe:
-    - emotions
-    - intentions
-    - interactions
-    - relationships
-    - reactions
-    - attention
-    - body language
-    - events
-    - narrative progression
-    - implied actions
-
-    Translate these semantic requests into the minimal set of visual modifications needed to communicate the requested meaning.
+    Editing Principles:
     
-    The goal is not merely to modify individual objects, but to express the requested semantic change clearly through the image.
+    1. Make Only Requested Changes
+    
+    Only modify elements that are necessary to satisfy the user's request.
+    Do not introduce additional edits, stylistic changes, objects, characters, colors, poses, lighting changes, or composition changes unless they are required to accomplish the requested modification.
 
-    3. Preserve identity and consistency.
+    2. Preserve Everything Else
+    
+    Unless explicitly requested otherwise, preserve:
+    - Identity of all characters
+    - Facial features
+    - Clothing
+    - Hairstyles
+    - Body proportions
+    - Poses
+    - Camera angle
+    - Framing
+    - Background
+    - Lighting
+    - Perspective
+    - Color palette
+    - Image quality
+    - Textures
+    - Object placement
+    - Artistic style
 
-    Unless explicitly instructed otherwise:
-    - Keep all characters, objects, clothing, hairstyles, accessories, and environments the same.
-    - Preserve each character's identity.
-    - Preserve facial structure.
-    - Preserve artistic style.
-    - Preserve camera viewpoint.
-    - Preserve composition.
-    - Preserve object permanence.
+    The goal is minimal, targeted edits.
 
-    Never replace a character with a different-looking person unless requested.
+    3. Maintain Consistency
+    
+    Any modification must remain physically and visually consistent with the rest of the image.
 
-    4. Express semantic changes through realistic visual cues.
+    Maintain:
+    - Lighting direction
+    - Perspective
+    - Scale
+    - Depth
+    - Occlusion
+    - Anatomy
+    - Object interactions
 
-    When modifying emotions or intentions, use appropriate combinations of:
-    - facial expressions
-    - eye gaze
-    - eyebrows
-    - mouth shape
-    - posture
-    - head orientation
-    - hand gestures
-    - body language
-    - physical interaction
-    - object interaction
+    New elements should naturally integrate into the scene.
 
-    Changes should be visually recognizable while remaining natural.
+    4. Preserve Character Identity
+    
+    When editing people or characters:
+    - Preserve facial identity
+    - Preserve age
+    - Preserve ethnicity
+    - Preserve distinguishing features
+    - Preserve body type
 
-    Avoid exaggerated or cartoonish expressions unless consistent with the original style.
+    Unless the user explicitly requests otherwise.
 
-    5. Maintain interaction consistency.
+    5. Structural Changes
+    
+    When the user requests structural edits:
+    - Move objects naturally
+    - Resize objects proportionally
+    - Rotate objects realistically
+    - Add or remove objects cleanly
+    - Preserve perspective
+    - Maintain scene coherence
 
-    When multiple people or objects interact:
+    Avoid leaving artifacts.
 
-    - Ensure poses are physically plausible.
-    - Maintain consistent eye contact when appropriate.
-    - Preserve realistic spacing.
-    - Respect body mechanics.
-    - Ensure hands and limbs interact naturally with nearby objects.
-    - Maintain proper occlusion and depth ordering.
+    6. Appearance Changes
+    
+    When changing appearance, modify only the requested attributes, such as:
+    - Color
+    - Material
+    - Texture
+    - Clothing
+    - Hairstyle
+    - Accessories
+    - Age (if requested)
+    - Facial hair
+    - Makeup
 
-    Every participant in an interaction should visually support the requested scene.
+    Do not unintentionally alter unrelated characteristics.
 
-    6. Preserve narrative coherence.
+    7. Emotional and Social Context
+    
+    When requested, modify:
+    - Facial expressions
+    - Eye gaze
+    - Gestures
+    - Posture
+    - Interpersonal interactions
+    - Body language
 
-    Treat the image as part of a coherent scene.
+    Ensure all characters react consistently with the described situation.
 
-    Every modification should remain consistent with:
-    - surrounding objects
-    - character positions
-    - ongoing actions
-    - environmental context
-    - implied story
+    8. Preserve Image Quality
 
-    Avoid introducing actions or expressions that contradict the existing scene unless explicitly requested.
+    The edited image should:
+    - Remain high resolution
+    - Avoid blur
+    - Avoid compression artifacts
+    - Avoid duplicated objects
+    - Avoid malformed anatomy
+    - Avoid broken geometry
+    - Avoid inconsistent lighting
+    - Avoid unwanted changes
 
-    7. Emotional consistency.
-
-    When changing emotions:
-
-    - Modify all relevant visual cues rather than changing only the mouth.
-    - Ensure facial expression, posture, gaze, and body language communicate the same emotion.
-    - Maintain subtlety when appropriate.
-
-    Examples include:
-    - happiness
-    - sadness
-    - fear
-    - surprise
-    - anger
-    - embarrassment
-    - confidence
-    - relief
-    - concern
-    - excitement.
-
-    8. Action consistency.
-
-    When modifying actions:
-    - Preserve realistic body mechanics.
-    - Ensure limbs, joints, and poses remain anatomically plausible.
-    - Update nearby objects as necessary to reflect the new interaction.
-    - Avoid frozen or physically impossible poses.
-
-    9. Ambiguous instructions.
-
-    If the user's request is ambiguous:
-    - Avoid inventing major narrative changes.
-    - Preserve the original intent of the scene whenever possible.
-
-    10. Image quality.
-
-    Always produce a clean, artifact-free result with:
-    - realistic anatomy
-    - consistent facial identity
-    - accurate body proportions
-    - natural expressions
-    - physically plausible poses
-    - consistent lighting
-    - accurate shadows
-    - seamless object interactions
-    - sharp details
-    - natural textures
-
-    The edited image should clearly communicate the requested semantic change while remaining as faithful as possible to the original image.
+    The end goal is to produce an edited image that faithfully satisfies the user's request while remaining as visually identical as possible to the original image outside the requested modifications.
     """
 
     MODEL = "gemini-3.1-flash-image"
 
-    image_edit_sys_prompt = None
-
-    if feedback_type == "semantic":
-        image_edit_sys_prompt = types.GenerateContentConfig(
-            system_instruction=semantic_editing_sys_prompt,
-            response_modalities=["IMAGE"],
-        )
-    else:
-        image_edit_sys_prompt = types.GenerateContentConfig(
-            system_instruction=structural_edit_sys_prompt,
-            response_modalities=["IMAGE"],
-        )
+    image_edit_config = types.GenerateContentConfig(
+        system_instruction=image_edit_sys_prompt,
+        response_modalities=["IMAGE"],
+    )
 
     # Path setup for saving generated images
     dir_path = Path(tempfile.gettempdir()) / "Frame_Image_Output"
@@ -251,14 +155,14 @@ def retry_with_feedback(
     uploaded_original_image = client.files.upload(
         file=original_image_path,
         config=types.UploadFileConfig(
-            display_name="original_reference_image", mime_type="image/png"
+            display_name="original_image", mime_type="image/png"
         ),
     )
 
     response = client.models.generate_content(
         model=MODEL,
         contents=[user_query, uploaded_original_image],
-        config=image_edit_sys_prompt,
+        config=image_edit_config,
     )
 
     if (

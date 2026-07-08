@@ -2,7 +2,7 @@ from rapidfuzz import fuzz
 
 # Loose on purpose: this stage exists to catch obviously wrong/garbled/missing
 # dialogue, not to penalize paraphrasing or Veo's arbitrary line-splitting.
-SIMILARITY_THRESHOLD = 55.0
+SIMILARITY_THRESHOLD = 75
 
 
 def match_dialogue(dialogue: list, segments: list) -> dict:

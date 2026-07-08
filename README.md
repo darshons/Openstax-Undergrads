@@ -36,10 +36,12 @@ Built by Team DJ YAM.
     ├── Image_Generation_Pipeline/
     │   ├── Character_Generation/
     │   └── Frame_Generation/
-    └── Video_Generation_Pipeline/
-        ├── scenario.json            # Example scenario
-        ├── test_prompt.py           # Print prompts without calling Veo
-        └── video_generator/         # Generation package — see its README
+    ├── Video_Generation_Pipeline/
+    │   ├── scenario.json            # Example scenario
+    │   ├── test_prompt.py           # Print prompts without calling Veo
+    │   └── video_generator/         # Generation package — see its README
+    └── Transcript_Eval_Pipeline/
+        └── transcript_eval/         # Transcript + consistency-eval package — see its README
 ```
 
 ---
@@ -146,6 +148,24 @@ python test_prompt.py
 ```
 
 Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
+
+---
+
+## Transcript & consistency eval
+
+`backend/Transcript_Eval_Pipeline/transcript_eval` transcribes a single generated clip's actual audio (independent of the script that produced it), then checks that transcript against the clip's ground-truth `scenario.json` dialogue — catching wrong/garbled dialogue and dialogue attributed to the wrong on-screen character.
+
+```bash
+cd backend/Transcript_Eval_Pipeline
+export GEMINI_API_KEY=your-key-here
+
+python -m transcript_eval.cli \
+  --video path/to/scene3_clip1.mp4 \
+  --scenario ../Video_Generation_Pipeline/scenario.json \
+  --scene-id 3 --clip-id 1
+```
+
+Runs three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script (loose threshold, early-stops the clip on failure), then — only if that passes — a Gemini vision judge that samples frames to check the speaking character matches the script's expected speaker. Transcripts and eval reports land in `output/transcripts/` and `output/eval_reports/`. This is a standalone system, not yet wired into `Video_Generation_Pipeline`'s generation loop. See `backend/Transcript_Eval_Pipeline/README.md` for the full reference.
 
 ---
 

@@ -24,22 +24,55 @@ QUALITY_DIRS = {"h": "1080p60", "m": "720p30", "l": "480p15"}
 ERROR_LOG_TAIL_LINES = 12
 
 
-def truncate_error_log(stderr: str, max_lines: int = ERROR_LOG_TAIL_LINES) -> str:
-    """Keep the tail of a manim error dump — the exception and the frames
-    nearest to it. Long renders emit hundreds of lines of progress noise."""
+# Manim renders tracebacks with Rich, which frames each stack entry as
+# "path/to/file.py:LINE in func" inside box-drawing borders, NOT the standard
+# `File "...", line N`. Match both so line extraction + truncation work.
+_STD_FRAME = re.compile(r'File "([^"]+)", line (\d+)')
+_RICH_FRAME = re.compile(r'([\w./\-]+\.py):(\d+)')
+_FINAL_EXCEPTION = re.compile(r"^\s*[│]?\s*(\w+(?:Error|Exception|Warning)\b.*)$")
+
+
+def truncate_error_log(stderr: str, code_filename: str | None = None,
+                       max_lines: int = ERROR_LOG_TAIL_LINES) -> str:
+    """Keep the informative part of a manim error dump. Manim's Rich traceback
+    is verbose and box-drawn; the final exception line is at the very end, but
+    the frame pointing into the scene file (with its source snippet) can be far
+    up. Preserve the scene-file frame's surrounding lines plus the tail so the
+    repair prompt sees both the location and the exception."""
     lines = [l for l in stderr.strip().splitlines() if l.strip()]
     if len(lines) <= max_lines:
         return "\n".join(lines)
-    return "(...log truncated...)\n" + "\n".join(lines[-max_lines:])
+
+    keep_idx: set[int] = set(range(len(lines) - max_lines, len(lines)))  # the tail
+    if code_filename:
+        base = os.path.basename(code_filename)
+        for i, line in enumerate(lines):
+            if base in line:
+                # include a small window around the scene-file frame
+                keep_idx.update(range(max(0, i - 1), min(len(lines), i + 6)))
+
+    out, last = [], -2
+    for i in sorted(keep_idx):
+        if i != last + 1:
+            out.append("(...)")
+        out.append(lines[i])
+        last = i
+    return "\n".join(out)
 
 
 def extract_failing_line(stderr: str, code_filename: str) -> int | None:
-    """Pull the line number of the deepest traceback frame that points into
-    the generated scene file. Used by the ScopeRefine repair to fix at line
-    scope first."""
+    """Line number of the deepest traceback frame pointing into the generated
+    scene file — for ScopeRefine's line-scope fix. Handles both the standard
+    `File "...", line N` and manim's Rich `file.py:N` frame formats."""
+    base = os.path.basename(code_filename)
     line_no = None
-    for match in re.finditer(r'File "([^"]+)", line (\d+)', stderr):
-        if os.path.basename(match.group(1)) == os.path.basename(code_filename):
+    for match in _STD_FRAME.finditer(stderr):
+        if os.path.basename(match.group(1)) == base:
+            line_no = int(match.group(2))
+    if line_no is not None:
+        return line_no
+    for match in _RICH_FRAME.finditer(stderr):
+        if os.path.basename(match.group(1)) == base:
             line_no = int(match.group(2))
     return line_no
 

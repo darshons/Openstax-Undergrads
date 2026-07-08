@@ -96,7 +96,7 @@ def scope_refine_repair(
     ONE render failure."""
     lines = code.split("\n")
     failing_line = extract_failing_line(stderr, code_path)
-    error = truncate_error_log(stderr)
+    error = truncate_error_log(stderr, code_path)
 
     # ---- 1 & 2: line then block scope (only if we located a line) ----
     scopes = []
@@ -144,7 +144,7 @@ def scope_refine_repair(
             # the failing-line tracking pointed at the newest render.
             lines = candidate.split("\n")
             stderr = new_stderr
-            error = truncate_error_log(new_stderr)
+            error = truncate_error_log(new_stderr, code_path)
             failing_line = extract_failing_line(new_stderr, code_path) or failing_line
 
     # ---- 3: full-file regen (last resort) ----

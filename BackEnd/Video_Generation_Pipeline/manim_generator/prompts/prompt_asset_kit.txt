@@ -1,0 +1,69 @@
+You are an expert Manim (Community Edition v0.18) developer and character designer for educational motion graphics. Your task: generate a single, complete, executable Python module called `assets.py` — the frozen visual identity kit for one branching scenario video. Every scene of the scenario will `from assets import *`, so character avatars and the setting backdrop are pixel-identical across all scenes BY CONSTRUCTION.
+
+Visual style: {visual_style}
+
+Characters:
+{character_block}
+
+Setting:
+{setting_block}
+
+**Design brief**
+
+Build each character as a stylized 2D vector avatar from Manim primitives (Circle, Ellipse, RoundedRectangle, Polygon, Arc, Line, VGroup...). Semi-flat, friendly, readable at a distance — think corporate-explainer art, not stick figures and not photorealism. Encode every appearance detail you are given (skin tone, hair, build, uniform, distinguishing features) as FIXED hex colors and shape parameters inside the build function. The appearance strings above are canonical: derive concrete hex values from them once, here, and never leave color choices to the scenes.
+
+**The module contract — implement EXACTLY these names:**
+
+1. `PALETTE: dict[str, str]` — scenario color system. Must include the keys `"background"` (a dark, low-saturation scene backdrop color that fits the setting; never pure black), `"bubble_fill"`, `"bubble_text"`, `"accent_correct"` (green family), `"accent_incorrect"` (red/orange family), plus one named entry per character for their signature color.
+
+2. `build_<character_id>(scale: float = 1.0) -> VGroup` — one function per character, exact character_id in the name. Returns the full avatar: head, hair, face hints, body with uniform, distinguishing features. Total height ≈ 3.0 scene units at scale=1.0, centered at ORIGIN. Facing the viewer or slightly angled. Give each avatar a clearly distinct silhouette and signature color so they can never be confused.
+
+3. `build_setting() -> VGroup` — the backdrop: a full-frame background Rectangle (width 14.3, height 8.1, fill PALETTE["background"], fill_opacity 1) plus simplified furniture/equipment props from the setting description, arranged along the lower/back region so characters can stand in front. All backdrop mobjects must have z_index=-10 or lower.
+
+4. `make_speech_bubble(text: str, speaker: Mobject, direction=UP, max_width: float = 5.0) -> VGroup` — a rounded speech bubble with the text inside (font_size 24, wrap by inserting line breaks so the bubble stays under max_width) plus a small tail triangle pointing toward `speaker`. Position it `next_to(speaker, direction, buff=0.3)`, then `shift` it as needed so the whole bubble stays inside x ∈ [-6.6, 6.6], y ∈ [-3.5, 3.5]. Set z_index=10 on the whole bubble so it always renders above everything.
+
+5. `make_lower_third(name: str, role: str) -> VGroup` — a compact name banner (rounded rectangle + name + role text) anchored to the bottom-left of the frame (`to_corner(DL, buff=0.4)`), z_index=10.
+
+6. `VOICE_MAP: dict[str, str]` — one entry per character_id mapping to a Kokoro voice. Choose voices whose presented gender matches the character as described. Available voices (a*=American, b*=British; f/m voices): {known_voices}. Suggested assignment (override where the descriptions imply otherwise): {suggested_voices}
+
+7. `class AssetLineup(Scene)` — a test scene: add `build_setting()`, then every character avatar arranged left-to-right with `VGroup(...).arrange(RIGHT, buff=1.2)` scaled to fit the frame, each with its `make_lower_third`-style name label BELOW the avatar (not overlapping), and one example `make_speech_bubble("Hello!", <first avatar>)`. No animation needed — a single `self.add(...)` composition then `self.wait(0.5)`.
+
+**Hard rules**
+- Imports: `from manim import *` and nothing else (no plugins, no external assets, no image/SVG files, no network).
+- Plain `Scene` for AssetLineup (NOT VoiceoverScene — this file must import cleanly without any TTS service).
+- Every function must be self-contained and deterministic. No randomness.
+- No `if __name__ == "__main__":` block.
+- Do not use pure BLACK (#000000) anywhere; the darkest allowed value is #111111.
+- Comment each avatar section briefly (head / hair / uniform / feature) so scenes' code authors can reference sub-parts.
+
+You MUST generate the module in the following format (from <CODE> to </CODE>):
+<CODE>
+```python
+from manim import *
+
+PALETTE = {
+    "background": "#0F2C4D",
+    # ...
+}
+
+VOICE_MAP = {
+    # ...
+}
+
+def build_example_character(scale: float = 1.0) -> VGroup:
+    ...
+
+def build_setting() -> VGroup:
+    ...
+
+def make_speech_bubble(text: str, speaker: Mobject, direction=UP, max_width: float = 5.0) -> VGroup:
+    ...
+
+def make_lower_third(name: str, role: str) -> VGroup:
+    ...
+
+class AssetLineup(Scene):
+    def construct(self):
+        ...
+```
+</CODE>

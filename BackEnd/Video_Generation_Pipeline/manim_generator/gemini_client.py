@@ -9,17 +9,25 @@ import time
 
 from google import genai
 from google.genai import errors as genai_errors
+from google.genai import types as genai_types
 
 DEFAULT_MODEL = "gemini-2.5-pro"
 # gRPC codes considered transient (mirrors veo_api.py): INTERNAL, RESOURCE_EXHAUSTED, UNAVAILABLE
 RETRYABLE_CODES = {13, 8, 14, 429, 500, 503}
 MAX_ATTEMPTS = 4
+# Per-request cap so one stuck call fails fast and retries instead of hanging
+# the whole serial pipeline. Generous because a full assets.py / scene file is
+# a long generation on gemini-2.5-pro.
+REQUEST_TIMEOUT_MS = 240_000
 
 
 class GeminiClient:
     def __init__(self, model: str = DEFAULT_MODEL, api_key: str | None = None):
         self.model = model
-        self.client = genai.Client(api_key=api_key or os.environ.get("GEMINI_API_KEY"))
+        self.client = genai.Client(
+            api_key=api_key or os.environ.get("GEMINI_API_KEY"),
+            http_options=genai_types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
+        )
 
     def generate(self, prompt: str, image=None, label: str = "") -> str:
         """One completion. `image` may be a PIL Image (for the visual critic)."""

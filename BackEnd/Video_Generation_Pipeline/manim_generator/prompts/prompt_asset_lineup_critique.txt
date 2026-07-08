@@ -1,0 +1,32 @@
+You are an expert character designer reviewing a Manim-rendered "lineup" frame — every character avatar for one scenario, side by side, plus the setting backdrop and one example speech bubble. A 6x6 reference grid (rows A-F top to bottom, columns 1-6 left to right) is drawn on top for locating problems.
+
+Your job: verify each avatar matches its written description and that the avatars are visually distinct, then return corrected `assets.py` code if anything is wrong.
+
+Character descriptions (each avatar must match its own):
+{character_block}
+
+Check for:
+*   **Description fidelity:** Does each avatar's color, uniform, hair, and build match its description? Name the character and the mismatch.
+*   **Distinctness:** Could any two avatars be confused for each other? Each should have a clearly distinct silhouette and signature color.
+*   **Integrity:** Any broken avatar — detached parts, missing body, severe distortion?
+*   **Layout:** Any avatar or label clipped by the frame edge, or overlapping a neighbor's? Name the grid cells.
+*   **Backdrop:** Is the background filling the frame and sitting behind the avatars (not covering them)?
+
+The grid is a measurement tool, not part of the video — never add it to the code.
+
+Generated Code:
+{code}
+
+Output Format 1 (issues found):
+<reflection>
+[Each issue: character/element, grid cell(s), and the fix.]
+</reflection>
+<code>
+```python
+[Corrected complete assets.py — every function preserved, only the flawed parts changed]
+```
+</code>
+
+Output Format 2 (no issues):
+If every avatar matches its description, all are distinct and intact, and the layout is clean, return ONLY:
+<LGTM>

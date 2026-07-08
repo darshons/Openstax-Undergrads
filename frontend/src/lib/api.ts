@@ -116,3 +116,38 @@ export async function retryOpeningFrame(
 export function imageUrl(serverPath: string): string {
   return `/api/image/${serverPath}`;
 }
+
+/** Convert an absolute server-side video path into a URL served by the backend. */
+export function videoUrl(serverPath: string): string {
+  return `/api/video/${serverPath}`;
+}
+
+/** Kick off Manim branching-video generation for the current edited script. */
+export async function generateManimVideos(
+  script: Script,
+  requestId: string,
+): Promise<{ status: string; requestId: string }> {
+  const res = await fetch('/api/generate_manim_videos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ script, request_id: requestId }),
+  });
+  if (!res.ok) throw new Error(`Manim video generation failed (${res.status})`);
+  const data = await res.json();
+  return { status: data.status as string, requestId: data.request_id as string };
+}
+
+export interface ManimStatus {
+  state: string; // queued | assets | scene_k_of_n | stitching | done | error
+  completed_scenes: Record<string, string>; // scene_id -> server video path
+  failed_scenes: Record<string, string>;
+  manifest?: unknown;
+  error?: string | null;
+}
+
+/** Poll the status of a Manim video-generation run. */
+export async function getManimStatus(requestId: string): Promise<ManimStatus> {
+  const res = await fetch(`/api/manim_video_status/${requestId}`);
+  if (!res.ok) throw new Error(`Status check failed (${res.status})`);
+  return (await res.json()) as ManimStatus;
+}

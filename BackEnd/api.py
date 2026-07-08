@@ -430,3 +430,55 @@ def retry_generate_opening_frames(
 @api_router.get("/video/{video_path:path}")
 def get_video(video_path: str):
     return FileResponse(video_path, media_type="video/mp4")
+
+
+# ---------------------------------------------------------------------------
+# Manim branching-video generation ("Manim · Graphics" video type)
+# ---------------------------------------------------------------------------
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+from Video_Generation_Pipeline.manim_generator.script_adapter import (
+    ScriptValidationError,
+    adapt,
+)
+
+MANIM_OUTPUT_ROOT = os.environ.get("MANIM_OUTPUT_ROOT", "output/manim_runs")
+# One worker: scenario renders must be serial (parallel manim subprocesses
+# deadlock), and this also means one scenario is generated at a time.
+_manim_executor = ThreadPoolExecutor(max_workers=1)
+
+
+class ManimVideoRequest(BaseModel):
+    script: dict[str, Any]
+    request_id: str
+
+
+@api_router.post("/generate_manim_videos")
+def generate_manim_videos(request: ManimVideoRequest):
+    """Kick off Manim branching-video generation for an edited scenario script.
+    Returns immediately; poll /manim_video_status/{request_id} for progress."""
+    try:
+        adapt(request.script)  # fail fast on an inconsistent branch graph
+    except ScriptValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    _manim_executor.submit(
+        run_scenario_pipeline,
+        request.script,
+        request.request_id,
+        MANIM_OUTPUT_ROOT,
+    )
+    return {"status": "started", "request_id": request.request_id}
+
+
+@api_router.get("/manim_video_status/{request_id}")
+def manim_video_status(request_id: str):
+    """Read the pipeline's status.json for a run (pure file read; the pipeline
+    rewrites it after every stage transition)."""
+    status_path = os.path.join(MANIM_OUTPUT_ROOT, request_id, "status.json")
+    if not os.path.exists(status_path):
+        return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+    with open(status_path, "r", encoding="utf-8") as f:
+        return json.load(f)

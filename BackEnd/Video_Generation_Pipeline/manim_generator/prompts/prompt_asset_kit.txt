@@ -24,7 +24,9 @@ Build each character as a stylized 2D vector avatar from Manim primitives (Circl
 
 5. `make_lower_third(name: str, role: str) -> VGroup` — a compact name banner (rounded rectangle + name + role text) anchored to the bottom-left of the frame (`to_corner(DL, buff=0.4)`), z_index=10.
 
-6. `VOICE_MAP: dict[str, str]` — one entry per character_id mapping to a Kokoro voice. Choose voices whose presented gender matches the character as described. Available voices (a*=American, b*=British; f/m voices): {known_voices}. Suggested assignment (override where the descriptions imply otherwise): {suggested_voices}
+6. `grid_to_point(cell: str) -> np.ndarray` — convert a 6x6 grid cell or cell-range to a Manim coordinate. Accepts `"C2"` (single cell) or `"C2-E3"` (range → center of the bounding box). Rows A-F map top→bottom to y in [+3.3 .. -3.3], columns 1-6 map left→right to x in [-5.9 .. +5.9]. This is the ONLY way scenes position things by grid cell — implement it exactly so `obj.move_to(grid_to_point("C2"))` works. Include `import numpy as np` (or use Manim's coordinate constants).
+
+7. `VOICE_MAP: dict[str, str]` — one entry per character_id mapping to a Kokoro voice. Choose voices whose presented gender matches the character as described. Available voices (a*=American, b*=British; f/m voices): {known_voices}. Suggested assignment (override where the descriptions imply otherwise): {suggested_voices}
 
 7. `class AssetLineup(Scene)` — a test scene: add `build_setting()`, then every character avatar arranged left-to-right with `VGroup(...).arrange(RIGHT, buff=1.2)` scaled to fit the frame, each with its `make_lower_third`-style name label BELOW the avatar (not overlapping), and one example `make_speech_bubble("Hello!", <first avatar>)`. No animation needed — a single `self.add(...)` composition then `self.wait(0.5)`.
 

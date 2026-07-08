@@ -190,6 +190,21 @@ VOICE_MAP = {{
 }}
 
 
+_GRID_COLS = {{"1": -5.9, "2": -3.6, "3": -1.2, "4": 1.2, "5": 3.6, "6": 5.9}}
+_GRID_ROWS = {{"A": 3.3, "B": 2.0, "C": 0.7, "D": -0.7, "E": -2.0, "F": -3.3}}
+
+
+def grid_to_point(cell: str):
+    \"\"\"Convert a 6x6 grid cell ("C2") or range ("C2-E3") to a Manim point.\"\"\"
+    cells = cell.replace(" ", "").split("-")
+    xs, ys = [], []
+    for c in cells:
+        row, col = c[0].upper(), c[1:]
+        ys.append(_GRID_ROWS.get(row, 0.0))
+        xs.append(_GRID_COLS.get(col, 0.0))
+    return np.array([sum(xs) / len(xs), sum(ys) / len(ys), 0.0])
+
+
 def _generic_avatar(color: str, initial: str, scale: float = 1.0) -> VGroup:
     head = Circle(radius=0.45, color=color, fill_color=color, fill_opacity=1).shift(UP * 1.05)
     body = RoundedRectangle(corner_radius=0.25, width=1.1, height=1.6,

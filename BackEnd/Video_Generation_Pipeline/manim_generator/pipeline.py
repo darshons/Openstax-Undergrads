@@ -141,7 +141,7 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
             for round_i in range(MAX_SCENE_REPAIRS):
                 if ok:
                     break
-                error = truncate_error_log(stderr)
+                error = truncate_error_log(stderr, code_path)
                 with open(code_path.replace(".py", "_error.log"), "w", encoding="utf-8") as f:
                     f.write(stderr)
                 status.log_event(

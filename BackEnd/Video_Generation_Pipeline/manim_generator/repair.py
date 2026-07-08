@@ -73,9 +73,32 @@ def _block_bounds(lines: list[str], failing_line: int) -> tuple[int, int]:
     return header + 1, end + 1  # back to 1-indexed inclusive
 
 
+def _indent_of(line: str) -> int:
+    return len(line) - len(line.lstrip())
+
+
 def _apply_replacement(lines: list[str], start: int, end: int, replacement: str) -> str:
-    new_lines = replacement.rstrip("\n").split("\n")
-    return "\n".join(lines[: start - 1] + new_lines + lines[end:]) + "\n"
+    """Splice the model's replacement over lines [start, end] (1-indexed,
+    inclusive), realigning its base indentation to the region it replaces.
+
+    The model frequently returns the fixed snippet dedented to column 0 (or at
+    the wrong depth); pasting it verbatim inside an indented method body causes
+    IndentationError. We compute the indent delta between the replacement's
+    first non-blank line and the original region's first line, and shift the
+    whole replacement by that delta so relative indentation is preserved."""
+    repl_lines = replacement.rstrip("\n").split("\n")
+    orig_indent = _indent_of(lines[start - 1]) if start - 1 < len(lines) else 0
+    first_repl = next((l for l in repl_lines if l.strip()), "")
+    delta = orig_indent - _indent_of(first_repl)
+    if delta > 0:
+        repl_lines = [(" " * delta + l if l.strip() else l) for l in repl_lines]
+    elif delta < 0:
+        strip_n = -delta
+        repl_lines = [
+            (l[strip_n:] if len(l) - len(l.lstrip()) >= strip_n else l.lstrip()) if l.strip() else l
+            for l in repl_lines
+        ]
+    return "\n".join(lines[: start - 1] + repl_lines + lines[end:]) + "\n"
 
 
 def scope_refine_repair(

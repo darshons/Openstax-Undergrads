@@ -16,6 +16,9 @@ import {
   generateBackgroundImage,
   generateCharacterImages,
   generateOpeningFrames,
+  retryBackgroundImage,
+  retryCharacterImage,
+  retryOpeningFrame,
 } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
 import Sidebar from './components/layout/Sidebar';
@@ -293,6 +296,24 @@ export default function App() {
     }
   }, [script, requestId]);
 
+  const retryBg = useCallback(async () => {
+    if (!script || !requestId) return;
+    const bgPath = await retryBackgroundImage(script, requestId);
+    setAssetImages(prev => ({ ...prev, bgPath }));
+  }, [script, requestId]);
+
+  const retryChar = useCallback(async (characterId: string) => {
+    if (!script || !requestId) return;
+    const path = await retryCharacterImage(script, requestId, characterId);
+    setAssetImages(prev => ({ ...prev, charPaths: { ...prev.charPaths, [characterId]: path } }));
+  }, [script, requestId]);
+
+  const retryFrame = useCallback(async (sceneId: string) => {
+    if (!script || !requestId || !assetImages.bgPath) return;
+    const path = await retryOpeningFrame(script, requestId, assetImages.bgPath, assetImages.charPaths, sceneId);
+    setAssetImages(prev => ({ ...prev, framePaths: { ...prev.framePaths, [sceneId]: path } }));
+  }, [script, requestId, assetImages]);
+
   // ── Derived values ──────────────────────────────────────────────────────
 
   const sceneCount = script?.scenes.length ?? 0;
@@ -351,6 +372,9 @@ export default function App() {
               assetsStep={assetsStep}
               assetsError={assetsError}
               onGenerateAssets={generateAssets}
+              onRetryBackground={retryBg}
+              onRetryCharacter={retryChar}
+              onRetryFrame={retryFrame}
               onBack={() => setCurrentPage('script')}
               onViewVideos={() => setCurrentPage('videos')}
             />

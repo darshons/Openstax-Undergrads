@@ -10,7 +10,7 @@ import tempfile
 
 # This function generates character reference images based on the provided JSON script.
 def generate_characters(
-    json_script, request_id, retry_id: str | None = None
+    json_script, request_id, retry_image_id: str | None = None
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
     client = setup_gemini_client()
 
@@ -80,7 +80,7 @@ def generate_characters(
         response_modalities=["IMAGE"],
     )
 
-    characters_json_file_mapping = process_character_json(json_script, retry_id)
+    characters_json_file_mapping = process_character_json(json_script, retry_image_id)
 
     dir_path = Path(tempfile.gettempdir()) / "Character_Image_Output"
 

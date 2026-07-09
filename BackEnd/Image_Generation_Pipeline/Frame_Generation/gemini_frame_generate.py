@@ -14,7 +14,7 @@ def generate_opening_frames(
     background_image_file_path,
     character_image_file_mapping,
     request_id,
-    retry_id: str | None = None,
+    retry_image_id: str | None = None,
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
     # Set up Gemini client
     client = setup_gemini_client()
@@ -134,7 +134,9 @@ def generate_opening_frames(
     )
 
     # Process the JSON to create individual JSON files for each scene -> Mapping of scene_id to local JSON file path
-    scene_json_file_mapping = process_scene_json(json_script, retry_id=retry_id)
+    scene_json_file_mapping = process_scene_json(
+        json_script, retry_image_id=retry_image_id
+    )
 
     # Path setup for saving generated images
     dir_path = Path(tempfile.gettempdir()) / "Frame_Image_Output"

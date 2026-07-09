@@ -9,14 +9,17 @@ interface AssetItem {
   role: string;
   src: string | null;
   category: string;
+  isLoading?: boolean;
   onRegenerate?: (feedback?: string) => Promise<void>;
 }
 
-function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
+function AssetCard({ label, role, src, category, isLoading, onRegenerate }: AssetItem) {
   const [lightbox, setLightbox] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+
+  const busy = isLoading || regenerating;
 
   const handleRegenerate = async () => {
     if (!onRegenerate) return;
@@ -40,11 +43,13 @@ function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
           <span className="asset-lightbox-label">{label}</span>
         </div>
       )}
-      <div className="asset-img-wrap" onClick={() => src && !regenerating && setLightbox(true)}>
-        {regenerating ? (
+      <div className="asset-img-wrap" onClick={() => src && !busy && setLightbox(true)}>
+        {busy ? (
           <div className="asset-img-placeholder">
             <span style={{ display: 'inline-block', animation: 'assets-pulse 1.4s ease-in-out infinite', fontSize: 22 }}>●</span>
-            <span style={{ fontSize: 12, color: 'var(--os-ink-3)', marginTop: 6 }}>Regenerating…</span>
+            <span style={{ fontSize: 12, color: 'var(--os-ink-3)', marginTop: 6 }}>
+              {regenerating ? 'Regenerating…' : 'Generating…'}
+            </span>
           </div>
         ) : src ? (
           <img src={src} alt={label} />
@@ -59,27 +64,25 @@ function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
         <div className="asset-card-name">{label}</div>
         {role && <div className="asset-card-role">{role}</div>}
       </div>
-      {onRegenerate && (
-        <div className="asset-card-form">
-          {regenError && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 6 }}>{regenError}</div>}
-          <textarea
-            className="asset-request-ta"
-            rows={2}
-            value={feedback}
-            disabled={regenerating}
-            onChange={e => setFeedback(e.target.value)}
-            placeholder="Describe changes… (optional)"
-            onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleRegenerate(); }}
-          />
-          <button
-            className="asset-request-btn"
-            disabled={regenerating}
-            onClick={handleRegenerate}
-          >
-            {regenerating ? 'Regenerating…' : feedback.trim() ? 'Regenerate with feedback' : 'Regenerate'}
-          </button>
-        </div>
-      )}
+      <div className="asset-card-form">
+        {regenError && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 6 }}>{regenError}</div>}
+        <textarea
+          className="asset-request-ta"
+          rows={2}
+          value={feedback}
+          disabled={busy}
+          onChange={e => setFeedback(e.target.value)}
+          placeholder="Describe changes… (optional)"
+          onKeyDown={e => { if (e.key === 'Enter' && e.metaKey && onRegenerate) handleRegenerate(); }}
+        />
+        <button
+          className="asset-request-btn"
+          disabled={busy || !onRegenerate}
+          onClick={handleRegenerate}
+        >
+          {regenerating ? 'Regenerating…' : isLoading ? 'Generating…' : feedback.trim() ? 'Regenerate with feedback' : 'Regenerate'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -136,6 +139,7 @@ export default function AssetsPage({
     role: c.role || c.character_id,
     src: charPaths[c.character_id] ? imageUrl(charPaths[c.character_id]) : null,
     category: 'character',
+    isLoading: generating && !charPaths[c.character_id],
     onRegenerate: hasAssets ? (fb) => onRetryCharacter(c.character_id, fb) : undefined,
   }));
 
@@ -145,6 +149,7 @@ export default function AssetsPage({
     role: script.setting?.location || 'Main scene background',
     src: bgPath ? imageUrl(bgPath) : null,
     category: 'background',
+    isLoading: generating && !bgPath,
     onRegenerate: hasAssets ? onRetryBackground : undefined,
   }];
 
@@ -162,6 +167,7 @@ export default function AssetsPage({
       role: s.scene_summary || s.description || '',
       src: framePaths[String(s.scene_id)] ? imageUrl(framePaths[String(s.scene_id)]) : null,
       category: 'frame',
+      isLoading: generating && !framePaths[String(s.scene_id)],
       onRegenerate: hasAssets ? (fb) => onRetryFrame(String(s.scene_id), fb) : undefined,
     }));
 
@@ -228,22 +234,9 @@ export default function AssetsPage({
       )}
 
       <div className="assets-body">
-        {assetsStep === 'idle' && (
-          <div className="empty" style={{ minHeight: 300 }}>
-            <div className="empty-card">
-              <div className="empty-illust"><div /><div /><div /></div>
-              <h2>No assets generated yet</h2>
-              <p>Click <b style={{ color: 'var(--os-orange)' }}>Generate Assets</b> above to create AI reference images for this scenario.</p>
-            </div>
-          </div>
-        )}
-        {hasAssets && (
-          <>
-            <AssetSection title="Characters" items={characters} />
-            <AssetSection title="Background" items={backgrounds} />
-            <AssetSection title="Scene Opening Frames" items={frameItems} />
-          </>
-        )}
+        <AssetSection title="Characters" items={characters} />
+        <AssetSection title="Background" items={backgrounds} />
+        <AssetSection title="Scene Opening Frames" items={frameItems} />
       </div>
     </div>
   );

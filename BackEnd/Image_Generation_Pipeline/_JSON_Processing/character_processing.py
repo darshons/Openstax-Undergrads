@@ -5,7 +5,7 @@ from pathlib import Path
 
 # This function creates a temporary JSON file containing the character information extracted from the provided JSON script. It returns a dictionary mapping character IDs to the paths of the temporary JSON files.
 def process_character_json(
-    json_script: dict, retry_id: str | None = None
+    json_script: dict, retry_image_id: str | None = None
 ) -> dict[str, str]:
     characters_file_mapping = {}
 
@@ -14,8 +14,8 @@ def process_character_json(
     dir_path.mkdir(parents=True, exist_ok=True)
 
     for character in json_script["characters"]:
-        # only process the requested character if retry_id is given
-        if retry_id is not None and character["character_id"] != retry_id:
+        # only process the requested character if retry_image_id is given
+        if retry_image_id is not None and character["character_id"] != retry_image_id:
             continue
 
         character_json = {
@@ -32,7 +32,7 @@ def process_character_json(
 
         characters_file_mapping[character["character_id"]] = temp_file.name
 
-        if retry_id is not None:
+        if retry_image_id is not None:
             break
 
     return characters_file_mapping

@@ -98,8 +98,6 @@ def generate_background(
 
     dir_path.mkdir(parents=True, exist_ok=True)
 
-    uploaded_file_names = []
-
     uploaded_json = client.files.upload(
         file=background_json_path,
         config=types.UploadFileConfig(
@@ -119,7 +117,7 @@ def generate_background(
         or not response.candidates[0].content
         or not response.candidates[0].content.parts
     ):
-        return background_image_file_path, uploaded_file_names, [background_json_path]
+        return background_image_file_path, [uploaded_json.name], [background_json_path]
 
     for part in response.candidates[0].content.parts:
         if part.inline_data and part.inline_data.data:
@@ -129,6 +127,4 @@ def generate_background(
             )
             image.save(background_image_file_path)
 
-    uploaded_file_names.append(uploaded_json.name)
-
-    return background_image_file_path, uploaded_file_names, [background_json_path]
+    return background_image_file_path, [uploaded_json.name], [background_json_path]

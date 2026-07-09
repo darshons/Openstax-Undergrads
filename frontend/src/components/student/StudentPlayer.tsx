@@ -1,0 +1,255 @@
+import { useState, useEffect, useMemo } from 'react';
+import type { Script, Scene, DecisionPoint, Choice, AssetImages } from '../../types/script';
+import { imageUrl } from '../../lib/api';
+
+type Phase = 'watching' | 'deciding' | 'feedback' | 'complete';
+
+interface PlayerState {
+  phase: Phase;
+  sceneId: number;
+  dpId: number | null;
+  branchSceneId: number | null;
+  selectedChoiceId: string | null;
+  wasCorrect: boolean | null;
+}
+
+interface StudentPlayerProps {
+  script: Script;
+  assetImages: AssetImages;
+  onExit: () => void;
+}
+
+export default function StudentPlayer({ script, assetImages, onExit }: StudentPlayerProps) {
+  const scenes = script.scenes ?? [];
+  const dps = script.decision_points ?? [];
+
+  const sceneMap = useMemo(() => new Map(scenes.map(s => [s.scene_id, s])), [scenes]);
+  const dpMap = useMemo(() => new Map(dps.map(dp => [dp.decision_point_id, dp])), [dps]);
+
+  const branchIds = useMemo(() => new Set(
+    dps.flatMap(dp => dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null)),
+  ), [dps]);
+
+  const trunkScenes = useMemo(
+    () => scenes.filter(s => !branchIds.has(s.scene_id)),
+    [scenes, branchIds],
+  );
+
+  const firstScene = trunkScenes[0];
+
+  const [state, setState] = useState<PlayerState>({
+    phase: 'watching',
+    sceneId: firstScene?.scene_id ?? 1,
+    dpId: null,
+    branchSceneId: null,
+    selectedChoiceId: null,
+    wasCorrect: null,
+  });
+
+  // Auto-advance from feedback after 2.5s
+  useEffect(() => {
+    if (state.phase !== 'feedback') return;
+    const timer = setTimeout(advanceAfterFeedback, 2500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase, state.wasCorrect, state.sceneId, state.dpId, state.branchSceneId]);
+
+  const displaySceneId = state.branchSceneId ?? state.sceneId;
+  const currentScene: Scene | undefined = sceneMap.get(displaySceneId);
+  const currentDP: DecisionPoint | undefined = state.dpId ? dpMap.get(state.dpId) : undefined;
+  const selectedChoice: Choice | undefined = currentDP?.choices.find(c => c.choice_id === state.selectedChoiceId);
+
+  const frameKey = String(displaySceneId);
+  const frameSrc = assetImages.framePaths[frameKey]
+    ? imageUrl(assetImages.framePaths[frameKey])
+    : null;
+
+  const currentTrunkIdx = trunkScenes.findIndex(s => s.scene_id === state.sceneId);
+
+  function advanceToNextTrunkScene() {
+    if (currentTrunkIdx < trunkScenes.length - 1) {
+      const next = trunkScenes[currentTrunkIdx + 1];
+      setState(s => ({
+        ...s,
+        phase: 'watching',
+        sceneId: next.scene_id,
+        dpId: null,
+        branchSceneId: null,
+        selectedChoiceId: null,
+        wasCorrect: null,
+      }));
+    } else {
+      setState(s => ({ ...s, phase: 'complete' }));
+    }
+  }
+
+  function advanceFromTrunkScene() {
+    const scene = sceneMap.get(state.sceneId);
+    if (!scene?.routes_to) { setState(s => ({ ...s, phase: 'complete' })); return; }
+    const rt = scene.routes_to;
+    if ('decision_point_id' in rt) {
+      setState(s => ({ ...s, phase: 'deciding', dpId: rt.decision_point_id, selectedChoiceId: null, wasCorrect: null }));
+    } else {
+      setState(s => ({ ...s, sceneId: rt.scene_id, phase: 'watching' }));
+    }
+  }
+
+  function handleContinue() {
+    if (state.branchSceneId) {
+      // Finished watching a branch scene
+      if (state.wasCorrect) {
+        advanceToNextTrunkScene();
+      } else {
+        // Retry the decision point
+        setState(s => ({ ...s, phase: 'deciding', branchSceneId: null, selectedChoiceId: null, wasCorrect: null }));
+      }
+    } else {
+      advanceFromTrunkScene();
+    }
+  }
+
+  function handleChoice(choice: Choice) {
+    setState(s => ({
+      ...s,
+      phase: 'feedback',
+      selectedChoiceId: choice.choice_id,
+      wasCorrect: choice.is_correct,
+      branchSceneId: choice.routes_to_scene ?? null,
+    }));
+  }
+
+  function advanceAfterFeedback() {
+    if (state.wasCorrect) {
+      if (state.branchSceneId) {
+        // Correct branch scene to watch before advancing
+        setState(s => ({ ...s, phase: 'watching', selectedChoiceId: null, wasCorrect: true }));
+      } else {
+        advanceToNextTrunkScene();
+      }
+    } else {
+      if (state.branchSceneId) {
+        // Incorrect branch scene to watch before retrying
+        setState(s => ({ ...s, phase: 'watching', selectedChoiceId: null, wasCorrect: false }));
+      } else {
+        setState(s => ({ ...s, phase: 'deciding', selectedChoiceId: null, wasCorrect: null }));
+      }
+    }
+  }
+
+  if (!firstScene) {
+    return (
+      <div className="sp-root">
+        <div className="sp-empty">No scenes in this script.</div>
+      </div>
+    );
+  }
+
+  const dimmed = state.phase === 'deciding' || state.phase === 'feedback';
+  const onBranch = state.branchSceneId !== null;
+
+  return (
+    <div className="sp-root">
+      {frameSrc
+        ? <img key={frameSrc} src={frameSrc} alt="" className="sp-bg-img" />
+        : <div className="sp-bg-fallback" />
+      }
+      <div className="sp-vignette" />
+      {dimmed && <div className="sp-dim" />}
+
+      {/* Progress */}
+      <div className="sp-progress">
+        {trunkScenes.map((s, i) => (
+          <div
+            key={s.scene_id}
+            className={`sp-dot${i < currentTrunkIdx ? ' done' : ''}${i === currentTrunkIdx ? ' active' : ''}`}
+          />
+        ))}
+      </div>
+
+      <button className="sp-exit" onClick={onExit}>Exit</button>
+
+      {/* Scene HUD */}
+      {state.phase === 'watching' && currentScene && (
+        <div className="sp-hud">
+          <div className="sp-hud-eyebrow">
+            <span>Scene {currentScene.scene_id}</span>
+            {onBranch && <span className="sp-hud-branch-badge">Review</span>}
+          </div>
+          <div className="sp-hud-text">
+            {currentScene.scene_summary || currentScene.description || ''}
+          </div>
+        </div>
+      )}
+
+      {/* Continue button */}
+      {state.phase === 'watching' && (
+        <button className="sp-continue" onClick={handleContinue}>
+          {onBranch && !state.wasCorrect ? 'Try again' : 'Continue'}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Decision / Feedback panel */}
+      {(state.phase === 'deciding' || state.phase === 'feedback') && currentDP && (
+        <div className="sp-panel">
+          <p className="sp-panel-q">{currentDP.question_text}</p>
+          <div className="sp-choices">
+            {currentDP.choices.map(choice => {
+              const isSelected = choice.choice_id === state.selectedChoiceId;
+              const resultClass = state.phase === 'feedback' && isSelected
+                ? (state.wasCorrect ? ' sp-choice--correct' : ' sp-choice--wrong')
+                : '';
+              return (
+                <button
+                  key={choice.choice_id}
+                  className={`sp-choice${resultClass}`}
+                  disabled={state.phase === 'feedback'}
+                  onClick={() => state.phase === 'deciding' && handleChoice(choice)}
+                >
+                  <span className="sp-choice-letter">{choice.choice_id}</span>
+                  <span className="sp-choice-text">{choice.text}</span>
+                  {state.phase === 'feedback' && isSelected && state.wasCorrect && (
+                    <svg className="sp-choice-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                  {state.phase === 'feedback' && isSelected && !state.wasCorrect && (
+                    <svg className="sp-choice-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {state.phase === 'feedback' && !state.wasCorrect && selectedChoice?.misconception && (
+            <p className="sp-misconception">{selectedChoice.misconception}</p>
+          )}
+          {state.phase === 'feedback' && state.wasCorrect && (
+            <p className="sp-correct-msg">Correct - continuing</p>
+          )}
+        </div>
+      )}
+
+      {/* Completion */}
+      {state.phase === 'complete' && (
+        <div className="sp-complete">
+          <div className="sp-complete-inner">
+            <div className="sp-complete-check">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h2 className="sp-complete-title">Scenario Complete</h2>
+            {script.learning_goal && (
+              <p className="sp-complete-goal">{script.learning_goal}</p>
+            )}
+            <button className="sp-complete-btn" onClick={onExit}>Return to Studio</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

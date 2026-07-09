@@ -28,6 +28,7 @@ import Canvas from './components/canvas/Canvas';
 import GenOverlay from './components/canvas/GenOverlay';
 import AssetsPage from './components/assets/AssetsPage';
 import VideoPage from './components/video/VideoPage';
+import StudentPlayer from './components/student/StudentPlayer';
 
 export default function App() {
   const [script, setScript] = useState<Script | null>(null);
@@ -387,8 +388,17 @@ export default function App() {
             <VideoPage
               script={script}
               onBack={() => setCurrentPage('assets')}
+              onStudentPreview={() => setCurrentPage('student')}
             />
           </div>
+        )}
+
+        {currentPage === 'student' && script && (
+          <StudentPlayer
+            script={script}
+            assetImages={assetImages}
+            onExit={() => setCurrentPage('videos')}
+          />
         )}
 
         {/* ── Script canvas: sidebar + stage ─────────────────────────── */}

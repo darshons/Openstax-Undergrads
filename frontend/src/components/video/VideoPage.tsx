@@ -65,9 +65,10 @@ function VideoClipCard({ scene, selected, onClick, branch, choice, videoUrl }: {
 interface VideoPageProps {
   script: Script;
   onBack: () => void;
+  onStudentPreview?: () => void;
 }
 
-export default function VideoPage({ script, onBack }: VideoPageProps) {
+export default function VideoPage({ script, onBack, onStudentPreview }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
   const scenes = script.scenes ?? [];
@@ -99,7 +100,9 @@ export default function VideoPage({ script, onBack }: VideoPageProps) {
           <h2>Video Review</h2>
           <p>{script.title || 'Untitled scenario'}</p>
         </div>
-        <div style={{ width: 140 }} />
+        <button className="assets-back" onClick={onStudentPreview} disabled={!onStudentPreview} style={{ gap: 6 }}>
+          Student Preview →
+        </button>
       </div>
 
       <div className="video-body">

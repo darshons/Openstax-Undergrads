@@ -13,7 +13,7 @@ export type RouteType =
 export type ViewMode = 'full' | 'dialogue' | 'action' | 'camera';
 export type ModelChoice = 'anthropic' | 'gemini';
 export type VideoType = 'scenario' | 'manim';
-export type Page = 'script' | 'assets' | 'videos';
+export type Page = 'script' | 'assets' | 'videos' | 'student';
 
 // ── Routing ────────────────────────────────────────────────────────────────
 

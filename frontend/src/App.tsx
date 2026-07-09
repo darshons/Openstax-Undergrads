@@ -299,19 +299,20 @@ export default function App() {
   const retryBg = useCallback(async (feedback?: string) => {
     if (!script || !requestId) return;
     const bgPath = await retryBackgroundImage(script, requestId, feedback);
-    setAssetImages(prev => ({ ...prev, bgPath }));
+    setAssetImages(prev => ({ ...prev, bgPath: `${bgPath}?t=${Date.now()}` }));
   }, [script, requestId]);
 
   const retryChar = useCallback(async (characterId: string, feedback?: string) => {
     if (!script || !requestId) return;
     const path = await retryCharacterImage(script, requestId, characterId, feedback);
-    setAssetImages(prev => ({ ...prev, charPaths: { ...prev.charPaths, [characterId]: path } }));
+    setAssetImages(prev => ({ ...prev, charPaths: { ...prev.charPaths, [characterId]: `${path}?t=${Date.now()}` } }));
   }, [script, requestId]);
 
   const retryFrame = useCallback(async (sceneId: string, feedback?: string) => {
     if (!script || !requestId || !assetImages.bgPath) return;
-    const path = await retryOpeningFrame(script, requestId, assetImages.bgPath, assetImages.charPaths, sceneId, feedback);
-    setAssetImages(prev => ({ ...prev, framePaths: { ...prev.framePaths, [sceneId]: path } }));
+    const rawBgPath = assetImages.bgPath.split('?')[0];
+    const path = await retryOpeningFrame(script, requestId, rawBgPath, assetImages.charPaths, sceneId, feedback);
+    setAssetImages(prev => ({ ...prev, framePaths: { ...prev.framePaths, [sceneId]: `${path}?t=${Date.now()}` } }));
   }, [script, requestId, assetImages]);
 
   // ── Derived values ──────────────────────────────────────────────────────

@@ -9,11 +9,12 @@ interface AssetItem {
   role: string;
   src: string | null;
   category: string;
-  onRegenerate?: () => Promise<void>;
+  onRegenerate?: (feedback?: string) => Promise<void>;
 }
 
 function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
   const [lightbox, setLightbox] = useState(false);
+  const [feedback, setFeedback] = useState('');
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
 
@@ -22,7 +23,8 @@ function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
     setRegenerating(true);
     setRegenError(null);
     try {
-      await onRegenerate();
+      await onRegenerate(feedback.trim() || undefined);
+      setFeedback('');
     } catch (err) {
       setRegenError(err instanceof Error ? err.message : 'Regeneration failed');
     } finally {
@@ -60,12 +62,21 @@ function AssetCard({ label, role, src, category, onRegenerate }: AssetItem) {
       {onRegenerate && (
         <div className="asset-card-form">
           {regenError && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 6 }}>{regenError}</div>}
+          <textarea
+            className="asset-request-ta"
+            rows={2}
+            value={feedback}
+            disabled={regenerating}
+            onChange={e => setFeedback(e.target.value)}
+            placeholder="Describe changes… (optional)"
+            onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleRegenerate(); }}
+          />
           <button
             className="asset-request-btn"
             disabled={regenerating}
             onClick={handleRegenerate}
           >
-            {regenerating ? 'Regenerating…' : 'Regenerate'}
+            {regenerating ? 'Regenerating…' : feedback.trim() ? 'Regenerate with feedback' : 'Regenerate'}
           </button>
         </div>
       )}
@@ -95,9 +106,9 @@ interface AssetsPageProps {
   assetsStep: AssetsStep;
   assetsError: string | null;
   onGenerateAssets: () => void;
-  onRetryBackground: () => Promise<void>;
-  onRetryCharacter: (characterId: string) => Promise<void>;
-  onRetryFrame: (sceneId: string) => Promise<void>;
+  onRetryBackground: (feedback?: string) => Promise<void>;
+  onRetryCharacter: (characterId: string, feedback?: string) => Promise<void>;
+  onRetryFrame: (sceneId: string, feedback?: string) => Promise<void>;
   onBack: () => void;
   onViewVideos: () => void;
 }
@@ -125,7 +136,7 @@ export default function AssetsPage({
     role: c.role || c.character_id,
     src: charPaths[c.character_id] ? imageUrl(charPaths[c.character_id]) : null,
     category: 'character',
-    onRegenerate: hasAssets ? () => onRetryCharacter(c.character_id) : undefined,
+    onRegenerate: hasAssets ? (fb) => onRetryCharacter(c.character_id, fb) : undefined,
   }));
 
   const backgrounds: AssetItem[] = [{
@@ -151,10 +162,8 @@ export default function AssetsPage({
       role: s.scene_summary || s.description || '',
       src: framePaths[String(s.scene_id)] ? imageUrl(framePaths[String(s.scene_id)]) : null,
       category: 'frame',
-      onRegenerate: hasAssets ? () => onRetryFrame(String(s.scene_id)) : undefined,
+      onRegenerate: hasAssets ? (fb) => onRetryFrame(String(s.scene_id), fb) : undefined,
     }));
-
-  const showCards = hasAssets;
 
   return (
     <div className="assets-page">
@@ -228,7 +237,7 @@ export default function AssetsPage({
             </div>
           </div>
         )}
-        {showCards && (
+        {hasAssets && (
           <>
             <AssetSection title="Characters" items={characters} />
             <AssetSection title="Background" items={backgrounds} />

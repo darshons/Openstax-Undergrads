@@ -142,5 +142,8 @@ export async function retryOpeningFrame(
 
 /** Convert an absolute server-side file path into a URL served by the backend. */
 export function imageUrl(serverPath: string): string {
-  return `/api/image/${serverPath}`;
+  const qIdx = serverPath.indexOf('?');
+  const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
+  const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
+  return `/api/image/${path.replace(/^\//, '')}${qs}`;
 }

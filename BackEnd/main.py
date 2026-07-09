@@ -1,6 +1,6 @@
 import os
 from fastapi import FastAPI
-from api import api_router
+from API.api import api_router
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pathlib import Path

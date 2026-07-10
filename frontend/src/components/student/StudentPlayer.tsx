@@ -1,6 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Script, Scene, DecisionPoint, Choice, AssetImages } from '../../types/script';
+import type { Script, Scene, DecisionPoint, Choice, AssetImages, DialogueLine } from '../../types/script';
 import { imageUrl } from '../../lib/api';
+
+function getDialogue(scene: Scene): DialogueLine[] {
+  if (scene.audio?.dialogue?.length) return scene.audio.dialogue;
+  if (scene.audio?.clips?.length) {
+    return scene.audio.clips.map(c => ({ character_id: c.character_id, line: c.dialogue }));
+  }
+  return [];
+}
 
 type Phase = 'watching' | 'deciding' | 'feedback' | 'complete';
 
@@ -25,6 +33,7 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
 
   const sceneMap = useMemo(() => new Map(scenes.map(s => [s.scene_id, s])), [scenes]);
   const dpMap = useMemo(() => new Map(dps.map(dp => [dp.decision_point_id, dp])), [dps]);
+  const charMap = useMemo(() => new Map((script.characters ?? []).map(c => [c.character_id, c])), [script.characters]);
 
   const branchIds = useMemo(() => new Set(
     dps.flatMap(dp => dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null)),
@@ -168,18 +177,47 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
 
       <button className="sp-exit" onClick={onExit}>Exit</button>
 
-      {/* Scene HUD */}
+      {/* Scene tag - top left */}
       {state.phase === 'watching' && currentScene && (
-        <div className="sp-hud">
-          <div className="sp-hud-eyebrow">
-            <span>Scene {currentScene.scene_id}</span>
-            {onBranch && <span className="sp-hud-branch-badge">Review</span>}
-          </div>
-          <div className="sp-hud-text">
-            {currentScene.scene_summary || currentScene.description || ''}
-          </div>
+        <div className="sp-scene-tag">
+          <span className="sp-scene-tag-num">Scene {currentScene.scene_id}</span>
+          {script.setting?.location && (
+            <span className="sp-scene-tag-loc">{script.setting.location}</span>
+          )}
+          {onBranch && <span className="sp-scene-tag-review">Review</span>}
         </div>
       )}
+
+      {/* Dialogue panel */}
+      {state.phase === 'watching' && currentScene && (() => {
+        const lines = getDialogue(currentScene);
+        const fallback = currentScene.narration_text || currentScene.scene_summary || currentScene.description;
+        if (!lines.length && !fallback) return null;
+        return (
+          <div className="sp-dialogue">
+            {lines.length > 0 ? lines.map((dl, i) => {
+              const char = charMap.get(dl.character_id);
+              const charPath = assetImages.charPaths[dl.character_id];
+              const avatarSrc = charPath ? imageUrl(charPath) : null;
+              const initial = (char?.name ?? dl.character_id).charAt(0).toUpperCase();
+              return (
+                <div key={i} className="sp-dline">
+                  {avatarSrc
+                    ? <img src={avatarSrc} alt="" className="sp-dline-avatar" />
+                    : <div className="sp-dline-initial">{initial}</div>
+                  }
+                  <div className="sp-dline-body">
+                    <div className="sp-dline-name">{char?.name ?? dl.character_id}</div>
+                    <div className="sp-dline-text">&ldquo;{dl.line}&rdquo;</div>
+                  </div>
+                </div>
+              );
+            }) : (
+              <p className="sp-dline-narration">{fallback}</p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Continue button */}
       {state.phase === 'watching' && (

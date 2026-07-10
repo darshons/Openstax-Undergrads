@@ -469,7 +469,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .add-choice-btn:hover{border-color:var(--os-navy);color:var(--os-navy);background:rgba(0,37,105,.04)}
 
 /* ── Student Player ─────────────────────────────────────────────────────────── */
-.sp-root{position:relative;width:100%;height:100%;background:#090C1A;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;color:#fff}
+.sp-root{position:relative;width:100%;height:100dvh;background:#090C1A;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;color:#fff}
 .sp-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-size:14px}
 
 /* Background */

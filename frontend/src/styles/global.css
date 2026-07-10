@@ -535,3 +535,37 @@ input, textarea { font-family: inherit; color: inherit; }
 .sp-complete-goal{font-size:14px;color:rgba(255,255,255,.48);line-height:1.6;margin:0}
 .sp-complete-btn{background:#D14F13;color:#fff;border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
 .sp-complete-btn:hover{background:#B8430F}
+
+/* ── Home / role-select page ────────────────────────────────────────────── */
+.hp-root{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--os-bg-2);padding:32px 16px;overflow:auto}
+.hp-inner{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;gap:0}
+
+.hp-brand{display:flex;align-items:center;gap:12px;margin-bottom:48px}
+.hp-brand-bars{display:flex;flex-direction:column;gap:3px}
+.hp-brand-bars span{display:block;height:3px;border-radius:2px}
+.hp-brand-name{font-size:18px;font-weight:900;color:var(--os-navy);letter-spacing:-.01em}
+.hp-brand-name em{font-style:normal;font-weight:300}
+.hp-brand-product{font-size:12px;color:var(--os-ink-3);font-weight:500;letter-spacing:.01em;padding:3px 8px;background:var(--os-bg-3);border:1px solid var(--os-line);border-radius:20px}
+
+.hp-headline{font-size:32px;font-weight:800;color:var(--os-navy-ink);letter-spacing:-.02em;margin:0 0 8px;text-align:center}
+.hp-sub{font-size:15px;color:var(--os-ink-3);margin:0 0 40px;text-align:center}
+
+.hp-cards{width:100%;display:flex;flex-direction:column;gap:14px}
+
+.hp-card{width:100%;display:flex;align-items:center;gap:20px;padding:24px 28px;border-radius:16px;border:1.5px solid var(--os-line);background:#fff;cursor:pointer;text-align:left;box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .15s,transform .12s}
+.hp-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.hp-card--creator:hover{border-color:var(--os-navy)}
+.hp-card--student:hover{border-color:var(--os-orange)}
+
+.hp-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hp-card--creator .hp-card-icon{background:rgba(0,37,105,.07);color:var(--os-navy)}
+.hp-card--student .hp-card-icon{background:rgba(243,111,33,.09);color:var(--os-orange)}
+
+.hp-card-body{flex:1;min-width:0}
+.hp-card-title{font-size:17px;font-weight:700;color:var(--os-ink);margin-bottom:4px;letter-spacing:-.01em}
+.hp-card-desc{font-size:13px;color:var(--os-ink-3);line-height:1.55}
+
+.hp-card-arrow{color:var(--os-ink-3);opacity:.5;transition:opacity .15s,transform .15s;flex-shrink:0}
+.hp-card:hover .hp-card-arrow{opacity:1;transform:translateX(3px)}
+.hp-card--creator:hover .hp-card-arrow{color:var(--os-navy)}
+.hp-card--student:hover .hp-card-arrow{color:var(--os-orange)}

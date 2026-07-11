@@ -157,41 +157,32 @@ def extract_background_color(assets_path: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Fallback kit: generic but functional avatars parameterized per character, so
-# a broken LLM generation can never hard-block the whole scenario.
+# Fallback kit: a minimal DIAGRAM style kit (palette, grid, title/caption/label/
+# emphasis helpers) so a broken LLM generation can never hard-block a run. No
+# human figures — this pipeline renders diagrams, not characters.
 # ---------------------------------------------------------------------------
-
-_FALLBACK_COLORS = ["#4E9AF1", "#F1A54E", "#7BC67B", "#C67BC6", "#F1D24E", "#6BD5C8"]
 
 
 def build_fallback_kit(spec: ScenarioSpec) -> str:
-    palette_chars = ",\n".join(
-        f'    "{c.character_id}": "{_FALLBACK_COLORS[i % len(_FALLBACK_COLORS)]}"'
-        for i, c in enumerate(spec.characters)
-    )
     voice_map = ",\n".join(
         f'    "{c.character_id}": "{c.voice}"' for c in spec.characters
     )
-    builders = "\n\n".join(
-        f'''def build_{c.character_id}(scale: float = 1.0) -> VGroup:
-    return _generic_avatar(PALETTE["{c.character_id}"], "{(c.name or c.character_id)[:1].upper()}", scale)'''
-        for c in spec.characters
-    )
-    lineup_builds = ", ".join(f"build_{c.character_id}()" for c in spec.characters)
-    lineup_names = ", ".join(f'"{c.name or c.character_id}"' for c in spec.characters)
 
     return f'''from manim import *
 
 PALETTE = {{
     "background": "{FALLBACK_BACKGROUND}",
-    "bubble_fill": "#F5F1E8",
-    "bubble_text": "#1A1A2E",
-    "accent_correct": "#5FBF77",
-    "accent_incorrect": "#E2703A",
-{palette_chars}
+    "primary": "#4E9AF1",
+    "secondary": "#F1A54E",
+    "accent": "#F1D24E",
+    "correct": "#5FBF77",
+    "incorrect": "#E2703A",
+    "text": "#F5F7FA",
+    "muted": "#9AA7B4",
 }}
 
 VOICE_MAP = {{
+    "narrator": "af_sarah",
 {voice_map}
 }}
 
@@ -211,90 +202,50 @@ def grid_to_point(cell: str):
     return np.array([sum(xs) / len(xs), sum(ys) / len(ys), 0.0])
 
 
-def _generic_avatar(color: str, initial: str, scale: float = 1.0) -> VGroup:
-    head = Circle(radius=0.45, color=color, fill_color=color, fill_opacity=1).shift(UP * 1.05)
-    body = RoundedRectangle(corner_radius=0.25, width=1.1, height=1.6,
-                            color=color, fill_color=color, fill_opacity=0.85)
-    badge = Text(initial, font_size=30, color=WHITE).move_to(head)
-    avatar = VGroup(body, head, badge)
-    avatar.scale(scale).move_to(ORIGIN)
-    return avatar
-
-
-{builders}
-
-
-def build_setting() -> VGroup:
+def build_background() -> Mobject:
     bg = Rectangle(width=14.3, height=8.1, fill_color=PALETTE["background"],
                    fill_opacity=1, stroke_width=0)
-    floor = Rectangle(width=14.3, height=2.2, fill_color="#1A3A5C",
-                      fill_opacity=1, stroke_width=0).align_to(bg, DOWN)
-    setting = VGroup(bg, floor)
-    setting.set_z_index(-10)
-    return setting
+    bg.set_z_index(-10)
+    return bg
 
 
-def _wrap_text(text: str, max_chars: int = 38) -> str:
-    words, lines, current = text.split(), [], ""
-    for w in words:
-        if len(current) + len(w) + 1 > max_chars:
-            lines.append(current)
-            current = w
-        else:
-            current = (current + " " + w).strip()
-    lines.append(current)
-    return "\\n".join(lines)
+def title_card(text: str, subtitle: str = "") -> VGroup:
+    parts = [Text(text, font_size=40, color=PALETTE["text"])]
+    if subtitle:
+        parts.append(Text(subtitle, font_size=26, color=PALETTE["muted"]))
+    group = VGroup(*parts).arrange(DOWN, buff=0.2)
+    group.set_z_index(5)
+    return group
 
 
-def make_speech_bubble(text: str, speaker: Mobject, direction=UP, max_width: float = 5.0) -> VGroup:
-    label = Text(_wrap_text(text), font_size=24, color=PALETTE["bubble_text"], line_spacing=0.8)
-    if label.width > max_width - 0.5:
-        label.scale_to_fit_width(max_width - 0.5)
-    box = RoundedRectangle(corner_radius=0.2, width=label.width + 0.5,
-                           height=label.height + 0.4,
-                           fill_color=PALETTE["bubble_fill"], fill_opacity=1,
-                           stroke_color=PALETTE["bubble_text"], stroke_width=1.5)
-    label.move_to(box)
-    bubble = VGroup(box, label)
-    bubble.next_to(speaker, direction, buff=0.3)
-    # clamp inside the safe frame
-    bubble.shift(RIGHT * max(0, -6.6 - bubble.get_left()[0]))
-    bubble.shift(LEFT * max(0, bubble.get_right()[0] - 6.6))
-    bubble.shift(UP * max(0, -3.5 - bubble.get_bottom()[1]))
-    bubble.shift(DOWN * max(0, bubble.get_top()[1] - 3.5))
-    tail = Triangle(fill_color=PALETTE["bubble_fill"], fill_opacity=1, stroke_width=0)
-    tail.scale(0.15).rotate(PI).next_to(box, DOWN, buff=-0.05)
-    bubble.add(tail)
-    bubble.set_z_index(10)
-    return bubble
+def caption(text: str) -> Text:
+    t = Text(text, font_size=26, color=PALETTE["text"])
+    t.set_z_index(5)
+    return t
 
 
-def make_lower_third(name: str, role: str) -> VGroup:
-    text = VGroup(
-        Text(name, font_size=26, color=WHITE, weight=BOLD),
-        Text(role, font_size=18, color="#CCCCCC"),
-    ).arrange(DOWN, aligned_edge=LEFT, buff=0.08)
-    box = RoundedRectangle(corner_radius=0.12, width=text.width + 0.5,
-                           height=text.height + 0.3,
-                           fill_color="#1A1A2E", fill_opacity=0.85, stroke_width=0)
-    text.move_to(box)
-    banner = VGroup(box, text).to_corner(DL, buff=0.4)
-    banner.set_z_index(10)
-    return banner
+def label(text: str, color=None, size: int = 24) -> Text:
+    t = Text(text, font_size=size, color=color or PALETTE["text"])
+    t.set_z_index(5)
+    return t
+
+
+def emphasis_box(mobject) -> Rectangle:
+    box = SurroundingRectangle(mobject, color=PALETTE["accent"], buff=0.15)
+    box.set_fill(opacity=0)
+    box.set_z_index(4)
+    return box
 
 
 class AssetLineup(Scene):
     def construct(self):
-        self.add(build_setting())
-        avatars = VGroup({lineup_builds}).arrange(RIGHT, buff=1.2)
-        if avatars.width > 12:
-            avatars.scale_to_fit_width(12)
-        avatars.move_to(ORIGIN)
-        self.add(avatars)
-        names = [{lineup_names}]
-        for avatar, name in zip(avatars, names):
-            label = Text(name, font_size=22, color=WHITE).next_to(avatar, DOWN, buff=0.3)
-            self.add(label)
-        self.add(make_speech_bubble("Hello!", avatars[0]))
+        self.add(build_background())
+        title = title_card("Style Check", "diagram kit")
+        title.move_to(grid_to_point("A2-A5"))
+        self.add(title)
+        circ = Circle(radius=0.6, color=PALETTE["primary"]).move_to(grid_to_point("C3-D3"))
+        self.add(circ, emphasis_box(circ))
+        self.add(label("a label", color=PALETTE["secondary"]).move_to(grid_to_point("C4-D4")))
+        self.add(caption("caption text").move_to(grid_to_point("F2-F5")))
         self.wait(0.5)
 '''

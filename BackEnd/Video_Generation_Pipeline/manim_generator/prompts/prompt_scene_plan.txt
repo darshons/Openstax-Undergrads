@@ -1,4 +1,4 @@
-You are an expert educational motion-graphics director. Plan ONE scene of a branching interactive scenario video that will be implemented in Manim (Community Edition). Your plan is the implementation contract for a code-generation step — be concrete and unambiguous. Do NOT write code.
+You are an expert at designing educational DIAGRAM animations (think 3Blue1Brown / explainer graphics). Plan ONE scene of a branching scenario as a NARRATED DIAGRAM: the audio explains the concept, and the visuals are graphs, labeled figures, flowcharts, equations, timelines, or geometric constructions that illustrate it. Do NOT write code, and do NOT depict people — no avatars, faces, or speech bubbles. Manim renders diagrams well and people badly.
 
 **Scenario context**
 Title: {title}
@@ -6,35 +6,36 @@ Learning goal: {learning_goal}
 Target audience: {target_audience}
 Visual style: {visual_style}
 
-**This scene (authored script — follow it faithfully, do not invent new plot):**
+**This scene (from the authored script):**
 Scene id: {scene_id}
 Scene type: {scene_type}
 Summary: {scene_summary}
 Target duration: {duration_seconds} seconds
-Character actions: {character_actions}
-Initial character positions: {initial_positions}
-Sound effects / ambience noted in the script (NOT renderable in Manim — express their mood visually instead, e.g. a subtle color wash, a small icon, a shake): {sound_notes}
+What happens in the source scenario (use this as the NARRATION content — convey it as explanation, not as staged action): {character_actions}
+Sound/ambience notes (mood only — express visually via color or a small icon if at all): {sound_notes}
 
-Dialogue (each line will be spoken by TTS in exactly this order; estimated speech time in parentheses):
+Source dialogue — narrate these as spoken explanation in order (a line attributed to a character is read in that character's voice; treat it as narration, NOT as an on-screen speaker). Estimated speech time in parentheses:
 {dialogue_block}
 
 {type_guidance}
 
-**The frozen asset kit** — every visual identity is already built; scenes may ONLY create generic supporting mobjects (arrows, icons made of primitives, emphasis rings, text). The available API:
+**Translate the scenario beat into a DIAGRAM.** Ask: what is the underlying concept the learner should grasp here, and what single clear visual conveys it? Examples by subject: a labeled anatomical/process diagram, a flowchart of a decision or procedure, a bar/line graph of a quantity changing, a before/after comparison, a Venn/relationship diagram, a highlighted step in a sequence, an equation building up term by term. Prefer ONE strong evolving visual over many disconnected ones.
+
+**The shared visual kit** — scenes create diagram mobjects from Manim primitives plus these helpers:
 {asset_api}
 
-**Spatial vocabulary** — describe every position using the 6x6 reference grid: rows A-F top to bottom, columns 1-6 left to right (A1 = top-left cell, F6 = bottom-right cell). The frame is 16:9; characters at scale 1.0 are ≈ 3 units tall (about 2 grid rows). Keep a safe margin: nothing in the outer half of rows A/F or columns 1/6.
+**Spatial vocabulary** — use the 6x6 reference grid: rows A-F top→bottom, columns 1-6 left→right (A1 top-left, F6 bottom-right). Keep a safe margin (nothing in the outer half of rows A/F or columns 1/6). Title near row A, main diagram in the B-E band, captions near row F.
 
 Produce EXACTLY these three sections:
 
 <BEATS>
-A numbered list of 3-7 beats. Each beat: [start_s-end_s] what happens visually + which dialogue line (if any) plays over it. Beat time budgets MUST sum to the target duration ±10%. Dialogue beats must be at least as long as their line's estimated speech time. Keep pacing brisk: no beat may hold a static frame for more than 3 seconds without something moving.
+A numbered list of 3-7 beats. Each beat: [start_s-end_s] what the DIAGRAM does (draws, labels, highlights, transforms) + which narration line plays over it. Beat times sum to the target duration ±10%. A narration beat must be at least as long as its line's estimated speech time. Keep it moving — no static frame longer than ~3s without a change (a label appearing, a highlight, a transform).
 </BEATS>
 
 <OCCUPANCY_TABLE>
-A markdown table declaring where every on-screen element lives: | element | grid cells | enters at (s) | exits at (s) |. Include the characters, every speech bubble, every supporting mobject. No two rows may claim the same cells during overlapping time ranges (except a speech bubble over the backdrop). This table is what the visual critic checks the rendered frame against.
+A markdown table: | element | grid cells | enters at (s) | exits at (s) |. List every diagram element (title, axes, each labeled part, arrows, captions). No two elements share the same cells during overlapping times. This is what the visual critic checks the render against.
 </OCCUPANCY_TABLE>
 
-<DIALOGUE_TABLE>
-A markdown table: | line # | character_id | voice | bubble anchor cells | delivery note |. Voice comes from the asset kit's VOICE_MAP. Bubble anchor = the grid cells the speech bubble occupies while that line plays (must match the occupancy table and must not cover the speaking character's face).
-</DIALOGUE_TABLE>
+<NARRATION_TABLE>
+A markdown table: | line # | voice | narration text | diagram action while it plays |. Voice comes from the kit's VOICE_MAP (use the character's voice for their quoted line, else "narrator"). This drives the voiceover blocks.
+</NARRATION_TABLE>

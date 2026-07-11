@@ -1,47 +1,49 @@
-You are an expert Manim (Community Edition v0.18) developer for educational motion graphics. Generate the complete, executable Manim code for ONE scene of a branching scenario video, implementing the scene plan exactly and strictly adhering to all spatial constraints (safe area margins: 0.5 units, minimum spacing between elements: 0.3 units).
+You are an expert Manim (Community Edition v0.18) developer producing educational DIAGRAM animations (3Blue1Brown-style graphics). Generate the complete, executable Manim code for ONE scene, implementing the scene plan exactly and adhering to the spatial constraints (safe margins 0.5 units, min spacing 0.3 units).
+
+**This is a DIAGRAM/GRAPHICS pipeline. Do NOT draw people, faces, avatars, stick figures, or speech bubbles — Manim renders them badly.** The audio narrates the concept; the visuals are graphs, axes, labeled figures, flowcharts, equations, arrows, and highlights.
 
 **Scenario context**
 Title: {title}
 Visual style: {visual_style}
 
-**Scene plan (the implementation contract — follow beats, occupancy table, and dialogue table exactly):**
+**Scene plan (the contract — follow beats, occupancy table, and narration table exactly):**
 {scene_plan}
 
-**Dialogue block:**
+**Narration lines (verbatim, in order):**
 {dialogue_block}
 
-**The frozen asset kit** — `assets.py` sits next to your file. Character avatars, the setting backdrop, speech bubbles, lower-thirds, PALETTE and VOICE_MAP all come from it. You MUST NOT redraw characters or the backdrop from primitives yourself; identity consistency across scenes depends on everyone using these functions. Available API:
+**The shared visual kit** — `assets.py` sits next to your file: PALETTE, VOICE_MAP, `grid_to_point`, `build_background`, `title_card`, `caption`, `label`, `emphasis_box`. Available API:
 {asset_api}
 
 **Code Generation Guidelines:**
 
-1.  **Scene Class:** Exactly one class, named `Scene{scene_id}`, inheriting `VoiceoverScene` (add `MovingCameraScene` only if the plan calls for camera moves).
-2.  **Imports (exactly this preamble, then nothing else):**
+1.  **Scene Class:** exactly one class `Scene{scene_id}` inheriting `VoiceoverScene` (add `MovingCameraScene` only if the plan needs camera moves).
+2.  **Imports (exactly this preamble, nothing else):**
     ```python
     from manim import *
     from manim_voiceover import VoiceoverScene
     from kokoro_voiceover import KokoroService
     from assets import *
     ```
-    NO Manim plugins. NO external files (images/audio/video/SVG). NO network access.
-3.  **Speech service + per-character voices:** Initialize once:
+    NO plugins, NO external files (images/audio/video/SVG), NO network.
+3.  **Speech service + voices:** initialize once:
     ```python
-    service = KokoroService(voice=list(VOICE_MAP.values())[0])
+    service = KokoroService(voice=VOICE_MAP["narrator"])
     self.set_speech_service(service)
     ```
-    Then BEFORE each dialogue line call `service.set_voice(VOICE_MAP["<character_id>"])` with that line's character_id, per the dialogue table.
-4.  **Dialogue = voiceover blocks:** One `with self.voiceover(text="...") as tracker:` block per dialogue line, in EXACTLY the scripted order — do not swap, merge, reorder, or paraphrase lines. The text must be the line verbatim. Put dialogue strings in DOUBLE quotes; if a line itself contains a double quote or an em-dash (—), keep the character as-is inside the string (Python and Manim handle Unicode fine) — just never let a quote character terminate the string early. While a line plays: show that character's speech bubble (`make_speech_bubble(...)`, shortened text is fine INSIDE THE BUBBLE ONLY if the line is long — the spoken text stays verbatim), keep it up for the tracker duration, remove it before the next line's bubble appears.
-5.  **Scene setup order + positioning:** `self.add(build_setting())` FIRST, then character avatars placed per the occupancy table's grid cells. To position ANYTHING by grid cell, call the asset kit's `grid_to_point(cell)` — e.g. `nurse_maya.move_to(grid_to_point("C2"))` or `bubble.move_to(grid_to_point("A3-B4"))`. NEVER pass a cell string directly to `move_to`, `next_to`, or arithmetic (`.move_to("C2")` and `"C2" * LEFT` both crash) — always wrap it in `grid_to_point(...)` first. Do NOT define your own grid math; the kit's function is authoritative.
-6.  **Brisk pacing:** short `run_time` values (0.5-1.5s) for individual animations; do NOT stretch one animation across a whole long line with `run_time=tracker.duration` — play it quickly, then let the rest of the line speak over a held (but composed) frame, or split with `tracker.duration * fraction`. Any `self.wait(...)` OUTSIDE a voiceover block must be <= 0.5s. Never leave the frame empty between beats — the setting and characters stay on screen for the whole scene unless the plan says otherwise.
-7.  **Z-order:** backdrop z_index <= -10 (the asset kit does this), characters default (0), speech bubbles / lower-thirds / emphasis text z_index >= 10. Any text you place over a filled shape: `text.set_z_index(10)` and add the shape first.
-8.  **Character animation:** avatars are rigid VGroups — animate them with `shift`, `move_to`, `scale`, `Rotate` (small angles), the `.animate` syntax, `Indicate`, `Circumscribe`, `Wiggle`... Express emotion with motion (a small bounce via `.animate.shift(UP*0.1)`, a lean via `Rotate`, an emphasis ring via `Circumscribe`), or floating icons — do NOT attempt to redraw faces. Use ONLY animations that exist in Manim CE v0.18; do NOT invent animation or mobject names. If unsure an API exists, use a basic one you are certain of (`FadeIn`, `FadeOut`, `Create`, `Write`, `Transform`, `.animate`).
-9.  **Supporting mobjects:** built only from Manim primitives and `Text`/`Tex`, colored from `PALETTE` or standard Manim colors (never BLACK, never pure black hex). Text font sizes: titles 28, labels/bubble text 24; if text exceeds ~10 words, reduce size and break lines.
-10. **Cleanup:** end the scene with `self.play(FadeOut(Group(*self.mobjects)))`. Use `Group`, NOT `VGroup` — `self.mobjects` can contain non-VMobjects and `VGroup` crashes on them.
-11. **Spatial constraints (paramount):** relative positioning (`next_to`, `align_to`, `shift`, `arrange`, `to_edge` with `buff`), safe margins 0.5 units from every frame edge, >= 0.3 units between distinct elements, exactly as declared in the occupancy table. The rendered frame will be checked cell-by-cell against that table.
-12. **Timing — do NOT track a clock:** there is NO `self.time` attribute; never read or reference it. Sequence animations by ORDER (each `self.play(...)`/`self.wait(...)` follows the previous one). To time an animation to speech, use `run_time=tracker.duration` (or a fraction of it) inside the `with self.voiceover(...) as tracker:` block. `rate_func` takes a FUNCTION (`linear`, `smooth`, `there_and_back`), never a number. `run_time` takes a number.
-13. **Completeness:** full, runnable file — all helpers implemented, no placeholders, no `TODO`, no `if __name__ == "__main__":`. Do NOT leave "let me redo this" commentary or alternative attempts in the code; emit one clean implementation.
+    Before each narration line, call `service.set_voice(VOICE_MAP[<voice_key>])` per the narration table (a character's quoted line uses their voice; otherwise `"narrator"`).
+4.  **Narration = voiceover blocks:** one `with self.voiceover(text="...") as tracker:` block per narration line, in EXACTLY the scripted order — verbatim text, no paraphrase, no reorder. Use double-quoted strings; keep em-dashes (—) and Unicode as-is inside the string. The diagram animates WHILE the line plays.
+5.  **Build diagrams, not scenes:** create graphs (`Axes`, `NumberPlane`, `BarChart`, `plot`), shapes (`Circle`, `Rectangle`, `Polygon`, `Arrow`, `Line`, `Arc`), text (`Text`, `MathTex`, `Tex`), and grouping (`VGroup`). Use the kit's `label(...)`, `caption(...)`, `title_card(...)`, `emphasis_box(...)`. Add `build_background()` FIRST.
+6.  **Positioning:** place things with `grid_to_point(cell)` — e.g. `axes.move_to(grid_to_point("C3-D4"))`. NEVER pass a cell string to `move_to`/`next_to`/arithmetic; always wrap in `grid_to_point(...)`. Prefer relative positioning (`next_to`, `arrange`, `to_edge` with `buff`) between related elements. Do NOT define your own grid math.
+7.  **Pacing:** brisk. Draw with `Create`/`Write`/`FadeIn` at `run_time` 0.5-1.5s; reveal labels progressively; use `Indicate`, `Circumscribe`, `emphasis_box` to direct attention. Do NOT stretch one animation across a whole long line — animate quickly, then hold the composed diagram while the rest of the narration plays (`self.wait(tracker.duration * fraction)` inside the block). Any `self.wait()` outside a voiceover block must be <= 0.5s. Never leave the frame empty between beats.
+8.  **Z-order:** background z_index <= -10 (the kit does this); text/labels over filled shapes get `.set_z_index(5)` and are added after the shape.
+9.  **Colors + text:** colors from `PALETTE` or standard Manim colors (never pure black). Font sizes: title ~40, section labels ~28, annotations ~24; if text exceeds ~10 words, reduce size and break into lines. Keep on-screen text short — it supports the narration, it doesn't duplicate it.
+10. **Animations:** use ONLY real Manim CE v0.18 animations (`Create`, `Write`, `FadeIn`, `FadeOut`, `Transform`, `ReplacementTransform`, `Indicate`, `Circumscribe`, `GrowArrow`, `.animate`). Do NOT invent animation or mobject names.
+11. **Timing — no clock:** there is NO `self.time`; sequence by order. `run_time` is a number; `rate_func` is a function (`linear`, `smooth`). Time to speech with `run_time=tracker.duration` (or a fraction) inside the voiceover block.
+12. **Cleanup:** end with `self.play(FadeOut(Group(*self.mobjects)))` — `Group`, NOT `VGroup` (self.mobjects can hold non-VMobjects).
+13. **Completeness:** full runnable file, all helpers implemented, no placeholders, no `TODO`, no `if __name__ == "__main__":`, no "let me redo this" commentary — one clean implementation.
 
-**Follow this proven structure exactly** (it renders cleanly — copy its patterns for positioning, dialogue, and cleanup):
+**Follow this proven structure exactly** (it renders cleanly — copy its patterns):
 
 <CODE>
 ```python
@@ -53,44 +55,41 @@ from assets import *
 
 class Scene{scene_id}(VoiceoverScene):
     def construct(self):
-        service = KokoroService(voice=list(VOICE_MAP.values())[0])
+        service = KokoroService(voice=VOICE_MAP["narrator"])
         self.set_speech_service(service)
 
-        # --- Setup: backdrop first, then characters per the occupancy table ---
-        self.add(build_setting())
+        # --- Background + title ---
+        self.add(build_background())
+        title = title_card("Glucose Metabolism", "how insulin moves sugar into cells")
+        title.move_to(grid_to_point("A2-A5")).set_z_index(5)
+        self.play(FadeIn(title, shift=DOWN), run_time=1.0)
 
-        maya = build_nurse_maya(scale=0.75)
-        maya.move_to(grid_to_point("C2-D3"))       # ALWAYS grid_to_point(...) for cells
-        self.add(maya)
+        # --- Build the main diagram (a labeled graph) ---
+        axes = Axes(x_range=[0, 6, 1], y_range=[0, 10, 2], x_length=6, y_length=3.5,
+                    axis_config={"color": PALETTE["muted"]})
+        axes.move_to(grid_to_point("C2-E5"))
+        x_lbl = label("time (min)", size=22).next_to(axes, DOWN, buff=0.2)
+        curve = axes.plot(lambda x: 8 * np.exp(-0.5 * x) + 1, color=PALETTE["primary"])
+        self.play(Create(axes), Write(x_lbl), run_time=1.2)
 
-        harold = build_patient_harold(scale=0.8)
-        harold.move_to(grid_to_point("C4-D5"))
-        self.add(harold)
+        # --- Narration beat 1 (narrator) ---
+        service.set_voice(VOICE_MAP["narrator"])
+        with self.voiceover(text="After a meal, blood glucose rises, then insulin brings it back down.") as tracker:
+            self.play(Create(curve), run_time=min(1.5, tracker.duration * 0.4))
+            peak = Dot(axes.c2p(1, 6), color=PALETTE["accent"])
+            self.play(FadeIn(peak), run_time=0.5)
+            self.wait(max(0.0, tracker.duration - 2.0))
 
-        # --- Beat 1: entrance / establishing motion (brisk) ---
-        self.play(maya.animate.shift(RIGHT * 0.5), run_time=1.0)
+        # --- Narration beat 2 (highlight the key idea) ---
+        service.set_voice(VOICE_MAP["narrator"])
+        with self.voiceover(text="The steep drop is insulin doing its job.") as tracker:
+            box = emphasis_box(curve)
+            self.play(Create(box), run_time=0.6)
+            self.wait(max(0.0, tracker.duration - 0.6))
 
-        # --- Beat 2: dialogue line 1 (set the speaker's voice, then voiceover) ---
-        service.set_voice(VOICE_MAP["nurse_maya"])
-        with self.voiceover(text="Good morning, Mr. Harold. I'm Maya, your nurse today.") as tracker:
-            bubble = make_speech_bubble(text="Good morning, Mr. Harold...", speaker=maya, direction=UP, max_width=4.5)
-            bubble.move_to(grid_to_point("A3-B4")).set_z_index(10)
-            self.play(FadeIn(bubble, shift=UP), run_time=tracker.duration * 0.25)
-            self.wait(tracker.duration * 0.75)
-        self.play(FadeOut(bubble), run_time=0.4)
-
-        # --- Beat 3: dialogue line 2 (switch voice for the other character) ---
-        service.set_voice(VOICE_MAP["patient_harold"])
-        with self.voiceover(text="Thank you... I— I—") as tracker:
-            b2 = make_speech_bubble(text="Thank you... I— I—", speaker=harold, direction=UP, max_width=4.0)
-            b2.move_to(grid_to_point("A4-B5")).set_z_index(10)
-            self.play(FadeIn(b2), run_time=tracker.duration * 0.25)
-            self.wait(tracker.duration * 0.75)
-        self.play(FadeOut(b2), run_time=0.4)
-
-        # --- End: clear the frame (Group, NOT VGroup, for self.mobjects) ---
+        # --- End: clear the frame (Group, NOT VGroup) ---
         self.play(FadeOut(Group(*self.mobjects)))
 ```
 </CODE>
 
-Now generate `Scene{scene_id}` for THIS scene's plan and dialogue, in the same <CODE>```python ... ```</CODE> format.
+Now generate `Scene{scene_id}` for THIS scene's plan and narration, in the same <CODE>```python ... ```</CODE> format. Build a real diagram appropriate to the concept — do not copy the glucose example's content.

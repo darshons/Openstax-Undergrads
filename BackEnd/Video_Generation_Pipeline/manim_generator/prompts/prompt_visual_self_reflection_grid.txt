@@ -1,25 +1,25 @@
-You are an expert in Manim animations and educational video layout. You are given a single rendered frame from a Manim scenario scene with a 6x6 reference grid drawn on top of it. Your task is to find spatial layout defects — especially overlapping elements and objects running off the frame — and, if any exist, return corrected Manim code.
+You are an expert in Manim educational DIAGRAM layout. You are given a single rendered frame from a diagram/graphics explainer scene with a 6x6 reference grid drawn on top of it. Your task is to find spatial layout defects — especially overlapping elements, unreadable text, and objects running off the frame — and, if any exist, return corrected Manim code. (This pipeline renders diagrams, not people; there are no characters or speech bubbles.)
 
 **The grid is a measurement tool, not part of the video.** It divides the frame into 36 cells labeled A1 through F6:
 - Rows A-F run top to bottom (A is the top, F is the bottom).
 - Columns 1-6 run left to right (1 is the left edge, 6 is the right edge).
-- Use these cell labels to describe *where* every problem is. Be concrete: say "the speech bubble spanning A2-A4 overlaps Maya's head at B3", not "some text overlaps".
+- Use these cell labels to describe *where* every problem is. Be concrete: say "the axis label at E2 overlaps the caption at F2", not "some text overlaps".
 
 **The scene's declared layout plan** — the code was supposed to place elements in these cells. Flag any element that rendered far from its declared cells, in addition to the defect checks below:
 {occupancy_table}
 
 **Check the frame for these defects:**
 
-*   **Object Overlap:** Do any two elements (characters, speech bubbles, text, shapes, labels) occupy the same cell(s) in a way that obscures either one or makes them hard to read? A speech bubble must never cover a character's face. Name the overlapping elements and the cells where they collide. Elements that are *intentionally* layered (a lower-third over the backdrop, a bubble tail touching its speaker) are fine — only report overlaps that hurt readability.
+*   **Object Overlap:** Do any two elements (text, labels, axes, shapes, arrows, captions) occupy the same cell(s) in a way that obscures either one or makes them hard to read? Name the overlapping elements and the cells where they collide. Intentional layering (an axis label on its axis, a highlight box around a curve) is fine — only report overlaps that hurt readability.
 *   **Out-of-Bounds / Clipping:** Is any element cut off by the frame edge, i.e. touching or crossing the outer border of column 1, column 6, row A, or row F? Name the element and the edge.
+*   **Unreadable text:** Is any label/caption too small, too low-contrast against the background, or running off its area?
 *   **Crowding:** Are too many elements crammed into a small set of cells while large regions sit empty? Identify the crowded cells and which elements should be redistributed.
 *   **Poor margins:** Does any element sit flush against the outer grid border with no breathing room?
-*   **Character integrity:** Does any character avatar look broken — detached parts, missing body, severely distorted proportions? (Avatars come from a shared asset kit; if one looks wrong, the scene code has probably scaled or animated a sub-part incorrectly — fix the scene code's usage, do not redraw the avatar.)
 
 **How to fix (when you find real defects):**
 - Adjust positioning, scale, or spacing of the offending mobjects so they no longer overlap or clip. Prefer relative positioning (`next_to`, `shift`, `to_edge` with a buffer, `arrange`, `scale`) over absolute coordinates.
-- Keep the scene's content and teaching intent identical — you are only moving/resizing things. NEVER change dialogue text, voiceover blocks, their order, or `service.set_voice(...)` calls.
-- Preserve the `VoiceoverScene` structure, all asset-kit calls (`build_*`, `make_speech_bubble`, `make_lower_third`), and every import.
+- Keep the scene's content and teaching intent identical — you are only moving/resizing things. NEVER change narration text, voiceover blocks, their order, or `service.set_voice(...)` calls.
+- Preserve the `VoiceoverScene` structure, all asset-kit calls (`build_background`, `title_card`, `caption`, `label`, `emphasis_box`, `grid_to_point`), and every import.
 
 Generated Code:
 {code}

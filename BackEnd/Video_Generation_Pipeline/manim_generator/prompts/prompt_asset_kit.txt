@@ -1,42 +1,41 @@
-You are an expert Manim (Community Edition v0.18) developer and character designer for educational motion graphics. Your task: generate a single, complete, executable Python module called `assets.py` — the frozen visual identity kit for one branching scenario video. Every scene of the scenario will `from assets import *`, so character avatars and the setting backdrop are pixel-identical across all scenes BY CONSTRUCTION.
+You are an expert Manim (Community Edition v0.18) developer building educational DIAGRAM graphics — the kind 3Blue1Brown makes: clean graphs, labeled figures, equations, flowcharts, and geometric constructions. Your task: generate a single, complete, executable Python module called `assets.py` — the shared visual-style kit for one scenario's explainer clips. Every scene will `from assets import *`, so the palette, fonts, and diagram helpers are identical across all clips.
+
+**IMPORTANT — this is a DIAGRAM/GRAPHICS pipeline, NOT a character animation pipeline.** Do NOT build human avatars, faces, bodies, or speech bubbles. Manim renders people badly. Everything is diagrammatic: shapes, graphs, axes, arrows, labels, icons built from simple geometry.
 
 Visual style: {visual_style}
 
-Characters:
-{character_block}
-
-Setting:
+Subject matter (for choosing an appropriate palette + icon vocabulary):
 {setting_block}
 
-**Design brief**
-
-Build each character as a stylized 2D vector avatar from Manim primitives (Circle, Ellipse, RoundedRectangle, Polygon, Arc, Line, VGroup...). Semi-flat, friendly, readable at a distance — think corporate-explainer art, not stick figures and not photorealism. Encode every appearance detail you are given (skin tone, hair, build, uniform, distinguishing features) as FIXED hex colors and shape parameters inside the build function. The appearance strings above are canonical: derive concrete hex values from them once, here, and never leave color choices to the scenes.
+Characters named in the source scenario are spoken about in narration ONLY — they are never drawn. Ignore them for the visual kit:
+{character_block}
 
 **The module contract — implement EXACTLY these names:**
 
-1. `PALETTE: dict[str, str]` — scenario color system. Must include the keys `"background"` (a dark, low-saturation scene backdrop color that fits the setting; never pure black), `"bubble_fill"`, `"bubble_text"`, `"accent_correct"` (green family), `"accent_incorrect"` (red/orange family), plus one named entry per character for their signature color.
+1. `PALETTE: dict[str, str]` — the scenario color system. Must include: `"background"` (a dark, low-saturation backdrop, never pure black), `"primary"`, `"secondary"`, `"accent"`, `"correct"` (green family), `"incorrect"` (red/orange family), `"text"` (near-white), `"muted"` (dim grey for secondary labels). Use tasteful, cohesive colors that suit the subject.
 
-2. `build_<character_id>(scale: float = 1.0) -> VGroup` — one function per character, exact character_id in the name. Returns the full avatar: head, hair, face hints, body with uniform, distinguishing features. Total height ≈ 3.0 scene units at scale=1.0, centered at ORIGIN. Facing the viewer or slightly angled. Give each avatar a clearly distinct silhouette and signature color so they can never be confused.
+2. `grid_to_point(cell: str) -> np.ndarray` — convert a 6x6 grid cell ("C2") or range ("C2-E3") to a Manim coordinate (center of the bounding box). Rows A-F map top→bottom to y in [+3.3 .. -3.3], columns 1-6 map left→right to x in [-5.9 .. +5.9]. Scenes use this to place diagram elements. Implement it exactly so `obj.move_to(grid_to_point("C2"))` works.
 
-3. `build_setting() -> VGroup` — the backdrop: a full-frame background Rectangle (width 14.3, height 8.1, fill PALETTE["background"], fill_opacity 1) plus simplified furniture/equipment props from the setting description, arranged along the lower/back region so characters can stand in front. All backdrop mobjects must have z_index=-10 or lower.
+3. `build_background() -> Mobject` — a full-frame background Rectangle (width 14.3, height 8.1, fill PALETTE["background"], fill_opacity 1, stroke_width 0, z_index=-10).
 
-4. `make_speech_bubble(text: str, speaker: Mobject, direction=UP, max_width: float = 5.0) -> VGroup` — a rounded speech bubble with the text inside (font_size 24, wrap by inserting line breaks so the bubble stays under max_width) plus a small tail triangle pointing toward `speaker`. Position it `next_to(speaker, direction, buff=0.3)`, then `shift` it as needed so the whole bubble stays inside x ∈ [-6.6, 6.6], y ∈ [-3.5, 3.5]. Set z_index=10 on the whole bubble so it always renders above everything.
+4. `title_card(text: str, subtitle: str = "") -> VGroup` — a title + optional subtitle, `Text` in PALETTE["text"] / PALETTE["muted"], font sizes 40/26, arranged vertically, centered. z_index 5.
 
-5. `make_lower_third(name: str, role: str) -> VGroup` — a compact name banner (rounded rectangle + name + role text) anchored to the bottom-left of the frame (`to_corner(DL, buff=0.4)`), z_index=10.
+5. `caption(text: str) -> Text` — a lower-third caption line, font_size 26, PALETTE["text"], intended to be placed near row F. z_index 5.
 
-6. `grid_to_point(cell: str) -> np.ndarray` — convert a 6x6 grid cell or cell-range to a Manim coordinate. Accepts `"C2"` (single cell) or `"C2-E3"` (range → center of the bounding box). Rows A-F map top→bottom to y in [+3.3 .. -3.3], columns 1-6 map left→right to x in [-5.9 .. +5.9]. This is the ONLY way scenes position things by grid cell — implement it exactly so `obj.move_to(grid_to_point("C2"))` works. Include `import numpy as np` (or use Manim's coordinate constants).
+6. `label(text: str, color=None, size: int = 24) -> Text` — a short annotation label in the given palette color (default PALETTE["text"]).
 
-7. `VOICE_MAP: dict[str, str]` — one entry per character_id mapping to a Kokoro voice. Choose voices whose presented gender matches the character as described. Available voices (a*=American, b*=British; f/m voices): {known_voices}. Suggested assignment (override where the descriptions imply otherwise): {suggested_voices}
+7. `emphasis_box(mobject) -> Rectangle` — a rounded highlight rectangle sized to surround `mobject` (SurroundingRectangle-style), stroke PALETTE["accent"], no fill, for drawing attention.
 
-7. `class AssetLineup(Scene)` — a test scene: add `build_setting()`, then every character avatar arranged left-to-right with `VGroup(...).arrange(RIGHT, buff=1.2)` scaled to fit the frame, each with its `make_lower_third`-style name label BELOW the avatar (not overlapping), and one example `make_speech_bubble("Hello!", <first avatar>)`. No animation needed — a single `self.add(...)` composition then `self.wait(0.5)`.
+8. `VOICE_MAP: dict[str, str]` — map each source character_id to a Kokoro voice, used only to narrate that character's lines when a scene quotes them. Available voices (a*=American, b*=British; f/m): {known_voices}. Also include a `"narrator"` key for scene-level narration. Suggested per-character assignment: {suggested_voices}
+
+9. `class AssetLineup(Scene)` — a test scene: add `build_background()`, a `title_card("Style Check", "diagram kit")` at the top, and a small demo row showing a `label(...)`, an `emphasis_box` around a `Circle`, and a `caption("caption text")` near the bottom — verifying the kit renders. `self.add(...)` then `self.wait(0.5)`.
 
 **Hard rules**
-- Imports: `from manim import *` and nothing else (no plugins, no external assets, no image/SVG files, no network).
-- Plain `Scene` for AssetLineup (NOT VoiceoverScene — this file must import cleanly without any TTS service).
-- Every function must be self-contained and deterministic. No randomness.
-- No `if __name__ == "__main__":` block.
-- Do not use pure BLACK (#000000) anywhere; the darkest allowed value is #111111.
-- Comment each avatar section briefly (head / hair / uniform / feature) so scenes' code authors can reference sub-parts.
+- Imports: `from manim import *` only. No plugins, no external assets/images/SVG, no network. numpy is available as `np` via the manim import.
+- Plain `Scene` for AssetLineup (NOT VoiceoverScene).
+- NO human figures, faces, bodies, stick figures, or speech bubbles anywhere.
+- Deterministic, no randomness. No `if __name__ == "__main__":`.
+- Darkest color allowed is #111111 (no pure black).
 
 You MUST generate the module in the following format (from <CODE> to </CODE>):
 <CODE>
@@ -44,24 +43,31 @@ You MUST generate the module in the following format (from <CODE> to </CODE>):
 from manim import *
 
 PALETTE = {
-    "background": "#0F2C4D",
+    "background": "#0E1626",
     # ...
 }
 
 VOICE_MAP = {
+    "narrator": "af_sarah",
     # ...
 }
 
-def build_example_character(scale: float = 1.0) -> VGroup:
+def grid_to_point(cell: str):
     ...
 
-def build_setting() -> VGroup:
+def build_background() -> Mobject:
     ...
 
-def make_speech_bubble(text: str, speaker: Mobject, direction=UP, max_width: float = 5.0) -> VGroup:
+def title_card(text: str, subtitle: str = "") -> VGroup:
     ...
 
-def make_lower_third(name: str, role: str) -> VGroup:
+def caption(text: str) -> Text:
+    ...
+
+def label(text: str, color=None, size: int = 24) -> Text:
+    ...
+
+def emphasis_box(mobject) -> Rectangle:
     ...
 
 class AssetLineup(Scene):

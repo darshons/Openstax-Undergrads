@@ -24,7 +24,7 @@ Characters named in the source scenario are spoken about in narration ONLY — t
 
 6. `label(text: str, color=None, size: int = 24) -> Text` — a short annotation label in the given palette color (default PALETTE["text"]).
 
-7. `emphasis_box(mobject) -> Rectangle` — a rounded highlight rectangle sized to surround `mobject` (SurroundingRectangle-style), stroke PALETTE["accent"], no fill, for drawing attention.
+7. `emphasis_box(mobject, color=None) -> Rectangle` — a highlight rectangle surrounding `mobject` (use `SurroundingRectangle`), stroke = `color` or PALETTE["accent"], no fill, for drawing attention. Accept the optional `color` argument.
 
 8. `VOICE_MAP: dict[str, str]` — map each source character_id to a Kokoro voice, used only to narrate that character's lines when a scene quotes them. Available voices (a*=American, b*=British; f/m): {known_voices}. Also include a `"narrator"` key for scene-level narration. Suggested per-character assignment: {suggested_voices}
 

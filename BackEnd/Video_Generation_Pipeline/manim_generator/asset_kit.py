@@ -230,8 +230,8 @@ def label(text: str, color=None, size: int = 24) -> Text:
     return t
 
 
-def emphasis_box(mobject) -> Rectangle:
-    box = SurroundingRectangle(mobject, color=PALETTE["accent"], buff=0.15)
+def emphasis_box(mobject, color=None) -> Rectangle:
+    box = SurroundingRectangle(mobject, color=color or PALETTE["accent"], buff=0.15)
     box.set_fill(opacity=0)
     box.set_z_index(4)
     return box

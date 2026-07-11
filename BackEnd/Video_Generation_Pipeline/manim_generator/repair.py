@@ -173,7 +173,14 @@ def scope_refine_repair(
     # ---- 3: full-file regen (last resort) ----
     log(f"[repair] scene {scene_id} escalating to full-file regeneration")
     api_docs = api_kb.lookup(code)
-    fixed, _ = codegen.fix_code_errors(scene_plan, "\n".join(lines), error, api_docs=api_docs)
+    working = "\n".join(lines)
+    fixed, _ = codegen.fix_code_errors(scene_plan, working, error, api_docs=api_docs)
+    # A regen that doesn't parse is usually the model leaking prose/instructions
+    # into the file. Don't let it become the working copy — keep the previous
+    # parseable code so the next round starts clean.
+    if not _parses(fixed):
+        log(f"[repair] scene {scene_id} full-regen output won't parse — keeping previous code")
+        fixed = working
     with open(code_path, "w", encoding="utf-8") as f:
         f.write(fixed)
     ok, new_stderr = renderer.render(code_path, media_dir, scene_name=scene_name)

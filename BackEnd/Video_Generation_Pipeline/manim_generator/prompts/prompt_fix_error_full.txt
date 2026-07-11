@@ -24,6 +24,7 @@ Requirements:
 7. Keep `FadeOut(Group(*self.mobjects))` using `Group`, never `VGroup`.
 8. There is NO `self.time` attribute — if the code reads it, remove that; sequence animations by order and time them with `run_time=tracker.duration`. `rate_func` takes a function (`linear`, `smooth`), `run_time` takes a number.
 9. Emit ONE clean corrected file — no "let me redo this" commentary, no alternative attempts left in the code.
+10. Use ONLY vetted core Manim v0.18 constructs. Common hallucinations to AVOID: `WavyArrow`, `Rectangle.from_corners`, an `Arrow(scale_tips=...)`/`stretch=...` parameter, `manim.utils.enums`, `CapStyle`, `LineJointType`. If the error names one of these, replace it with a real construct (`Arrow(start=..., end=...)`, `CurvedArrow`, a plain `Rectangle`, `Line`). Never import from a manim submodule — everything comes from `from manim import *`.
 
 You MUST only output the following format (from <THINKING> to </FULL_CORRECTED_CODE>). You MUST NOT use any other format.
 

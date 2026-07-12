@@ -1,9 +1,14 @@
 # Manim Branching-Video Generator
 
-Generates the **"Manim · Graphics"** video type for Scenario Studio: one motion-graphics
-clip per scene of a branching scenario script (narrative / consequence / resolution), with
-consistent stylized characters, per-character Kokoro TTS dialogue in speech bubbles, and a
-manifest describing the decision-point branch graph.
+Generates the **"Manim · Graphics"** video type for Scenario Studio: one narrated **diagram**
+clip per scene of a branching scenario script (narrative / consequence / resolution). Each
+scene becomes an educational graphic — a flowchart, labeled figure, graph, or relationship
+diagram — with the scenario's content read as Kokoro TTS narration over it, plus a manifest
+describing the decision-point branch graph.
+
+> **Diagrams, not characters.** Manim renders people badly, so this pipeline deliberately
+> produces diagrammatic visuals (3Blue1Brown-style), never avatars or acted-out scenes. The
+> named characters are spoken *about* in narration; they are not drawn.
 
 It consumes the **same script JSON** the LLM script pipeline already produces (top-level
 `scenes[]` + `decision_points[]`; see `Script_Generation_Pipeline/_JSON_Templates/`).
@@ -13,10 +18,11 @@ It consumes the **same script JSON** the LLM script pipeline already produces (t
 ```
 script.json
   └─ script_adapter      normalize + validate the branch graph
-  └─ asset_kit           generate a frozen assets.py (avatars, setting, bubbles) ONCE,
+  └─ asset_kit           generate a frozen assets.py DIAGRAM style-kit (palette, grid,
+                         build_background / title_card / caption / label / emphasis_box) ONCE,
                          render its AssetLineup test frame, critique it, freeze
   └─ per scene (serial):
-       scene_planner      1 LLM call → beats + occupancy table + dialogue/voice table
+       scene_planner      1 LLM call → beats + occupancy table + narration/voice table
        code_generator     → Manim VoiceoverScene code (imports the frozen assets.py)
        render + repair     manim -qh ; on failure → ScopeRefine (line→block→full) with
                            RITL-truncated logs + De-Hallucinator API-signature injection
@@ -79,7 +85,7 @@ clips complete.
 
 - **Serial rendering is mandatory** — parallel manim subprocesses deadlock.
 - The **asset kit is a single point of failure**; it gets a generous retry budget and a
-  parameterized fallback avatar kit so a bad LLM generation can't hard-block a run.
+  parameterized fallback diagram kit so a bad LLM generation can't hard-block a run.
 - The **grid critic only fires after a successful render**, so at least one pass is forced
   per scene to catch layout defects in first-try-clean scenes.
 - `manim_api_kb.json` is gitignored and rebuilt from the installed manim; `load_kb()`

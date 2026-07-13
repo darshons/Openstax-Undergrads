@@ -62,13 +62,70 @@ function VideoClipCard({ scene, selected, onClick, branch, choice, videoUrl }: {
   );
 }
 
+function PublishControl({ onPublish }: { onPublish?: (name: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [status, setStatus] = useState<'idle' | 'publishing' | 'done' | 'error'>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || !onPublish) return;
+    setStatus('publishing');
+    setError(null);
+    try {
+      await onPublish(trimmed);
+      setStatus('done');
+    } catch (err) {
+      setStatus('error');
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    }
+  };
+
+  if (!open) {
+    return (
+      <button className="assets-back" onClick={() => setOpen(true)} disabled={!onPublish} style={{ gap: 6 }}>
+        Upload ↑
+      </button>
+    );
+  }
+
+  return (
+    <div className="video-publish-bar">
+      {status === 'done' ? (
+        <span className="video-publish-done">Published as "{name.trim()}"</span>
+      ) : (
+        <>
+          <input
+            className="video-publish-input"
+            value={name}
+            disabled={status === 'publishing'}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+            placeholder="Project name"
+            autoFocus
+          />
+          <button className="assets-back" disabled={status === 'publishing' || !name.trim()} onClick={submit}>
+            {status === 'publishing' ? 'Uploading…' : 'Publish'}
+          </button>
+          <button className="assets-back" disabled={status === 'publishing'} onClick={() => setOpen(false)}>
+            Cancel
+          </button>
+          {error && <span className="video-publish-error">{error}</span>}
+        </>
+      )}
+    </div>
+  );
+}
+
 interface VideoPageProps {
   script: Script;
   onBack: () => void;
   onStudentPreview?: () => void;
+  onPublish?: (name: string) => Promise<void>;
 }
 
-export default function VideoPage({ script, onBack, onStudentPreview }: VideoPageProps) {
+export default function VideoPage({ script, onBack, onStudentPreview, onPublish }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
   const scenes = script.scenes ?? [];
@@ -100,9 +157,12 @@ export default function VideoPage({ script, onBack, onStudentPreview }: VideoPag
           <h2>Video Review</h2>
           <p>{script.title || 'Untitled scenario'}</p>
         </div>
-        <button className="assets-back" onClick={onStudentPreview} disabled={!onStudentPreview} style={{ gap: 6 }}>
-          Student Preview →
-        </button>
+        <div className="video-topbar-actions">
+          <button className="assets-back" onClick={onStudentPreview} disabled={!onStudentPreview} style={{ gap: 6 }}>
+            Student Preview →
+          </button>
+          <PublishControl onPublish={onPublish} />
+        </div>
       </div>
 
       <div className="video-body">

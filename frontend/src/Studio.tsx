@@ -19,6 +19,7 @@ import {
   retryBackgroundImage,
   retryCharacterImage,
   retryOpeningFrame,
+  publishScenario,
 } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
 import { saveScenario } from './lib/savedScenario';
@@ -406,6 +407,7 @@ export default function Studio() {
                 saveScenario(script, assetImages);
                 navigate('/player/preview', { state: { script, assetImages } });
               }}
+              onPublish={name => publishScenario(name, script, assetImages)}
             />
           </div>
         )}

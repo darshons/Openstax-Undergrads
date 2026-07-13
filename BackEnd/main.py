@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
-from API.api import api_router
+from API.instructor_api import instructor_router
+from API.student_api import student_router
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pathlib import Path
@@ -12,7 +13,8 @@ load_dotenv(BASE_DIR / "backend.env")
 
 app = FastAPI(title="OpenStax Video Scenario Generation API")
 
-app.include_router(api_router, prefix="/api")
+app.include_router(instructor_router, prefix="/instructor_api", tags=["Instructor"])
+app.include_router(student_router, prefix="/student_api", tags=["Student"])
 
 app.add_middleware(
     CORSMiddleware,

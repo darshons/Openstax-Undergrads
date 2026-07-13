@@ -21,10 +21,10 @@ def get_assets(project_id: str):
                 status_code=404, detail=f"No assets found for project_id: {project_id}"
             )
 
-        video_paths = dict()
+        video_links = dict()
 
         for video in video_list:
-            video_paths[video["name"]] = supabase_client.storage.from_(
+            video_links[video["name"]] = supabase_client.storage.from_(
                 "Videos"
             ).get_public_url(f"{project_id}/{video['name']}")
 
@@ -35,7 +35,7 @@ def get_assets(project_id: str):
         return {
             "message": "Assets retrieved successfully",
             "script_link": script_link,
-            "video_paths": video_paths,
+            "video_links": video_links,
         }
 
     except StorageApiError as e:

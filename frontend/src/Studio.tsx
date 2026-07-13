@@ -21,6 +21,7 @@ import {
   retryOpeningFrame,
 } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
+import { saveScenario } from './lib/savedScenario';
 import Sidebar from './components/layout/Sidebar';
 import GeneratePanel from './components/layout/GeneratePanel';
 import StageBar from './components/canvas/StageBar';
@@ -352,6 +353,16 @@ export default function Studio() {
           </div>
         </div>
         <div className="flex items-center gap-2 text-[12px] text-[var(--os-ink-2)]">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 font-semibold text-[var(--os-ink-2)] bg-[var(--os-bg-3)] border border-[var(--os-line)] rounded-lg px-3 py-1.5 hover:bg-[var(--os-line)] hover:text-[var(--os-ink)] transition-colors"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+            </svg>
+            Home
+          </button>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--os-green)]" style={{ boxShadow: '0 0 0 3px rgba(156,203,59,.22)' }} />
             <span>Project · <b className="text-[var(--os-ink)] font-bold">{script?.title ?? 'Untitled scenario'}</b></span>
@@ -391,7 +402,10 @@ export default function Studio() {
             <VideoPage
               script={script}
               onBack={() => setCurrentPage('assets')}
-              onStudentPreview={() => navigate('/player/preview', { state: { script, assetImages } })}
+              onStudentPreview={() => {
+                saveScenario(script, assetImages);
+                navigate('/player/preview', { state: { script, assetImages } });
+              }}
             />
           </div>
         )}

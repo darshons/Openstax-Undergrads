@@ -1,4 +1,4 @@
-import type { GenerateRequest, Script } from '../types/script';
+import type { AssetImages, GenerateRequest, Script } from '../types/script';
 
 export async function fetchInitialScript(
   req: GenerateRequest,
@@ -146,4 +146,26 @@ export function imageUrl(serverPath: string): string {
   const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
   const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
   return `/api/image/${path.replace(/^\//, '')}${qs}`;
+}
+
+export async function publishScenario(
+  name: string,
+  script: Script,
+  assetImages: AssetImages,
+): Promise<void> {
+  const res = await fetch('/api/scenario/publish', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, script, asset_images: assetImages }),
+  });
+  if (!res.ok) throw new Error(`Publish failed (${res.status})`);
+}
+
+export async function fetchScenario(
+  name: string,
+): Promise<{ script: Script; assetImages: AssetImages }> {
+  const res = await fetch(`/api/scenario/${encodeURIComponent(name)}`);
+  if (!res.ok) throw new Error(`Scenario "${name}" not found (${res.status})`);
+  const data = await res.json();
+  return { script: data.script as Script, assetImages: data.asset_images as AssetImages };
 }

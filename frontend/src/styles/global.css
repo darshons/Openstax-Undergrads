@@ -172,6 +172,13 @@ input, textarea { font-family: inherit; color: inherit; }
 .assets-topbar-title h2{font-size:16px;font-weight:800;color:var(--os-navy);margin:0;letter-spacing:-.01em}
 .assets-topbar-title p{font-size:12px;color:var(--os-ink-3);margin:2px 0 0;font-style:italic}
 .assets-body{padding:40px 52px 80px;display:flex;flex-direction:column;gap:48px}
+
+.video-topbar-actions{display:flex;align-items:center;gap:10px}
+.video-publish-bar{display:flex;align-items:center;gap:8px}
+.video-publish-input{font-size:13px;font-weight:500;color:var(--os-ink);background:#fff;border:1px solid var(--os-line);border-radius:8px;padding:6px 10px;width:180px}
+.video-publish-input:focus{outline:none;border-color:var(--os-navy)}
+.video-publish-done{font-size:13px;font-weight:600;color:var(--os-green)}
+.video-publish-error{font-size:12px;color:#c0392b}
 .asset-section-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
 .asset-section-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--os-navy);font-family:"JetBrains Mono",monospace}
 .asset-section-count{font-size:11px;color:var(--os-ink-3);font-weight:500}
@@ -569,3 +576,12 @@ input, textarea { font-family: inherit; color: inherit; }
 .hp-card:hover .hp-card-arrow{opacity:1;transform:translateX(3px)}
 .hp-card--creator:hover .hp-card-arrow{color:var(--os-navy)}
 .hp-card--student:hover .hp-card-arrow{color:var(--os-orange)}
+
+.hp-join-form{width:100%;display:flex;gap:10px}
+.hp-join-input{flex:1;font-size:15px;color:var(--os-ink);background:#fff;border:1.5px solid var(--os-line);border-radius:12px;padding:14px 16px}
+.hp-join-input:focus{outline:none;border-color:var(--os-orange)}
+.hp-join-btn{font-size:15px;font-weight:700;color:#fff;background:var(--os-orange);border:none;border-radius:12px;padding:14px 22px;cursor:pointer;white-space:nowrap;transition:opacity .12s}
+.hp-join-btn:hover{opacity:.9}
+.hp-join-btn:disabled{opacity:.4;cursor:not-allowed}
+.hp-join-back{margin-top:24px;font-size:13px;color:var(--os-ink-3);background:none;border:none;cursor:pointer}
+.hp-join-back:hover{color:var(--os-ink)}

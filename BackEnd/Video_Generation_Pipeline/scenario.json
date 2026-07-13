@@ -154,8 +154,8 @@
           "dialogue": [
             { "character_id": "nurse_maya", "line": "That makes a lot of sense. It's okay to feel that way — and I'm glad you told me. We can talk through what to expect before she comes in." }
           ],
-          "character_actions": "Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face — the turn of his head not yet complete at the end of the clip.",
-          "camera": { "angle": "Medium two-shot, then static cut to closer framing on Maya as she responds, then static cut back to two-shot.", "movement": "Static.", "lens_effect": "Same warm neutral. Slightly brighter feel." }
+          "character_actions": "Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face — the turn of his head not yet complete at the end of the clip. Room contains only the previously established furniture and equipment — no new signage, labels, or wall decor.",
+          "camera": { "angle": "Closer framing on Maya as she responds, held for the full clip. No cuts within this clip.", "movement": "Static.", "lens_effect": "Same warm neutral. Slightly brighter feel." }
         },
         {
           "clip_id": 4,
@@ -163,8 +163,8 @@
           "dialogue": [
             { "character_id": "patient_carl", "line": "Right. Yeah. I know." }
           ],
-          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl.",
-          "camera": { "angle": "Closer framing on Carl's closed posture, then static cut to medium two-shot.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
+          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, his gaze drifting sideways toward the window already established in the room, in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl. Room contains only the previously established furniture and equipment — no new signage, labels, or wall decor.",
+          "camera": { "angle": "Medium two-shot on Maya and Carl, held for the full clip. No cuts within this clip.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         }
       ],
       "on_screen_text": null,

@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Script, AssetImages } from '../types/script';
 import StudentPlayer from '../components/student/StudentPlayer';
+import { loadScenario } from '../lib/savedScenario';
 
 interface PreviewState {
   script: Script;
@@ -11,9 +12,11 @@ export default function PlayerPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // For now: reads script + assets from router state passed by Studio.
-  // When backend persistence is ready, fetch from /api/scenario/:scenarioId instead.
-  const state = location.state as PreviewState | null;
+  // Router state covers the in-session "Student Preview" flow from Studio.
+  // Falling back to the saved scenario lets the landing page's Student card
+  // work on its own. When backend persistence is ready, fetch from
+  // /api/scenario/:scenarioId instead of either of these.
+  const state = (location.state as PreviewState | null) ?? loadScenario();
 
   if (!state?.script) {
     return (

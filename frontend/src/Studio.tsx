@@ -30,6 +30,7 @@ import Canvas from './components/canvas/Canvas';
 import GenOverlay from './components/canvas/GenOverlay';
 import AssetsPage from './components/assets/AssetsPage';
 import VideoPage from './components/video/VideoPage';
+import StudentPlayer from './components/student/StudentPlayer';
 
 type StudioPage = 'script' | 'assets' | 'videos';
 
@@ -54,6 +55,7 @@ export default function Studio() {
   const sidebarWidthRef = useRef(300);
   const gridRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState<StudioPage>('script');
+  const [previewing, setPreviewing] = useState(false);
 
   const [editingSceneIdx, setEditingSceneIdx] = useState<number | null>(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState<number | null>(null);
@@ -405,7 +407,7 @@ export default function Studio() {
               onBack={() => setCurrentPage('assets')}
               onStudentPreview={() => {
                 saveScenario(script, assetImages);
-                navigate('/player/preview', { state: { script, assetImages } });
+                setPreviewing(true);
               }}
               onPublish={name => publishScenario(name, script, assetImages)}
             />
@@ -519,6 +521,16 @@ export default function Studio() {
           </div>
         </div>
       </div>
+
+      {previewing && script && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
+          <StudentPlayer
+            script={script}
+            assetImages={assetImages}
+            onExit={() => setPreviewing(false)}
+          />
+        </div>
+      )}
 
     </div>
   );

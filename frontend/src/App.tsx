@@ -8,8 +8,18 @@ import type {
   ViewMode,
   ModelChoice,
   VideoType,
+  AssetImages,
+  AssetsStep,
 } from './types/script';
-import { fetchInitialScript } from './lib/api';
+import {
+  fetchInitialScript,
+  generateBackgroundImage,
+  generateCharacterImages,
+  generateOpeningFrames,
+  retryBackgroundImage,
+  retryCharacterImage,
+  retryOpeningFrame,
+} from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
 import Sidebar from './components/layout/Sidebar';
 import GeneratePanel from './components/layout/GeneratePanel';
@@ -22,6 +32,10 @@ import VideoPage from './components/video/VideoPage';
 export default function App() {
   const [script, setScript] = useState<Script | null>(null);
   const [deleteUndoStack, setDeleteUndoStack] = useState<Script[]>([]);
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [assetImages, setAssetImages] = useState<AssetImages>({ bgPath: null, charPaths: {}, framePaths: {} });
+  const [assetsStep, setAssetsStep] = useState<AssetsStep>('idle');
+  const [assetsError, setAssetsError] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -233,6 +247,10 @@ export default function App() {
     setBusy(true);
     setGenStep(0);
     setScript(null);
+    setRequestId(null);
+    setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
+    setAssetsStep('idle');
+    setAssetsError(null);
     setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
@@ -242,10 +260,11 @@ export default function App() {
     }, 900);
 
     try {
-      const result = await fetchInitialScript(req);
+      const { script: result, requestId: rid } = await fetchInitialScript(req);
       clearInterval(stepper);
       setGenStep(4);
       setScript(result);
+      setRequestId(rid);
     } catch (err) {
       clearInterval(stepper);
       setGenError(err instanceof Error ? err.message : 'Generation failed');
@@ -253,6 +272,48 @@ export default function App() {
       setBusy(false);
     }
   }, [selected, model, videoType, userQuery]);
+
+  // ── Asset image generation ─────────────────────────────────────────────
+
+  const generateAssets = useCallback(async () => {
+    if (!script || !requestId) return;
+    setAssetsStep('generating');
+    setAssetsError(null);
+    try {
+      // Background and character generation are independent — run in parallel
+      const [bgPath, charPaths] = await Promise.all([
+        generateBackgroundImage(script, requestId),
+        generateCharacterImages(script, requestId),
+      ]);
+      setAssetImages(prev => ({ ...prev, bgPath, charPaths }));
+      // Opening frames require both background and character images
+      const framePaths = await generateOpeningFrames(script, requestId, bgPath, charPaths);
+      setAssetImages({ bgPath, charPaths, framePaths });
+      setAssetsStep('done');
+    } catch (err) {
+      setAssetsError(err instanceof Error ? err.message : 'Asset generation failed');
+      setAssetsStep('error');
+    }
+  }, [script, requestId]);
+
+  const retryBg = useCallback(async (feedback?: string) => {
+    if (!script || !requestId) return;
+    const bgPath = await retryBackgroundImage(script, requestId, feedback);
+    setAssetImages(prev => ({ ...prev, bgPath: `${bgPath}?t=${Date.now()}` }));
+  }, [script, requestId]);
+
+  const retryChar = useCallback(async (characterId: string, feedback?: string) => {
+    if (!script || !requestId) return;
+    const path = await retryCharacterImage(script, requestId, characterId, feedback);
+    setAssetImages(prev => ({ ...prev, charPaths: { ...prev.charPaths, [characterId]: `${path}?t=${Date.now()}` } }));
+  }, [script, requestId]);
+
+  const retryFrame = useCallback(async (sceneId: string, feedback?: string) => {
+    if (!script || !requestId || !assetImages.bgPath) return;
+    const rawBgPath = assetImages.bgPath.split('?')[0];
+    const path = await retryOpeningFrame(script, requestId, rawBgPath, assetImages.charPaths, sceneId, feedback);
+    setAssetImages(prev => ({ ...prev, framePaths: { ...prev.framePaths, [sceneId]: `${path}?t=${Date.now()}` } }));
+  }, [script, requestId, assetImages]);
 
   // ── Derived values ──────────────────────────────────────────────────────
 
@@ -307,6 +368,14 @@ export default function App() {
           <div className="h-full flex flex-col overflow-auto">
             <AssetsPage
               script={script}
+              requestId={requestId}
+              assetImages={assetImages}
+              assetsStep={assetsStep}
+              assetsError={assetsError}
+              onGenerateAssets={generateAssets}
+              onRetryBackground={retryBg}
+              onRetryCharacter={retryChar}
+              onRetryFrame={retryFrame}
               onBack={() => setCurrentPage('script')}
               onViewVideos={() => setCurrentPage('videos')}
             />
@@ -317,6 +386,7 @@ export default function App() {
           <div className="h-full flex flex-col overflow-auto">
             <VideoPage
               script={script}
+              requestId={requestId}
               onBack={() => setCurrentPage('assets')}
             />
           </div>

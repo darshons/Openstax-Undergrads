@@ -12,6 +12,7 @@ from Image_Generation_Pipeline import (
     generate_background,
     generate_characters,
     generate_opening_frames,
+    retry_with_feedback,
 )
 
 
@@ -51,7 +52,7 @@ class ImageRetryRequest(BaseModel):
     user_feedback: str | None = (
         None  # This field is optional and will be used when retrying image generation based on user feedback
     )
-    image_id: str | None = (
+    retry_image_id: str | None = (
         None  # This field is optional and will be used when retrying character image generation or opening frame generation
     )
 
@@ -217,14 +218,14 @@ def generate_character_images(
 
 # This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
 def generate_character_images_impl(
-    script: dict[str, Any], request_id: str, retry_id: str | None = None
+    script: dict[str, Any], request_id: str, retry_image_id: str | None = None
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
 
     (
         character_image_file_mapping,
         character_uploaded_file_names,
         character_json_file_paths,
-    ) = generate_characters(script, request_id, retry_id)
+    ) = generate_characters(script, request_id, retry_image_id)
 
     return (
         character_image_file_mapping,
@@ -282,7 +283,7 @@ def generate_opening_frame_images_impl(
     background_image_path: str,
     character_image_file_mapping: dict[str, str],
     request_id: str,
-    retry_id: str | None = None,
+    retry_image_id: str | None = None,
 ) -> tuple[dict[str, str], list[str | None], list[str]]:
     opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
         generate_opening_frames(
@@ -290,7 +291,7 @@ def generate_opening_frame_images_impl(
             background_image_path,
             character_image_file_mapping,
             request_id,
-            retry_id=retry_id,
+            retry_image_id=retry_image_id,
         )
     )
 
@@ -313,10 +314,37 @@ def retry_generate_background_image(
             image_retry_request.image_request, background_tasks
         )
     else:
-        raise HTTPException(
-            status_code=501,
-            detail="Retry with user_feedback is not implemented yet.",
+        dir_path = Path(tempfile.gettempdir()) / "Background_Image_Output"
+        original_image_path = (
+            dir_path
+            / f"{image_retry_request.image_request.request_id}_background_reference_image.png"
         )
+
+        if not original_image_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Original background reference image not found.",
+            )
+
+        updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
+            str(original_image_path),
+            image_retry_request.user_feedback,
+        )
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini, uploaded_file_names_to_delete
+        )
+
+        if updated_image_path is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Background image generation failed. No image was returned.",
+            )
+
+        return {
+            "message": "Background image generation retry completed",
+            "background_image_file_path": updated_image_path,
+        }
 
 
 # This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided
@@ -332,7 +360,7 @@ def retry_generate_character_image(
         ) = generate_character_images_impl(
             image_retry_request.image_request.script,
             image_retry_request.image_request.request_id,
-            retry_id=image_retry_request.image_id,
+            retry_image_id=image_retry_request.retry_image_id,
         )
 
         local_file_paths_to_delete = character_json_file_paths
@@ -356,15 +384,42 @@ def retry_generate_character_image(
             )
 
         return {
-            "message": "Reference image generation completed",
+            "message": "Character image generation retry completed",
             "character_image_file_mapping": character_image_file_mapping,
         }
 
     else:
-        raise HTTPException(
-            status_code=501,
-            detail="Retry with user_feedback is not implemented yet.",
+        dir_path = Path(tempfile.gettempdir()) / "Character_Image_Output"
+        original_image_path = (
+            dir_path
+            / f"{image_retry_request.image_request.request_id}_{image_retry_request.retry_image_id}_reference_image.png"
         )
+
+        if not original_image_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Original character reference image not found.",
+            )
+
+        updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
+            str(original_image_path),
+            image_retry_request.user_feedback,
+        )
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini, uploaded_file_names_to_delete
+        )
+
+        if updated_image_path is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Character image generation failed. No image was returned.",
+            )
+
+        return {
+            "message": "Character image generation retry completed",
+            "character_image_file_path": updated_image_path,
+        }
 
 
 # This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
@@ -392,7 +447,7 @@ def retry_generate_opening_frames(
             image_retry_request.image_request.background_image_path,
             image_retry_request.image_request.character_image_file_mapping,
             image_retry_request.image_request.request_id,
-            retry_id=image_retry_request.image_id,
+            retry_image_id=image_retry_request.retry_image_id,
         )
 
         local_file_paths_to_delete = scene_json_file_paths
@@ -420,13 +475,96 @@ def retry_generate_opening_frames(
             "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
         }
     else:
-        raise HTTPException(
-            status_code=501,
-            detail="Retry with user_feedback is not implemented yet.",
+        dir_path = Path(tempfile.gettempdir()) / "Frame_Image_Output"
+        original_image_path = (
+            dir_path
+            / f"{image_retry_request.image_request.request_id}_{image_retry_request.retry_image_id}_opening_frame.png"
         )
+
+        if not original_image_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Original opening frame reference image not found.",
+            )
+
+        updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
+            str(original_image_path), image_retry_request.user_feedback
+        )
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini, uploaded_file_names_to_delete
+        )
+
+        if updated_image_path is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Character image generation failed. No image was returned.",
+            )
+
+        return {
+            "message": "Opening frame generation retry completed",
+            "opening_frame_image_file_path": updated_image_path,
+        }
 
 
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
 @api_router.get("/video/{video_path:path}")
 def get_video(video_path: str):
     return FileResponse(video_path, media_type="video/mp4")
+
+
+# ---------------------------------------------------------------------------
+# Manim branching-video generation ("Manim · Graphics" video type)
+# ---------------------------------------------------------------------------
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+from Video_Generation_Pipeline.manim_generator.script_adapter import (
+    ScriptValidationError,
+    adapt,
+)
+
+# Anchor the output root at the repo root so it is the same directory whether
+# the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MANIM_OUTPUT_ROOT = os.environ.get(
+    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
+)
+# One worker: scenario renders must be serial (parallel manim subprocesses
+# deadlock), and this also means one scenario is generated at a time.
+_manim_executor = ThreadPoolExecutor(max_workers=1)
+
+
+class ManimVideoRequest(BaseModel):
+    script: dict[str, Any]
+    request_id: str
+
+
+@api_router.post("/generate_manim_videos")
+def generate_manim_videos(request: ManimVideoRequest):
+    """Kick off Manim branching-video generation for an edited scenario script.
+    Returns immediately; poll /manim_video_status/{request_id} for progress."""
+    try:
+        adapt(request.script)  # fail fast on an inconsistent branch graph
+    except ScriptValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    _manim_executor.submit(
+        run_scenario_pipeline,
+        request.script,
+        request.request_id,
+        MANIM_OUTPUT_ROOT,
+    )
+    return {"status": "started", "request_id": request.request_id}
+
+
+@api_router.get("/manim_video_status/{request_id}")
+def manim_video_status(request_id: str):
+    """Read the pipeline's status.json for a run (pure file read; the pipeline
+    rewrites it after every stage transition)."""
+    status_path = os.path.join(MANIM_OUTPUT_ROOT, request_id, "status.json")
+    if not os.path.exists(status_path):
+        return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+    with open(status_path, "r", encoding="utf-8") as f:
+        return json.load(f)

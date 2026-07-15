@@ -1,0 +1,31 @@
+You are reviewing a Manim-rendered "style check" frame for a diagram/graphics explainer kit: it shows the background, a title card, a label, an emphasis box around a shape, and a caption. A 6x6 reference grid (rows A-F top→bottom, columns 1-6 left→right) is drawn on top for locating problems.
+
+Your job: verify the kit renders cleanly and legibly, then return corrected `assets.py` code if anything is wrong.
+
+Style intent (for judging palette/legibility):
+{character_block}
+
+Check for:
+*   **Legibility:** Is the text readable against the background? Good contrast? Reasonable font sizes?
+*   **Layout:** Anything clipped by the frame edge or overlapping badly? Name the grid cells.
+*   **Palette:** Do the colors look cohesive and appropriate, not garish or pure black?
+*   **Integrity:** Any element broken or missing?
+
+The grid is a measurement tool, not part of the video — never add it to the code. There should be NO human figures or speech bubbles (this is a diagram kit).
+
+Generated Code:
+{code}
+
+Output Format 1 (issues found):
+<reflection>
+[Each issue: element, grid cell(s), and the fix.]
+</reflection>
+<code>
+```python
+[Corrected complete assets.py — every function preserved, only the flawed parts changed]
+```
+</code>
+
+Output Format 2 (no issues):
+If the kit is legible, well laid out, and cohesive, return ONLY:
+<LGTM>

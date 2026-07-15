@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import type { Script } from '../../types/script';
+import { useState } from 'react';
+import type { Script, AssetImages, AssetsStep } from '../../types/script';
+import { imageUrl } from '../../lib/api';
 import { I } from '../shared/Icons';
 
 interface AssetItem {
@@ -8,19 +9,31 @@ interface AssetItem {
   role: string;
   src: string | null;
   category: string;
+  isLoading?: boolean;
+  onRegenerate?: (feedback?: string) => Promise<void>;
 }
 
-function AssetCard({ id: _id, label, role, src, category }: AssetItem) {
-  const [note, setNote] = useState('');
-  const [requested, setRequested] = useState<string | null>(null);
+function AssetCard({ label, role, src, category, isLoading, onRegenerate }: AssetItem) {
   const [lightbox, setLightbox] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!lightbox) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightbox]);
+  const busy = isLoading || regenerating;
+
+  const handleRegenerate = async () => {
+    if (!onRegenerate) return;
+    setRegenerating(true);
+    setRegenError(null);
+    try {
+      await onRegenerate(feedback.trim() || undefined);
+      setFeedback('');
+    } catch (err) {
+      setRegenError(err instanceof Error ? err.message : 'Regeneration failed');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   return (
     <div className="asset-card">
@@ -30,8 +43,15 @@ function AssetCard({ id: _id, label, role, src, category }: AssetItem) {
           <span className="asset-lightbox-label">{label}</span>
         </div>
       )}
-      <div className="asset-img-wrap" onClick={() => src && setLightbox(true)}>
-        {src ? (
+      <div className="asset-img-wrap" onClick={() => src && !busy && setLightbox(true)}>
+        {busy ? (
+          <div className="asset-img-placeholder">
+            <span style={{ display: 'inline-block', animation: 'assets-pulse 1.4s ease-in-out infinite', fontSize: 22 }}>●</span>
+            <span style={{ fontSize: 12, color: 'var(--os-ink-3)', marginTop: 6 }}>
+              {regenerating ? 'Regenerating…' : 'Generating…'}
+            </span>
+          </div>
+        ) : src ? (
           <img src={src} alt={label} />
         ) : (
           <div className="asset-img-placeholder">
@@ -45,36 +65,23 @@ function AssetCard({ id: _id, label, role, src, category }: AssetItem) {
         {role && <div className="asset-card-role">{role}</div>}
       </div>
       <div className="asset-card-form">
-        {requested ? (
-          <div className="asset-requested">
-            <div className="asset-requested-badge">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Change requested
-            </div>
-            <div className="asset-requested-text">"{requested}"</div>
-            <button className="asset-edit-link" onClick={() => { setNote(requested); setRequested(null); }}>Edit request</button>
-          </div>
-        ) : (
-          <>
-            <textarea
-              className="asset-request-ta"
-              rows={2}
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="Describe changes to this image…"
-              onKeyDown={e => { if (e.key === 'Enter' && e.metaKey && note.trim()) { setRequested(note.trim()); setNote(''); } }}
-            />
-            <button
-              className="asset-request-btn"
-              disabled={!note.trim()}
-              onClick={() => { if (note.trim()) { setRequested(note.trim()); setNote(''); } }}
-            >
-              Request change
-            </button>
-          </>
-        )}
+        {regenError && <div style={{ fontSize: 11, color: '#c0392b', marginBottom: 6 }}>{regenError}</div>}
+        <textarea
+          className="asset-request-ta"
+          rows={2}
+          value={feedback}
+          disabled={busy}
+          onChange={e => setFeedback(e.target.value)}
+          placeholder="Describe changes… (optional)"
+          onKeyDown={e => { if (e.key === 'Enter' && e.metaKey && onRegenerate) handleRegenerate(); }}
+        />
+        <button
+          className="asset-request-btn"
+          disabled={busy || !onRegenerate}
+          onClick={handleRegenerate}
+        >
+          {regenerating ? 'Regenerating…' : isLoading ? 'Generating…' : feedback.trim() ? 'Regenerate with feedback' : 'Regenerate'}
+        </button>
       </div>
     </div>
   );
@@ -97,29 +104,72 @@ function AssetSection({ title, items }: { title: string; items: AssetItem[] }) {
 
 interface AssetsPageProps {
   script: Script;
+  requestId: string | null;
+  assetImages: AssetImages;
+  assetsStep: AssetsStep;
+  assetsError: string | null;
+  onGenerateAssets: () => void;
+  onRetryBackground: (feedback?: string) => Promise<void>;
+  onRetryCharacter: (characterId: string, feedback?: string) => Promise<void>;
+  onRetryFrame: (sceneId: string, feedback?: string) => Promise<void>;
   onBack: () => void;
   onViewVideos: () => void;
 }
 
-export default function AssetsPage({ script, onBack, onViewVideos }: AssetsPageProps) {
+export default function AssetsPage({
+  script,
+  requestId,
+  assetImages,
+  assetsStep,
+  assetsError,
+  onGenerateAssets,
+  onRetryBackground,
+  onRetryCharacter,
+  onRetryFrame,
+  onBack,
+  onViewVideos,
+}: AssetsPageProps) {
+  const { bgPath, charPaths, framePaths } = assetImages;
+  const generating = assetsStep === 'generating';
+  const hasAssets = assetsStep === 'done' || assetsStep === 'generating';
+
   const characters: AssetItem[] = (script.characters ?? []).map(c => ({
     id: `char-${c.character_id}`,
     label: c.name || `Character ${c.character_id}`,
     role: c.role || c.character_id,
-    src: null,
+    src: charPaths[c.character_id] ? imageUrl(charPaths[c.character_id]) : null,
     category: 'character',
+    isLoading: generating && !charPaths[c.character_id],
+    onRegenerate: hasAssets ? (fb) => onRetryCharacter(c.character_id, fb) : undefined,
   }));
 
-  const backgrounds: AssetItem[] = [
-    { id: 'bg-1', label: 'Primary Setting',   role: 'Main scene background', src: null, category: 'background' },
-    { id: 'bg-2', label: 'Secondary Setting', role: 'Alternate background',  src: null, category: 'background' },
-  ];
+  const backgrounds: AssetItem[] = [{
+    id: 'bg-1',
+    label: 'Primary Setting',
+    role: script.setting?.location || 'Main scene background',
+    src: bgPath ? imageUrl(bgPath) : null,
+    category: 'background',
+    isLoading: generating && !bgPath,
+    onRegenerate: hasAssets ? onRetryBackground : undefined,
+  }];
 
-  const sceneAssets: AssetItem[] = [
-    { id: 'asset-1', label: 'Medical Equipment', role: 'Primary prop',   src: null, category: 'asset' },
-    { id: 'asset-2', label: 'Patient Chart',     role: 'Document prop',  src: null, category: 'asset' },
-    { id: 'asset-3', label: 'Clinical Tool',     role: 'Secondary prop', src: null, category: 'asset' },
-  ];
+  const branchIds = new Set(
+    (script.decision_points ?? []).flatMap(dp =>
+      dp.choices.map(c => c.routes_to_scene).filter((x): x is number => x != null),
+    ),
+  );
+
+  const frameItems: AssetItem[] = (script.scenes ?? [])
+    .filter(s => !branchIds.has(s.scene_id))
+    .map(s => ({
+      id: `frame-${s.scene_id}`,
+      label: `Scene ${s.scene_id} Opening Frame`,
+      role: s.scene_summary || s.description || '',
+      src: framePaths[String(s.scene_id)] ? imageUrl(framePaths[String(s.scene_id)]) : null,
+      category: 'frame',
+      isLoading: generating && !framePaths[String(s.scene_id)],
+      onRegenerate: hasAssets ? (fb) => onRetryFrame(String(s.scene_id), fb) : undefined,
+    }));
 
   return (
     <div className="assets-page">
@@ -131,19 +181,62 @@ export default function AssetsPage({ script, onBack, onViewVideos }: AssetsPageP
         </div>
         <div style={{ width: 140 }} />
       </div>
-      <div className="assets-next-strip">
-        <div className="assets-next-strip-l">
-          <span className="assets-next-step-label">Next step</span>
-          <span className="assets-next-step-desc">Assets confirmed — preview the generated video clips</span>
+
+      {assetsStep === 'idle' && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Step 1 of 2</span>
+            <span className="assets-next-step-desc">Generate AI reference images for characters, backgrounds, and scene frames</span>
+          </div>
+          <button className="btn-assets" onClick={onGenerateAssets} disabled={!requestId}>
+            Generate Assets {I.sparkle}
+          </button>
         </div>
-        <button className="btn-assets" onClick={onViewVideos}>
-          View Videos {I.arrowRight}
-        </button>
-      </div>
+      )}
+
+      {generating && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Generating…</span>
+            <span className="assets-next-step-desc">
+              {!bgPath && !Object.keys(charPaths).length
+                ? 'Creating background and character reference images…'
+                : 'Creating scene opening frames…'}
+            </span>
+          </div>
+          <div style={{ padding: '0 24px', color: 'var(--os-ink-3)', fontSize: 13 }}>
+            <span style={{ display: 'inline-block', animation: 'assets-pulse 1.4s ease-in-out infinite' }}>●</span>
+            {' '}Working
+          </div>
+        </div>
+      )}
+
+      {assetsStep === 'error' && (
+        <div className="assets-next-strip" style={{ background: '#fff5f5', borderColor: '#fcc' }}>
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label" style={{ color: '#c0392b' }}>Generation failed</span>
+            <span className="assets-next-step-desc">{assetsError}</span>
+          </div>
+          <button className="btn-assets" onClick={onGenerateAssets}>Retry</button>
+        </div>
+      )}
+
+      {assetsStep === 'done' && (
+        <div className="assets-next-strip">
+          <div className="assets-next-strip-l">
+            <span className="assets-next-step-label">Next step</span>
+            <span className="assets-next-step-desc">Assets confirmed - preview the generated video clips</span>
+          </div>
+          <button className="btn-assets" onClick={onViewVideos}>
+            View Videos {I.arrowRight}
+          </button>
+        </div>
+      )}
+
       <div className="assets-body">
         <AssetSection title="Characters" items={characters} />
-        <AssetSection title="Backgrounds" items={backgrounds} />
-        <AssetSection title="Scene Assets" items={sceneAssets} />
+        <AssetSection title="Background" items={backgrounds} />
+        <AssetSection title="Scene Opening Frames" items={frameItems} />
       </div>
     </div>
   );

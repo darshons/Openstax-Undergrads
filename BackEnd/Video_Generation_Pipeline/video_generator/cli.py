@@ -131,6 +131,19 @@ def parse_args():
         action="store_true",
         help="Burn dialogue captions onto the generated video after generation.",
     )
+    parser.add_argument(
+        "--verify-clips",
+        action="store_true",
+        help="Transcribe and evaluate each clip against the script as it's generated "
+        "(via Transcript_Eval_Pipeline), regenerating on failure. Adds a Gemini vision "
+        "judge call and a cumulative-video download per clip — real extra cost/latency.",
+    )
+    parser.add_argument(
+        "--eval-retries",
+        type=int,
+        default=1,
+        help="Max regeneration attempts for a clip that fails --verify-clips eval (default: 1).",
+    )
     return parser.parse_args()
 
 
@@ -173,6 +186,8 @@ def main():
         client=client,
         scenario=filtered_scenario,
         reference_images=REFERENCE_IMAGES or None,
+        verify_clips=args.verify_clips,
+        eval_retries=args.eval_retries,
     )
 
     if args.add_captions:

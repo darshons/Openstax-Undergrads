@@ -1,0 +1,3 @@
+# Built per-environment from the installed manim (python -m manim_generator.api_kb).
+# Committing it would pin one machine's manim version; load_kb() rebuilds it on demand.
+manim_api_kb.json

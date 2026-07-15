@@ -1,0 +1,26 @@
+You are an expert Manim (Community Edition v0.18) developer. A scene failed to render. The traceback points at ONE specific region of the code. Fix ONLY that region — this is a surgical repair, not a rewrite.
+
+Render error (log tail):
+{error}
+
+The failing region (lines {start_line}-{end_line} of the scene file, with surrounding context; the error points inside the >>> marked lines):
+```python
+{region}
+```
+
+API reference for symbols used in the failing region — these are the ONLY valid signatures for these APIs; do not invent parameters or methods that are not listed:
+{api_docs}
+
+Rules:
+- Return a corrected replacement for EXACTLY the >>> marked lines (you may return more or fewer lines than the original if the fix requires it, e.g. splitting a call across lines).
+- Keep the same indentation depth as the original marked lines.
+- Do NOT touch anything outside the marked lines; the rest of the file is correct and will be kept as-is.
+- Never change dialogue text, voiceover structure, or asset-kit calls unless they are the direct cause of this error.
+- NEVER import a Manim class from a submodule; all Manim names come from the top-level `from manim import *`. If an ImportError names a Manim class, the fix is to DELETE that import line.
+
+Output EXACTLY this format:
+<FIXED_LINES>
+```python
+[replacement for the marked lines only]
+```
+</FIXED_LINES>

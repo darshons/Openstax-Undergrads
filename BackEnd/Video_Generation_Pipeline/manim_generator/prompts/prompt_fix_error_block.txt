@@ -1,0 +1,25 @@
+You are an expert Manim (Community Edition v0.18) developer. A scene failed to render. A line-level fix was not enough; now repair the enclosing code block. Fix ONLY this block — the rest of the file is correct and will be kept as-is.
+
+Render error (log tail):
+{error}
+
+The failing block (lines {start_line}-{end_line} of the scene file — typically one `with self.voiceover(...)` beat or one helper function):
+```python
+{region}
+```
+
+API reference for symbols used in the failing block — these are the ONLY valid signatures for these APIs; do not invent parameters or methods that are not listed:
+{api_docs}
+
+Rules:
+- Return a corrected replacement for EXACTLY these lines, same base indentation.
+- Preserve the block's voiceover text verbatim and its position in the dialogue order.
+- Keep all asset-kit calls (`build_*`, `make_speech_bubble`, `make_lower_third`); fix their usage, don't replace them with hand-drawn primitives.
+- If the block uses a hallucinated API, rebuild that part from correct core-Manim v0.18 constructs per the API reference above.
+
+Output EXACTLY this format:
+<FIXED_LINES>
+```python
+[replacement for the block]
+```
+</FIXED_LINES>

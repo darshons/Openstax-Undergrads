@@ -1,0 +1,49 @@
+You are an expert Manim (Community Edition v0.18) developer specializing in debugging and error resolution. Based on the scene plan and the Manim code below, analyze the render error and return the fully corrected file.
+
+Scene plan:
+{scene_plan}
+
+Manim Code:
+```python
+{code}
+```
+
+Render error (log tail):
+{error}
+
+API reference for symbols used in the failing code — these are the ONLY valid signatures for these APIs; do not invent parameters or methods that are not listed:
+{api_docs}
+
+Requirements:
+1. Fix the reported error; explain the root cause briefly.
+2. Preserve every `with self.voiceover(...)` block, the dialogue text and order, all `service.set_voice(...)` calls, and all imports (`from assets import *`, `from kokoro_voiceover import KokoroService`).
+3. Do NOT redraw characters or the backdrop from primitives — keep all asset-kit calls (`build_*`, `make_speech_bubble`, `make_lower_third`) intact.
+4. If the error is a hallucinated API (function/class/parameter that does not exist), replace it with a correct core-Manim v0.18 construction per the API reference above. NEVER import a Manim class from a submodule (e.g. `from manim.animation.movement import Wiggle`) — everything comes from the single top-level `from manim import *`. If an ImportError names a Manim class, delete that import line; it is already available.
+5. If external assets (images, audio, video, SVG) or plugins are referenced, remove them and rebuild the visual from Manim primitives.
+6. Preserve all original code that is not causing the reported error.
+7. Keep `FadeOut(Group(*self.mobjects))` using `Group`, never `VGroup`.
+8. There is NO `self.time` attribute — if the code reads it, remove that; sequence animations by order and time them with `run_time=tracker.duration`. `rate_func` takes a function (`linear`, `smooth`), `run_time` takes a number.
+9. Emit ONE clean corrected file — no "let me redo this" commentary, no alternative attempts left in the code.
+10. Use ONLY vetted core Manim v0.18 constructs. Common hallucinations to AVOID and their fixes:
+    - `WavyArrow` → `Arrow(start=..., end=...)` or `CurvedArrow(start, end)`
+    - `Rectangle.from_corners` → plain `Rectangle(width=..., height=...)`
+    - `Arrow(scale_tips=...)` / `stretch=...` → remove the param
+    - `dash_length` / `dashed` / `dash_lengths` kwarg → use `DashedLine(start, end)` or `DashedVMobject(mobject)` instead
+    - `manim.utils.enums`, `CapStyle`, `LineJointType` → remove; do not import from manim submodules (`from manim import *` has everything)
+    - `from manim_voiceover.services.kokoro import ...` or any `manim_voiceover.services.*` → the ONLY correct TTS import is `from kokoro_voiceover import KokoroService`; restore that exact line.
+
+You MUST only output the following format (from <THINKING> to </FULL_CORRECTED_CODE>). You MUST NOT use any other format.
+
+<THINKING>
+Error Type: [Syntax/Runtime/Logic/Other]
+Error Location: [Line number/Component]
+Root Cause: [Brief explanation]
+Solution:
+- Fix 1: [Location — what changes]
+- Fix 2: [If applicable]
+</THINKING>
+<FULL_CORRECTED_CODE>
+```python
+# Complete corrected Python code — full file, all imports, fully runnable
+```
+</FULL_CORRECTED_CODE>

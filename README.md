@@ -145,9 +145,12 @@ python -m video_generator.cli --scenario scenario.json --scene-id 1 --model veo-
 
 # Preview prompts without making API calls
 python test_prompt.py
+
+# Verify each clip against the script as it's generated, regenerating on failure
+python -m video_generator.cli --scenario scenario.json --scene-id 1 --verify-clips
 ```
 
-Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
+Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. `--verify-clips` calls into the transcript/consistency eval system described below as each clip is generated. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
 
 ---
 
@@ -165,7 +168,7 @@ python -m transcript_eval.cli \
   --scene-id 3 --clip-id 1
 ```
 
-Runs three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script (loose threshold, early-stops the clip on failure), then — only if that passes — a Gemini vision judge that samples frames to check the speaking character matches the script's expected speaker. Transcripts and eval reports land in `output/transcripts/` and `output/eval_reports/`. This is a standalone system, not yet wired into `Video_Generation_Pipeline`'s generation loop. See `backend/Transcript_Eval_Pipeline/README.md` for the full reference.
+Runs three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script (loose threshold, early-stops the clip on failure), then — only if that passes — a Gemini vision judge that samples frames to check the speaking character matches the script's expected speaker. Transcripts and eval reports land in `output/transcripts/` and `output/eval_reports/`. Usable standalone (above) or from inside generation itself via `Video_Generation_Pipeline`'s `--verify-clips` flag, which isolates each newly generated clip out of Veo's cumulative video and regenerates it on eval failure. See `backend/Transcript_Eval_Pipeline/README.md` for the full reference.
 
 ---
 

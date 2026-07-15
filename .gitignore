@@ -38,7 +38,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-/output
+**/output/
+**/test_clips/
 
 #Pyrefly
 pyrefly.toml

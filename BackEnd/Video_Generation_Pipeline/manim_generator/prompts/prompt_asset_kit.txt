@@ -1,0 +1,77 @@
+You are an expert Manim (Community Edition v0.18) developer building educational DIAGRAM graphics — the kind 3Blue1Brown makes: clean graphs, labeled figures, equations, flowcharts, and geometric constructions. Your task: generate a single, complete, executable Python module called `assets.py` — the shared visual-style kit for one scenario's explainer clips. Every scene will `from assets import *`, so the palette, fonts, and diagram helpers are identical across all clips.
+
+**IMPORTANT — this is a DIAGRAM/GRAPHICS pipeline, NOT a character animation pipeline.** Do NOT build human avatars, faces, bodies, or speech bubbles. Manim renders people badly. Everything is diagrammatic: shapes, graphs, axes, arrows, labels, icons built from simple geometry.
+
+Visual style: {visual_style}
+
+Subject matter (for choosing an appropriate palette + icon vocabulary):
+{setting_block}
+
+Characters named in the source scenario are spoken about in narration ONLY — they are never drawn. Ignore them for the visual kit:
+{character_block}
+
+**The module contract — implement EXACTLY these names:**
+
+1. `PALETTE: dict[str, str]` — the scenario color system. Must include: `"background"` (a dark, low-saturation backdrop, never pure black), `"primary"`, `"secondary"`, `"accent"`, `"correct"` (green family), `"incorrect"` (red/orange family), `"text"` (near-white), `"muted"` (dim grey for secondary labels). Use tasteful, cohesive colors that suit the subject.
+
+2. `grid_to_point(cell: str) -> np.ndarray` — convert a 6x6 grid cell ("C2") or range ("C2-E3") to a Manim coordinate (center of the bounding box). Rows A-F map top→bottom to y in [+3.3 .. -3.3], columns 1-6 map left→right to x in [-5.9 .. +5.9]. Scenes use this to place diagram elements. Implement it exactly so `obj.move_to(grid_to_point("C2"))` works.
+
+3. `build_background() -> Mobject` — a full-frame background Rectangle (width 14.3, height 8.1, fill PALETTE["background"], fill_opacity 1, stroke_width 0, z_index=-10).
+
+4. `title_card(text: str, subtitle: str = "") -> VGroup` — a title + optional subtitle, `Text` in PALETTE["text"] / PALETTE["muted"], font sizes 40/26, arranged vertically, centered. z_index 5.
+
+5. `caption(text: str) -> Text` — a lower-third caption line, font_size 26, PALETTE["text"], intended to be placed near row F. z_index 5.
+
+6. `label(text: str, color=None, size: int = 24) -> Text` — a short annotation label in the given palette color (default PALETTE["text"]).
+
+7. `emphasis_box(mobject, color=None) -> Rectangle` — a highlight rectangle surrounding `mobject` (use `SurroundingRectangle`), stroke = `color` or PALETTE["accent"], no fill, for drawing attention. Accept the optional `color` argument.
+
+8. `VOICE_MAP: dict[str, str]` — map each source character_id to a Kokoro voice, used only to narrate that character's lines when a scene quotes them. Available voices (a*=American, b*=British; f/m): {known_voices}. Also include a `"narrator"` key for scene-level narration. Suggested per-character assignment: {suggested_voices}
+
+9. `class AssetLineup(Scene)` — a test scene: add `build_background()`, a `title_card("Style Check", "diagram kit")` at the top, and a small demo row showing a `label(...)`, an `emphasis_box` around a `Circle`, and a `caption("caption text")` near the bottom — verifying the kit renders. `self.add(...)` then `self.wait(0.5)`.
+
+**Hard rules**
+- Imports: `from manim import *` only. No plugins, no external assets/images/SVG, no network. numpy is available as `np` via the manim import.
+- Plain `Scene` for AssetLineup (NOT VoiceoverScene).
+- NO human figures, faces, bodies, stick figures, or speech bubbles anywhere.
+- Deterministic, no randomness. No `if __name__ == "__main__":`.
+- Darkest color allowed is #111111 (no pure black).
+
+You MUST generate the module in the following format (from <CODE> to </CODE>):
+<CODE>
+```python
+from manim import *
+
+PALETTE = {
+    "background": "#0E1626",
+    # ...
+}
+
+VOICE_MAP = {
+    "narrator": "af_sarah",
+    # ...
+}
+
+def grid_to_point(cell: str):
+    ...
+
+def build_background() -> Mobject:
+    ...
+
+def title_card(text: str, subtitle: str = "") -> VGroup:
+    ...
+
+def caption(text: str) -> Text:
+    ...
+
+def label(text: str, color=None, size: int = 24) -> Text:
+    ...
+
+def emphasis_box(mobject) -> Rectangle:
+    ...
+
+class AssetLineup(Scene):
+    def construct(self):
+        ...
+```
+</CODE>

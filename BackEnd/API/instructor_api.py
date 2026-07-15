@@ -21,12 +21,23 @@ from API.instructor_api_helpers import (
     setup_supabase_client,
 )
 
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+from Video_Generation_Pipeline.manim_generator.script_adapter import (
+    ScriptValidationError,
+    adapt,
+)
+
+
 from pydantic import BaseModel
 from pathlib import Path
 import re
 from typing import Any
 import tempfile
 import json
+import os
 
 from storage3.exceptions import StorageApiError
 
@@ -521,3 +532,54 @@ def upload_project_info(project_info: UploadProjectInfo):
                 status_code=500,
                 detail=f"An error occurred while uploading project information: {str(e)}. Please try again.",
             )
+
+
+# ---------------------------------------------------------------------------
+# Manim branching-video generation ("Manim · Graphics" video type)
+# ---------------------------------------------------------------------------
+
+# TODO!: This code does not currently follow the same pattern of saving to a temp directory and cleaning up after itself. It should be refactored to do so, but for now it is left as-is to avoid breaking the existing pipeline.
+
+# Anchor the output root at the repo root so it is the same directory whether
+# the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MANIM_OUTPUT_ROOT = os.environ.get(
+    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
+)
+# One worker: scenario renders must be serial (parallel manim subprocesses
+# deadlock), and this also means one scenario is generated at a time.
+_manim_executor = ThreadPoolExecutor(max_workers=1)
+
+
+class ManimVideoRequest(BaseModel):
+    script: dict[str, Any]
+    request_id: str
+
+
+@instructor_router.post("/generate_manim_videos")
+def generate_manim_videos(request: ManimVideoRequest):
+    """Kick off Manim branching-video generation for an edited scenario script.
+    Returns immediately; poll /manim_video_status/{request_id} for progress."""
+    try:
+        adapt(request.script)  # fail fast on an inconsistent branch graph
+    except ScriptValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    _manim_executor.submit(
+        run_scenario_pipeline,
+        request.script,
+        request.request_id,
+        MANIM_OUTPUT_ROOT,
+    )
+    return {"status": "started", "request_id": request.request_id}
+
+
+@instructor_router.get("/manim_video_status/{request_id}")
+def manim_video_status(request_id: str):
+    """Read the pipeline's status.json for a run (pure file read; the pipeline
+    rewrites it after every stage transition)."""
+    status_path = os.path.join(MANIM_OUTPUT_ROOT, request_id, "status.json")
+    if not os.path.exists(status_path):
+        return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+    with open(status_path, "r", encoding="utf-8") as f:
+        return json.load(f)

@@ -37,9 +37,12 @@ export default function PlayerPage() {
     return () => { cancelled = true; };
   }, [scenarioId, routerState]);
 
-  // The published-scenario endpoint isn't live yet; fall back to the
-  // locally-saved scenario from Studio so the flow is testable end to end.
-  const state = routerState ?? remote ?? (notFound ? loadScenario() : null);
+  // If the real published scenario can't be found, fall back to whatever was
+  // last locally saved from a Studio preview, so the flow stays testable even
+  // before a scenario has actually been published for this name.
+  const fallback = notFound ? loadScenario() : null;
+  const state = routerState ?? remote ?? fallback;
+  const usingFallback = !routerState && !remote && !!fallback;
 
   if (loading) {
     return (
@@ -66,10 +69,31 @@ export default function PlayerPage() {
   }
 
   return (
-    <StudentPlayer
-      script={state.script}
-      assetImages={state.assetImages ?? { bgPath: null, charPaths: {}, framePaths: {} }}
-      onExit={() => navigate(-1 as never)}
-    />
+    <>
+      {usingFallback && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            textAlign: 'center',
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '6px 12px',
+            background: '#f39c12',
+            color: '#1a1400',
+          }}
+        >
+          Local preview only — "{scenarioId}" hasn't been published yet, showing your last Studio preview instead
+        </div>
+      )}
+      <StudentPlayer
+        script={state.script}
+        assetImages={state.assetImages ?? { bgPath: null, charPaths: {}, framePaths: {} }}
+        onExit={() => navigate(-1 as never)}
+      />
+    </>
   );
 }

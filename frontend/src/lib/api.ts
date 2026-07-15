@@ -3,7 +3,7 @@ import type { AssetImages, GenerateRequest, Script } from '../types/script';
 export async function fetchInitialScript(
   req: GenerateRequest,
 ): Promise<{ script: Script; requestId: string }> {
-  const res = await fetch('/api/initial_script', {
+  const res = await fetch('/instructor_api/initial_script', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
@@ -17,7 +17,7 @@ export async function generateBackgroundImage(
   script: Script,
   requestId: string,
 ): Promise<string> {
-  const res = await fetch('/api/generate_background_image', {
+  const res = await fetch('/instructor_api/generate_background_image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -31,7 +31,7 @@ export async function generateCharacterImages(
   script: Script,
   requestId: string,
 ): Promise<Record<string, string>> {
-  const res = await fetch('/api/generate_character_images', {
+  const res = await fetch('/instructor_api/generate_character_images', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -47,7 +47,7 @@ export async function generateOpeningFrames(
   backgroundImagePath: string,
   characterImageFileMapping: Record<string, string>,
 ): Promise<Record<string, string>> {
-  const res = await fetch('/api/generate_opening_frames', {
+  const res = await fetch('/instructor_api/generate_opening_frames', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -75,7 +75,7 @@ export async function retryBackgroundImage(
   requestId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_background_image', {
+  const res = await fetch('/instructor_api/retry_generate_background_image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -95,7 +95,7 @@ export async function retryCharacterImage(
   characterId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_character_image', {
+  const res = await fetch('/instructor_api/retry_generate_character_image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -119,7 +119,7 @@ export async function retryOpeningFrame(
   sceneId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_opening_frames', {
+  const res = await fetch('/instructor_api/retry_generate_opening_frames', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -140,32 +140,53 @@ export async function retryOpeningFrame(
     : (data.opening_scene_frame_file_mapping as Record<string, string>)[sceneId];
 }
 
-/** Convert an absolute server-side file path into a URL served by the backend. */
+/**
+ * Convert an absolute server-side file path into a URL served by the backend.
+ * The backend's FileResponse needs the absolute path back, so the leading
+ * slash on serverPath must be preserved (hence the double slash below) -
+ * FastAPI's :path converter treats everything after "/image/" as the value,
+ * so stripping it would hand the server a relative path that doesn't exist.
+ */
 export function imageUrl(serverPath: string): string {
   const qIdx = serverPath.indexOf('?');
   const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
   const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
-  return `/api/image/${path.replace(/^\//, '')}${qs}`;
+  return `/instructor_api/image/${path}${qs}`;
 }
 
+/**
+ * video_paths maps scene order to a video file path that must already exist
+ * on the backend's own filesystem (the server reads and uploads it directly).
+ * There's no scene-video generation step yet, so callers pass {} for now.
+ */
 export async function publishScenario(
-  name: string,
+  projectName: string,
   script: Script,
-  assetImages: AssetImages,
+  videoPaths: Record<number, string> = {},
 ): Promise<void> {
-  const res = await fetch('/api/scenario/publish', {
+  const res = await fetch('/instructor_api/upload_project_info', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, script, asset_images: assetImages }),
+    body: JSON.stringify({ project_name: projectName, script, video_paths: videoPaths }),
   });
+  if (res.status === 409) throw new Error(`A project named "${projectName}" already exists`);
   if (!res.ok) throw new Error(`Publish failed (${res.status})`);
 }
 
 export async function fetchScenario(
-  name: string,
-): Promise<{ script: Script; assetImages: AssetImages }> {
-  const res = await fetch(`/api/scenario/${encodeURIComponent(name)}`);
-  if (!res.ok) throw new Error(`Scenario "${name}" not found (${res.status})`);
+  projectName: string,
+): Promise<{ script: Script; assetImages: AssetImages; videoLinks: Record<string, string> }> {
+  const res = await fetch(`/student_api/assets/${encodeURIComponent(projectName)}`);
+  if (!res.ok) throw new Error(`Scenario "${projectName}" not found (${res.status})`);
   const data = await res.json();
-  return { script: data.script as Script, assetImages: data.asset_images as AssetImages };
+
+  const scriptRes = await fetch(data.script_link as string);
+  if (!scriptRes.ok) throw new Error(`Failed to load script for "${projectName}"`);
+  const script = (await scriptRes.json()) as Script;
+
+  return {
+    script,
+    assetImages: { bgPath: null, charPaths: {}, framePaths: {} },
+    videoLinks: data.video_links as Record<string, string>,
+  };
 }

@@ -409,7 +409,7 @@ export default function Studio() {
                 saveScenario(script, assetImages);
                 setPreviewing(true);
               }}
-              onPublish={name => publishScenario(name, script, assetImages)}
+              onPublish={name => publishScenario(name, script)}
             />
           </div>
         )}

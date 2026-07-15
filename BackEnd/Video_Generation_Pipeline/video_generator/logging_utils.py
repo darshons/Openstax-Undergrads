@@ -42,11 +42,21 @@ def log_generation(
     retry_count: int = None,
     estimated_cost_usd: float = None,
     error_type: str = None,
+    clip_id: int = None,
+    attempt_number: int = None,
+    eval_passed: bool = None,
+    eval_report_path: str = None,
 ):
+    """clip_id/attempt_number/eval_passed/eval_report_path are only populated
+    for --verify-clips per-clip-attempt entries (one per generation attempt,
+    logged regardless of pass/fail) — None for the pre-existing scene-level
+    final/checkpoint entries."""
     entries = load_log()
     entry = {
         "timestamp": datetime.now().isoformat(),
         "scene_id": scene_id,
+        "clip_id": clip_id,
+        "attempt_number": attempt_number,
         "model": model_key,
         "model_api_name": model_api_name or model_key,
         "resolution": resolution,
@@ -63,6 +73,8 @@ def log_generation(
         "success": success,
         "error": error,
         "error_type": error_type,
+        "eval_passed": eval_passed,
+        "eval_report_path": eval_report_path,
     }
     entries.append(entry)
     save_log(entries)

@@ -6,8 +6,12 @@ from .match_dialogue import match_dialogue
 from .judge_speaker import judge_speakers
 from .transcribe import transcribe_clip, save_transcript
 
-TRANSCRIPT_DIR = "output/transcripts"
-EVAL_REPORT_DIR = "output/eval_reports"
+# Anchored to this package's own location, not the caller's CWD — callers
+# outside Transcript_Eval_Pipeline (e.g. Video_Generation_Pipeline, run from
+# its own directory) must still land here, not in their own output/.
+_PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+TRANSCRIPT_DIR = str(_PACKAGE_ROOT / "output" / "transcripts")
+EVAL_REPORT_DIR = str(_PACKAGE_ROOT / "output" / "eval_reports")
 
 
 def evaluate_clip(client, video_path: str, scene_id: int, clip_id: int, dialogue: list, characters: list) -> dict:

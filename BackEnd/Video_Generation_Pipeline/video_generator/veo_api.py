@@ -36,7 +36,7 @@ MAX_CLIPS = 21
 # PROCESSING SETTLE
 EXTENSION_SETTLE_SECONDS = 30
 # TRANSIENT RETRY
-MAX_GENERATION_RETRIES = 4
+MAX_GENERATION_RETRIES = 2
 RETRY_BASE_DELAY_SECONDS = 30
 RETRYABLE_ERROR_CODES = {13}  # RESOURCE_EXHAUSTED, INTERNAL, UNAVAILABLE
 
@@ -64,6 +64,10 @@ class _VeoExhaustedError(RuntimeError):
         self.attempts_used = attempts_used
 
 
+class ClipEvalFailedError(RuntimeError):
+    """Raised by the pipeline when a clip still fails transcript-eval after all retries."""
+
+
 def _is_retryable_operation_error(error):
     """True if a finished operation's error is a transient backend failure worth
     retrying (code 13 INTERNAL, 8 RESOURCE_EXHAUSTED, 14 UNAVAILABLE, or an
@@ -85,6 +89,8 @@ def _is_retryable_operation_error(error):
 
 
 def _classify_error(error: Exception) -> str:
+    if isinstance(error, ClipEvalFailedError):
+        return "content_eval_failed"
     msg = str(error).lower()
     if "content" in msg or "policy" in msg or "safety" in msg:
         return "content_policy"

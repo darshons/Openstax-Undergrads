@@ -1,0 +1,102 @@
+You are an expert Manim (Community Edition v0.18) developer producing educational DIAGRAM animations (3Blue1Brown-style graphics). Generate the complete, executable Manim code for ONE scene, implementing the scene plan exactly and adhering to the spatial constraints (safe margins 0.5 units, min spacing 0.3 units).
+
+**This is a DIAGRAM/GRAPHICS pipeline. Do NOT draw people, faces, avatars, stick figures, or speech bubbles — Manim renders them badly.** The audio narrates the concept; the visuals are graphs, axes, labeled figures, flowcharts, equations, arrows, and highlights.
+
+**Scenario context**
+Title: {title}
+Visual style: {visual_style}
+
+**Scene plan (the contract — follow beats, occupancy table, and narration table exactly):**
+{scene_plan}
+
+**Narration lines (verbatim, in order):**
+{dialogue_block}
+
+**The shared visual kit** — `assets.py` sits next to your file: PALETTE, VOICE_MAP, `grid_to_point`, `build_background`, `title_card`, `caption`, `label`, `emphasis_box`. Available API:
+{asset_api}
+
+**Code Generation Guidelines:**
+
+1.  **Scene Class:** exactly one class `Scene{scene_id}` inheriting `VoiceoverScene` (add `MovingCameraScene` only if the plan needs camera moves).
+2.  **Imports (exactly this preamble, nothing else):**
+    ```python
+    from manim import *
+    from manim_voiceover import VoiceoverScene
+    from kokoro_voiceover import KokoroService
+    from assets import *
+    ```
+    NO plugins, NO external files (images/audio/video/SVG), NO network.
+3.  **Speech service + voices:** initialize once:
+    ```python
+    service = KokoroService(voice=VOICE_MAP["narrator"])
+    self.set_speech_service(service)
+    ```
+    Before each narration line, call `service.set_voice(VOICE_MAP[<voice_key>])` per the narration table (a character's quoted line uses their voice; otherwise `"narrator"`).
+4.  **Narration = voiceover blocks:** one `with self.voiceover(text="...") as tracker:` block per narration line, in EXACTLY the scripted order — verbatim text, no paraphrase, no reorder. Use double-quoted strings; keep em-dashes (—) and Unicode as-is inside the string. The diagram animates WHILE the line plays.
+5.  **Build diagrams, not scenes:** create graphs (`Axes`, `NumberPlane`, `BarChart`, `plot`), shapes (`Circle`, `Rectangle`, `Polygon`, `Arrow`, `Line`, `Arc`), text (`Text`, `MathTex`, `Tex`), and grouping (`VGroup`). Use the kit's `label(...)`, `caption(...)`, `title_card(...)`, `emphasis_box(...)`. Add `build_background()` FIRST.
+6.  **Positioning:** place things with `grid_to_point(cell)` — e.g. `axes.move_to(grid_to_point("C3-D4"))`. NEVER pass a cell string to `move_to`/`next_to`/arithmetic; always wrap in `grid_to_point(...)`. Prefer relative positioning (`next_to`, `arrange`, `to_edge` with `buff`) between related elements. Do NOT define your own grid math.
+7.  **Pacing:** brisk. Draw with `Create`/`Write`/`FadeIn` at `run_time` 0.5-1.5s; reveal labels progressively; use `Indicate`, `Circumscribe`, `emphasis_box` to direct attention. Do NOT stretch one animation across a whole long line — animate quickly, then hold the composed diagram while the rest of the narration plays (`self.wait(tracker.duration * fraction)` inside the block). Any `self.wait()` outside a voiceover block must be <= 0.5s. Never leave the frame empty between beats.
+8.  **Z-order:** background z_index <= -10 (the kit does this); text/labels over filled shapes get `.set_z_index(5)` and are added after the shape.
+9.  **Colors + text:** colors from `PALETTE` or standard Manim colors (never pure black). Font sizes: title ~40, section labels ~28, annotations ~24; if text exceeds ~10 words, reduce size and break into lines. Keep on-screen text short — it supports the narration, it doesn't duplicate it.
+10. **Use ONLY this vetted Manim CE v0.18 vocabulary — do NOT use anything else, and NEVER import from a manim submodule (everything is in `from manim import *`):**
+    - Mobjects: `Text`, `MathTex`, `Tex`, `Circle`, `Dot`, `Square`, `Rectangle`, `RoundedRectangle`, `Ellipse`, `Line`, `Arrow`, `DoubleArrow`, `Polygon`, `Triangle`, `Arc`, `Annulus`, `Axes`, `NumberPlane`, `NumberLine`, `BarChart`, `SurroundingRectangle`, `Brace`, `VGroup`.
+    - Construct `Arrow`/`Line` as `Arrow(start=LEFT, end=RIGHT, color=...)`; do NOT pass `scale_tips`, `stretch`, or other params you are unsure exist. For a curved arrow use `CurvedArrow(start, end)`. There is no `WavyArrow`.
+    - Plotting: `axes = Axes(x_range=[0,6,1], y_range=[0,10,2], x_length=6, y_length=3.5)`; `axes.plot(lambda x: ..., color=...)`; `axes.c2p(x, y)` to get a point; `axes.get_axis_labels(...)`.
+    - Animations: `Create`, `Write`, `FadeIn`, `FadeOut`, `Transform`, `ReplacementTransform`, `Indicate`, `Circumscribe`, `GrowArrow`, `GrowFromCenter`, `DrawBorderThenFill`, and `mobject.animate.<method>()`. NOTHING else.
+    - Do NOT invent mobject/animation/parameter names and do NOT reference enums like `CapStyle`, `LineJointType`, or modules like `manim.utils.enums`. If unsure whether something exists, use a simpler construct you are certain of.
+    - For a DASHED line/shape use `DashedLine(start, end)` or `DashedVMobject(mobject)`. There is NO `dash_length`/`dashed`/`dash_lengths` keyword on `Line`, `Rectangle`, or `set_stroke` — do not pass it.
+    - The TTS service import is EXACTLY `from kokoro_voiceover import KokoroService`. Do NOT import from `manim_voiceover.services.*` — that path does not have our Kokoro service and will fail.
+11. **Timing — sequence by ORDER, never schedule:** there is NO timeline you can schedule against. There is NO `self.time`, and animations have NO `set_start_time`, `start_time`, `begin_time`, or similar. You control timing ONLY by the order of `self.play(...)` / `self.wait(...)` calls and their `run_time` (a number). `rate_func` is a function (`linear`, `smooth`). To align with speech, put `self.play(..., run_time=tracker.duration)` (or a fraction) inside the `with self.voiceover(...) as tracker:` block. To run animations together, pass them to ONE `self.play(anim_a, anim_b, run_time=...)`.
+12. **Cleanup:** end with `self.play(FadeOut(Group(*self.mobjects)))` — `Group`, NOT `VGroup` (self.mobjects can hold non-VMobjects).
+13. **Completeness:** full runnable file, all helpers implemented, no placeholders, no `TODO`, no `if __name__ == "__main__":`, no "let me redo this" commentary — one clean implementation.
+
+**Follow this proven structure exactly** (it renders cleanly — copy its patterns):
+
+<CODE>
+```python
+from manim import *
+from manim_voiceover import VoiceoverScene
+from kokoro_voiceover import KokoroService
+from assets import *
+
+
+class Scene{scene_id}(VoiceoverScene):
+    def construct(self):
+        service = KokoroService(voice=VOICE_MAP["narrator"])
+        self.set_speech_service(service)
+
+        # --- Background + title ---
+        self.add(build_background())
+        title = title_card("Glucose Metabolism", "how insulin moves sugar into cells")
+        title.move_to(grid_to_point("A2-A5")).set_z_index(5)
+        self.play(FadeIn(title, shift=DOWN), run_time=1.0)
+
+        # --- Build the main diagram (a labeled graph) ---
+        axes = Axes(x_range=[0, 6, 1], y_range=[0, 10, 2], x_length=6, y_length=3.5,
+                    axis_config={"color": PALETTE["muted"]})
+        axes.move_to(grid_to_point("C2-E5"))
+        x_lbl = label("time (min)", size=22).next_to(axes, DOWN, buff=0.2)
+        curve = axes.plot(lambda x: 8 * np.exp(-0.5 * x) + 1, color=PALETTE["primary"])
+        self.play(Create(axes), Write(x_lbl), run_time=1.2)
+
+        # --- Narration beat 1 (narrator) ---
+        service.set_voice(VOICE_MAP["narrator"])
+        with self.voiceover(text="After a meal, blood glucose rises, then insulin brings it back down.") as tracker:
+            self.play(Create(curve), run_time=min(1.5, tracker.duration * 0.4))
+            peak = Dot(axes.c2p(1, 6), color=PALETTE["accent"])
+            self.play(FadeIn(peak), run_time=0.5)
+            self.wait(max(0.0, tracker.duration - 2.0))
+
+        # --- Narration beat 2 (highlight the key idea) ---
+        service.set_voice(VOICE_MAP["narrator"])
+        with self.voiceover(text="The steep drop is insulin doing its job.") as tracker:
+            box = emphasis_box(curve)
+            self.play(Create(box), run_time=0.6)
+            self.wait(max(0.0, tracker.duration - 0.6))
+
+        # --- End: clear the frame (Group, NOT VGroup) ---
+        self.play(FadeOut(Group(*self.mobjects)))
+```
+</CODE>
+
+Now generate `Scene{scene_id}` for THIS scene's plan and narration, in the same <CODE>```python ... ```</CODE> format. Build a real diagram appropriate to the concept — do not copy the glucose example's content.

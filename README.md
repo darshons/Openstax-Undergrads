@@ -1,3 +1,7 @@
+# DJ YAM
+
+<img width="1000" alt="Gemini_Generated_Image_qvr6tsqvr6tsqvr6" src="https://github.com/user-attachments/assets/5325fc1f-557d-4917-9051-340a62103fd8" />
+
 # OpenStax Scenario Studio
 
 An internal authoring tool that lets OpenStax content editors generate, review, and refine **interactive educational scenario scripts** grounded in real OpenStax textbook content — then hand them off to a video generation pipeline.

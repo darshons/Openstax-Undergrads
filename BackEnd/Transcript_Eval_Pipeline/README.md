@@ -2,7 +2,7 @@
 
 Generates a transcript from a rendered Veo clip — independent of anything the video generator knew about its own script — then evaluates that transcript against the clip's ground-truth `scenario.json` dialogue. Catches two failure modes Veo can introduce: wrong/garbled spoken dialogue, and dialogue delivered by the wrong character on screen.
 
-Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]` (both read out of `scenario.json`) in, one eval report out. This is a standalone system — it is not yet wired into `Video_Generation_Pipeline`'s generation loop (see [Scope](#scope) below).
+Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]` (both read out of `scenario.json`) in, one eval report out. This package can be run standalone via its own CLI (below), and is also wired into `Video_Generation_Pipeline` via `--verify-clips` — see [`video_generator`'s README](../Video_Generation_Pipeline/README.md#clip-verification) for how generation calls into this package to verify (and regenerate) clips as they're produced.
 
 ---
 
@@ -43,6 +43,8 @@ Prints a pass/fail summary and writes:
 - `output/transcripts/<clip_video_stem>.json` — the raw Whisper transcript
 - `output/eval_reports/<clip_video_stem>_eval.json` — the full eval report
 
+These paths are anchored to this package's own directory (`Path(__file__).resolve().parent.parent`), not the caller's working directory — so `--verify-clips` calls from `Video_Generation_Pipeline` (run from *its* own directory) still land here, not in `Video_Generation_Pipeline/output/`.
+
 The input `--video` must be a single clip's video (not a multi-clip stitched scene) — see [Why per-clip](#why-per-clip).
 
 ---
@@ -64,7 +66,7 @@ Only Stage 3 (`judge_speaker.py`) calls a paid API — Gemini, via the existing 
 Veo generates one scene as a chain of extension clips (see `Video_Generation_Pipeline`), and each clip has its own short `dialogue[]` (typically 1–3 lines, ~7–8 s). Evaluating at clip granularity — rather than the final stitched scene video — means:
 
 - A clip's video duration is unambiguous (no need to compute where a clip's audio starts/ends inside a longer stitched video).
-- A bad clip can eventually be caught and stopped before the pipeline spends further Veo extension calls building on top of it (this early-stop wiring into `Video_Generation_Pipeline` itself is a follow-up, not implemented here).
+- A bad clip can be caught and regenerated before the pipeline spends further Veo extension calls building on top of it — this is exactly what `Video_Generation_Pipeline`'s `--verify-clips` flag does, isolating each new clip's segment out of Veo's cumulative video download before calling `evaluate_clip()` here (see [its README](../Video_Generation_Pipeline/README.md#clip-verification)).
 
 ---
 
@@ -96,7 +98,7 @@ Veo doesn't respect line boundaries — a script line can come out split across 
 
 1. Concatenate the clip's expected `dialogue[]` lines from `scenario.json`.
 2. Concatenate all of the clip's Whisper segments (Stage 1 output).
-3. Score similarity with `rapidfuzz.fuzz.token_sort_ratio` against a **loose threshold** (`SIMILARITY_THRESHOLD = 55`) — loose on purpose, since this stage exists to catch obviously wrong/garbled/missing dialogue, not to penalize paraphrasing.
+3. Score similarity with `rapidfuzz.fuzz.token_sort_ratio` against a **loose threshold** (`SIMILARITY_THRESHOLD = 75`) — loose on purpose, since this stage exists to catch obviously wrong/garbled/missing dialogue, not to penalize paraphrasing.
 
 If it fails, the clip is marked failed and **Stage 3 is skipped** — no vision-judge API cost is spent verifying speaker attribution for dialogue that's already wrong.
 
@@ -215,6 +217,7 @@ If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skip
 |----------|--------------|
 | `evaluate_clip(client, video_path, scene_id, clip_id, dialogue, characters)` | Run all three stages and return the aggregated report dict |
 | `save_eval_report(video_path, report)` | Write the report to `output/eval_reports/<stem>_eval.json` |
+| `TRANSCRIPT_DIR`, `EVAL_REPORT_DIR` | Default output dirs, anchored to this package's location regardless of caller's CWD |
 
 ### `cli`
 
@@ -228,7 +231,9 @@ If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skip
 
 ## Scope
 
-This is the standalone transcript + eval system only. **Not** implemented here (planned as a follow-up):
+This package is usable two ways:
+- **Standalone**, via `transcript_eval.cli` (above) — point it at any clip video + `scenario.json` + scene/clip IDs.
+- **Integrated**, via `Video_Generation_Pipeline`'s `--verify-clips` flag, which calls `eval.evaluate_clip()` directly (through `video_generator/clip_verification.py`) after isolating each newly generated clip from Veo's cumulative video — see [its README](../Video_Generation_Pipeline/README.md#clip-verification) for the full mechanism, including the retry-on-failure behavior.
 
-- Wiring this into `Video_Generation_Pipeline`'s per-clip generation loop (`pipeline.py`'s extension loop) so a failed clip actually stops further extension calls, rather than being evaluated only after the fact.
+**Not** implemented here:
 - Any UI surface for eval reports — today's output is JSON files under `output/eval_reports/`.

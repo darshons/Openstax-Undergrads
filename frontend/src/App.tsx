@@ -386,6 +386,7 @@ export default function App() {
           <div className="h-full flex flex-col overflow-auto">
             <VideoPage
               script={script}
+              requestId={requestId}
               onBack={() => setCurrentPage('assets')}
             />
           </div>

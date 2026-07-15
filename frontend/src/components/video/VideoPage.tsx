@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Script, Scene, Choice } from '../../types/script';
+import { generateManimVideos, getManimStatus, videoUrl as toVideoUrl } from '../../lib/api';
 
 function fmtDur(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -64,14 +65,69 @@ function VideoClipCard({ scene, selected, onClick, branch, choice, videoUrl }: {
 
 interface VideoPageProps {
   script: Script;
+  requestId: string | null;
   onBack: () => void;
 }
 
-export default function VideoPage({ script, onBack }: VideoPageProps) {
+type GenState = 'idle' | 'running' | 'done' | 'error';
+
+export default function VideoPage({ script, requestId, onBack }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
+  const [genState, setGenState] = useState<GenState>('idle');
+  const [genStatus, setGenStatus] = useState<string>('');
+  const [genError, setGenError] = useState<string | null>(null);
+  const pollRef = useRef<number | null>(null);
   const scenes = script.scenes ?? [];
   const dps = script.decision_points ?? [];
+
+  // Poll the pipeline while a run is active, merging completed clips into
+  // sceneVideos so scene cards light up progressively.
+  useEffect(() => {
+    if (genState !== 'running' || !requestId) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const status = await getManimStatus(requestId);
+        if (cancelled) return;
+        setGenStatus(status.state);
+        setSceneVideos(prev => {
+          const next = { ...prev };
+          for (const [id, path] of Object.entries(status.completed_scenes || {})) {
+            next[Number(id)] = toVideoUrl(path);
+          }
+          return next;
+        });
+        if (status.state === 'done') {
+          setGenState('done');
+        } else if (status.state === 'error') {
+          setGenState('error');
+          setGenError(status.error || 'Generation failed');
+        }
+      } catch (e) {
+        if (!cancelled) { setGenState('error'); setGenError(String(e)); }
+      }
+    };
+    tick();
+    pollRef.current = window.setInterval(tick, 5000);
+    return () => {
+      cancelled = true;
+      if (pollRef.current) window.clearInterval(pollRef.current);
+    };
+  }, [genState, requestId]);
+
+  const handleGenerate = async () => {
+    if (!requestId) { setGenError('No active scenario request'); setGenState('error'); return; }
+    setGenError(null);
+    setGenState('running');
+    setGenStatus('starting');
+    try {
+      await generateManimVideos(script, requestId);
+    } catch (e) {
+      setGenState('error');
+      setGenError(String(e));
+    }
+  };
 
 
   const branchIds = new Set(
@@ -99,8 +155,25 @@ export default function VideoPage({ script, onBack }: VideoPageProps) {
           <h2>Video Review</h2>
           <p>{script.title || 'Untitled scenario'}</p>
         </div>
-        <div style={{ width: 140 }} />
+        <button
+          className="assets-back"
+          onClick={handleGenerate}
+          disabled={genState === 'running'}
+          title={requestId ? 'Generate Manim videos for every scene' : 'Generate a script first'}
+        >
+          {genState === 'running'
+            ? `Generating… ${genStatus}`
+            : genState === 'done'
+              ? 'Regenerate videos'
+              : 'Generate videos'}
+        </button>
       </div>
+
+      {genState === 'error' && genError && (
+        <div className="video-gen-error" style={{ padding: '8px 16px', color: '#c0392b' }}>
+          Video generation error: {genError}
+        </div>
+      )}
 
       <div className="video-body">
         <div className="video-hero">

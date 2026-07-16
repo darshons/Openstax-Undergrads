@@ -520,6 +520,8 @@ input, textarea { font-family: inherit; color: inherit; }
 /* Decision / Feedback panel */
 .sp-panel{position:absolute;bottom:0;left:0;right:0;z-index:20;background:rgba(9,12,26,.97);border-top:1px solid rgba(255,255,255,.07);padding:22px 10% 28px}
 .sp-panel-q{font-size:17px;font-weight:600;color:rgba(255,255,255,.82);margin-bottom:14px;line-height:1.42;max-width:680px}
+.sp-rewatch{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:6px;color:rgba(255,255,255,.75);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;transition:.15s;letter-spacing:.02em}
+.sp-rewatch:hover{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.28)}
 .sp-choices{display:flex;flex-direction:column;gap:8px}
 .sp-choice{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:11px 16px;font-size:14px;color:rgba(255,255,255,.72);cursor:pointer;text-align:left;transition:background .12s,border-color .12s,color .12s;width:100%;max-width:680px}
 .sp-choice:hover:not(:disabled){background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}

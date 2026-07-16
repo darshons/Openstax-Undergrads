@@ -47,6 +47,9 @@ export default function JoinPage() {
         </div>
 
         <button className="hp-join-back" onClick={() => navigate('/')}>← Back</button>
+        <button className="hp-join-back" onClick={() => navigate('/player/__dummy__')}>
+          Load test fixture (dev only)
+        </button>
 
       </div>
     </div>

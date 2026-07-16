@@ -3,11 +3,12 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { Script, AssetImages } from '../types/script';
 import StudentPlayer from '../components/student/StudentPlayer';
 import { loadScenario } from '../lib/savedScenario';
-import { fetchScenario } from '../lib/api';
+import { fetchScenario, fetchDummyScenario } from '../lib/api';
 
 interface PreviewState {
   script: Script;
   assetImages: AssetImages;
+  videoLinks?: Record<string, string>;
 }
 
 export default function PlayerPage() {
@@ -30,7 +31,8 @@ export default function PlayerPage() {
     let cancelled = false;
     setLoading(true);
     setNotFound(false);
-    fetchScenario(scenarioId)
+    const request = scenarioId === '__dummy__' ? fetchDummyScenario() : fetchScenario(scenarioId);
+    request
       .then(data => { if (!cancelled) setRemote(data); })
       .catch(() => { if (!cancelled) setNotFound(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -92,6 +94,7 @@ export default function PlayerPage() {
       <StudentPlayer
         script={state.script}
         assetImages={state.assetImages ?? { bgPath: null, charPaths: {}, framePaths: {} }}
+        videoLinks={state.videoLinks}
         onExit={() => navigate(-1 as never)}
       />
     </>

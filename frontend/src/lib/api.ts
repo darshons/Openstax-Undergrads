@@ -173,15 +173,21 @@ export async function publishScenario(
   if (!res.ok) throw new Error(`Publish failed (${res.status})`);
 }
 
-export async function fetchScenario(
-  projectName: string,
-): Promise<{ script: Script; assetImages: AssetImages; videoLinks: Record<string, string> }> {
-  const res = await fetch(`/student_api/assets/${encodeURIComponent(projectName)}`);
-  if (!res.ok) throw new Error(`Scenario "${projectName}" not found (${res.status})`);
+interface ScenarioAssets {
+  script: Script;
+  assetImages: AssetImages;
+  videoLinks: Record<string, string>;
+}
+
+async function resolveAssetsResponse(
+  res: Response,
+  label: string,
+): Promise<ScenarioAssets> {
+  if (!res.ok) throw new Error(`Scenario "${label}" not found (${res.status})`);
   const data = await res.json();
 
   const scriptRes = await fetch(data.script_link as string);
-  if (!scriptRes.ok) throw new Error(`Failed to load script for "${projectName}"`);
+  if (!scriptRes.ok) throw new Error(`Failed to load script for "${label}"`);
   const script = (await scriptRes.json()) as Script;
 
   return {
@@ -189,4 +195,15 @@ export async function fetchScenario(
     assetImages: { bgPath: null, charPaths: {}, framePaths: {} },
     videoLinks: data.video_links as Record<string, string>,
   };
+}
+
+export async function fetchScenario(projectName: string): Promise<ScenarioAssets> {
+  const res = await fetch(`/student_api/assets/${encodeURIComponent(projectName)}`);
+  return resolveAssetsResponse(res, projectName);
+}
+
+/** Loads the coworker's hardcoded test fixture (1 script, 3 mismatched videos) for testing playback. */
+export async function fetchDummyScenario(): Promise<ScenarioAssets> {
+  const res = await fetch('/student_api/dummy_assets');
+  return resolveAssetsResponse(res, 'dummy');
 }

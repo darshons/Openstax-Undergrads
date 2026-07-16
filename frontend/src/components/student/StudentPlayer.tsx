@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Script, Scene, DecisionPoint, Choice, AssetImages, DialogueLine } from '../../types/script';
 import { imageUrl } from '../../lib/api';
 
@@ -24,10 +24,12 @@ interface PlayerState {
 interface StudentPlayerProps {
   script: Script;
   assetImages: AssetImages;
+  /** Keyed by filename (e.g. "scene_1.mp4") - matched to scenes by position, not scene_id. */
+  videoLinks?: Record<string, string>;
   onExit: () => void;
 }
 
-export default function StudentPlayer({ script, assetImages, onExit }: StudentPlayerProps) {
+export default function StudentPlayer({ script, assetImages, videoLinks, onExit }: StudentPlayerProps) {
   const scenes = script.scenes ?? [];
   const dps = script.decision_points ?? [];
 
@@ -72,6 +74,17 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
   const frameSrc = assetImages.framePaths[frameKey]
     ? imageUrl(assetImages.framePaths[frameKey])
     : null;
+
+  const sceneOrder = scenes.findIndex(s => s.scene_id === displaySceneId) + 1;
+  const videoSrc = videoLinks?.[`scene_${sceneOrder}.mp4`];
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  function rewatchVideo() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    video.play();
+  }
 
   const currentTrunkIdx = trunkScenes.findIndex(s => s.scene_id === state.sceneId);
 
@@ -158,7 +171,9 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
 
   return (
     <div className="sp-root">
-      {frameSrc
+      {videoSrc
+        ? <video ref={videoRef} key={videoSrc} src={videoSrc} className="sp-bg-img" controls />
+        : frameSrc
         ? <img key={frameSrc} src={frameSrc} alt="" className="sp-bg-img" />
         : <div className="sp-bg-fallback" />
       }
@@ -189,7 +204,7 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
       )}
 
       {/* Dialogue panel */}
-      {state.phase === 'watching' && currentScene && (() => {
+      {state.phase === 'watching' && currentScene && !videoSrc && (() => {
         const lines = getDialogue(currentScene);
         const fallback = currentScene.narration_text || currentScene.scene_summary || currentScene.description;
         if (!lines.length && !fallback) return null;
@@ -232,6 +247,14 @@ export default function StudentPlayer({ script, assetImages, onExit }: StudentPl
       {/* Decision / Feedback panel */}
       {(state.phase === 'deciding' || state.phase === 'feedback') && currentDP && (
         <div className="sp-panel">
+          {videoSrc && (
+            <button className="sp-rewatch" style={{ marginBottom: 10 }} onClick={rewatchVideo}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Rewatch video
+            </button>
+          )}
           <p className="sp-panel-q">{currentDP.question_text}</p>
           <div className="sp-choices">
             {currentDP.choices.map(choice => {

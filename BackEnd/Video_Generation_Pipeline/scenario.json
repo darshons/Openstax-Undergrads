@@ -152,9 +152,9 @@
           "clip_id": 3,
           "setting": "Same hospital room, continuing from the previous clip.",
           "dialogue": [
-            { "character_id": "nurse_maya", "line": "That makes a lot of sense. It's okay to feel that way — and I'm glad you told me. We can talk through what to expect before she comes in." }
+            { "character_id": "nurse_maya", "line": "That makes a lot of sense. It's okay to feel that way, and I'm glad you told me. We can talk through what to expect before she comes in." }
           ],
-          "character_actions": "Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face — the turn of his head not yet complete at the end of the clip.",
+          "character_actions": "Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face",
           "camera": { "angle": "Medium two-shot, then static cut to closer framing on Maya as she responds, then static cut back to two-shot.", "movement": "Static.", "lens_effect": "Same warm neutral. Slightly brighter feel." }
         },
         {

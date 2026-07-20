@@ -25,13 +25,17 @@ from .veo_api import (
 )
 
 
-def _log_clip_attempt(scene_id, clip_id, attempt_number, prompt, report, video_path, attempt_wall_time):
+def _log_clip_attempt(
+    scene_id, clip_id, attempt_number, prompt, report, video_path, attempt_wall_time
+):
     """One generation_log.json entry per clip-generation attempt made under
     --verify-clips (pass or fail) — separate from the existing scene-level
     final/checkpoint entries, so a clip that got regenerated leaves a full
     record of every take, not just the scene's eventual outcome."""
     vid_dur = get_video_duration(video_path) if video_path else None
-    size_mb = round(os.path.getsize(video_path) / (1024 * 1024), 2) if video_path else None
+    size_mb = (
+        round(os.path.getsize(video_path) / (1024 * 1024), 2) if video_path else None
+    )
     passed = report["passed"]
     log_generation(
         scene_id=scene_id,
@@ -111,7 +115,13 @@ def _generate_and_verify(
         os.replace(failed_clip_path, kept_path)
 
     _log_clip_attempt(
-        scene_id, clip_id, scene_attempt, prompt, report, kept_path, time.time() - attempt_start
+        scene_id,
+        clip_id,
+        scene_attempt,
+        prompt,
+        report,
+        kept_path,
+        time.time() - attempt_start,
     )
 
     if report["passed"]:
@@ -185,7 +195,7 @@ def run_scene_pipeline(
             # just propagate rather than attempt a checkpoint download. An
             # eval failure (ClipEvalFailedError) is caught further down to
             # trigger a whole-scene regeneration.
-            dialogue, clip_id = (_clip_dialogue(0) if verify_clips else (None, 1))
+            dialogue, clip_id = _clip_dialogue(0) if verify_clips else (None, 1)
             video_obj, attempts, cum_duration = _generate_and_verify(
                 lambda: generate_first_clip(
                     client,
@@ -209,9 +219,13 @@ def run_scene_pipeline(
             i = 1
             try:
                 for i, prompt in enumerate(clip_prompts[1:], start=2):
-                    dialogue, clip_id = (_clip_dialogue(i - 1) if verify_clips else (None, i))
+                    dialogue, clip_id = (
+                        _clip_dialogue(i - 1) if verify_clips else (None, i)
+                    )
                     video_obj, attempts, cum_duration = _generate_and_verify(
-                        lambda: generate_extension_clip(client, prompt, video_obj, clip_index=i),
+                        lambda: generate_extension_clip(
+                            client, prompt, video_obj, clip_index=i
+                        ),
                         clip_id,
                         client,
                         verify_clips,
@@ -224,7 +238,9 @@ def run_scene_pipeline(
                     )
                     total_retries += attempts - 1
                     if i < num_clips:
-                        print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")
+                        print(
+                            f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop..."
+                        )
                         time.sleep(EXTENSION_SETTLE_SECONDS)
             except ClipEvalFailedError:
                 # No checkpoint for an eval failure — the whole attempt is
@@ -234,7 +250,8 @@ def run_scene_pipeline(
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 completed_clips = i - 1
                 checkpoint = str(
-                    OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
+                    OUTPUT_DIR
+                    / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
                 )
                 download_video(client, video_obj, checkpoint)
                 print(f"\n  Extension failed at clip {i}: {e}")
@@ -274,8 +291,10 @@ def run_scene_pipeline(
         except ClipEvalFailedError as e:
             if scene_attempt < eval_retries:
                 print(f"\n  Scene {scene_id} failed eval: {e}")
-                print(f"  Regenerating scene {scene_id} from clip 1 "
-                      f"(attempt {scene_attempt + 2}/{eval_retries + 1})...")
+                print(
+                    f"  Regenerating scene {scene_id} from clip 1 "
+                    f"(attempt {scene_attempt + 2}/{eval_retries + 1})..."
+                )
                 time.sleep(EXTENSION_SETTLE_SECONDS)
                 continue
             raise

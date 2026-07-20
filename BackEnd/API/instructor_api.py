@@ -63,6 +63,12 @@ class ImageGenerationRequest(BaseModel):
     request_id: str
 
 
+# This Class defines the structure of the request body for generating videos
+class VideoGenerationRequest(BaseModel):
+    image_request: ImageGenerationRequest
+    opening_scene_frame_file_mapping: dict[str, str]
+
+
 # This Class defines the structure of the request body for retrying image generation
 class ImageRetryRequest(BaseModel):
     image_request: ImageGenerationRequest
@@ -273,10 +279,65 @@ def generate_opening_frame_images(
     }
 
 
+# This endpoint will be called by the frontend to generate the scene videos based on the script, reference background image, reference character images, and opening frames
+@instructor_router.post("/generate_scene_videos")
+def generate_scene_videos(
+    request: VideoGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
+    if (
+        request.image_request.background_image_path is None
+        or request.image_request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Scene video generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    # Here you would call your video generation function, passing in the necessary parameters.
+    # For example:
+    # scene_video_file_mapping, uploaded_file_names, video_local_file_paths = generate_scene_videos(
+    #     request.image_request.script,
+    #     request.image_request.background_image_path,
+    #     request.image_request.character_image_file_mapping,
+    #     request.opening_scene_frame_file_mapping,
+    #     request.image_request.request_id,
+    # )
+
+    scene_video_file_mapping = (
+        {}
+    )  # Replace with actual mapping from the video generation function (e.g., {scene_id: video_file_path})
+    uploaded_file_names = (
+        []
+    )  # Replace with actual list of uploaded file names (i.e., the names of the video files uploaded to Gemini for each scene if applicable)
+    video_local_file_paths = (
+        []
+    )  # Replace with actual list of JSON file paths (i.e., the paths of the local video files generated for each scene if applicable)
+
+    background_tasks.add_task(delete_local_files, video_local_file_paths)
+    background_tasks.add_task(delete_uploaded_files_gemini, uploaded_file_names)
+
+    if scene_video_file_mapping is None or len(scene_video_file_mapping) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Scene video generation failed. No videos were returned.",
+        )
+
+    return {
+        "message": "Scene video generation completed",
+        "scene_video_file_mapping": scene_video_file_mapping,
+    }
+
+
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
 @instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
     return FileResponse(image_path, media_type="image/png")
+
+
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@instructor_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(video_path, media_type="video/mp4")
 
 
 # This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
@@ -473,19 +534,13 @@ def retry_generate_opening_frames(
         if updated_image_path is None:
             raise HTTPException(
                 status_code=500,
-                detail="Character image generation failed. No image was returned.",
+                detail="Opening frame generation failed. No image was returned.",
             )
 
         return {
             "message": "Opening frame generation retry completed",
             "opening_frame_image_file_path": updated_image_path,
         }
-
-
-# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
-@instructor_router.get("/video/{video_path:path}")
-def get_video(video_path: str):
-    return FileResponse(video_path, media_type="video/mp4")
 
 
 # This endpoint will be called by the frontend to upload the project information (script and generated videos) to the Supabase database

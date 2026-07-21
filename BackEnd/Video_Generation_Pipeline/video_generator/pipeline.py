@@ -1,9 +1,11 @@
 import os
 import time
 from datetime import datetime
+from pathlib import Path
 
 from .logging_utils import OUTPUT_DIR, log_generation
 from .prompt_builder import build_clip_prompts
+from .clip_verification import verify_clip, eval_failure_reason, eval_report_path_for
 from .veo_api import (
     MODEL_KEY,
     RESOLUTION,
@@ -19,17 +21,145 @@ from .veo_api import (
     estimate_cost,
     _classify_error,
     _VeoExhaustedError,
+    ClipEvalFailedError,
 )
 
 
+def _log_clip_attempt(
+    scene_id, clip_id, attempt_number, prompt, report, video_path, attempt_wall_time
+):
+    """One generation_log.json entry per clip-generation attempt made under
+    --verify-clips (pass or fail) — separate from the existing scene-level
+    final/checkpoint entries, so a clip that got regenerated leaves a full
+    record of every take, not just the scene's eventual outcome."""
+    vid_dur = get_video_duration(video_path) if video_path else None
+    size_mb = (
+        round(os.path.getsize(video_path) / (1024 * 1024), 2) if video_path else None
+    )
+    passed = report["passed"]
+    log_generation(
+        scene_id=scene_id,
+        model_key=MODEL_KEY,
+        prompt=prompt,
+        output_file=video_path,
+        duration_seconds=attempt_wall_time,
+        success=passed,
+        error=None if passed else eval_failure_reason(report),
+        error_type=None if passed else "content_eval_failed",
+        resolution=RESOLUTION,
+        aspect_ratio=ASPECT_RATIO,
+        file_size_mb=size_mb,
+        video_duration_seconds=vid_dur,
+        estimated_cost_usd=estimate_cost(MODEL_KEY, RESOLUTION, vid_dur),
+        clip_id=clip_id,
+        attempt_number=attempt_number,
+        eval_passed=passed,
+        eval_report_path=eval_report_path_for(video_path) if video_path else None,
+    )
+
+
+def _generate_and_verify(
+    generate_fn,
+    clip_id,
+    client,
+    verify_clips,
+    eval_retries,
+    prev_duration,
+    scene_id,
+    dialogue,
+    characters,
+    prompt,
+):
+    """Run generate_fn() — a thunk returning (video_obj, attempts) — and, if
+    verify_clips, check the result against transcript_eval before accepting it.
+
+    Each retry re-issues generate_fn() from scratch (same prompt, same base
+    video for extensions), so a rejected attempt is discarded rather than
+    compounded — the caller's video_obj/duration are only updated on success.
+    Every attempt (pass or fail) gets its own generation_log.json entry via
+    _log_clip_attempt — a failed attempt's isolated clip video is kept on
+    disk (moved out of the temp dir) so the log entry points to something
+    reviewable, not just a line of text.
+
+    Returns (video_obj, attempts, new_duration). new_duration == prev_duration
+    when verify_clips is False (duration tracking only matters for eval).
+    """
+    for attempt in range(eval_retries + 1):
+        attempt_start = time.time()
+        video_obj, attempts = generate_fn()
+        if not verify_clips:
+            return video_obj, attempts, prev_duration
+
+        report, new_duration, failed_clip_path = verify_clip(
+            client,
+            video_obj,
+            prev_duration,
+            scene_id,
+            clip_id,
+            dialogue,
+            characters,
+            OUTPUT_DIR / "_clip_eval_tmp",
+        )
+
+        # Relocate (not rename) a failed attempt's video: evaluate_clip already
+        # saved its eval report keyed on this exact filename's stem, so the
+        # stem must survive the move for eval_report_path_for() to resolve —
+        # only the directory changes, into a dedicated failed_clips/ folder.
+        kept_path = None
+        if failed_clip_path:
+            failed_dir = OUTPUT_DIR / "failed_clips"
+            failed_dir.mkdir(parents=True, exist_ok=True)
+            kept_path = str(failed_dir / Path(failed_clip_path).name)
+            os.replace(failed_clip_path, kept_path)
+
+        _log_clip_attempt(
+            scene_id,
+            clip_id,
+            attempt + 1,
+            prompt,
+            report,
+            kept_path,
+            time.time() - attempt_start,
+        )
+
+        if report["passed"]:
+            return video_obj, attempts, new_duration
+
+        print(
+            f"  Clip {clip_id} failed eval (attempt {attempt + 1}/{eval_retries + 1}): "
+            f"{eval_failure_reason(report)}"
+        )
+        if kept_path:
+            print(f"  Failed attempt saved: {kept_path}")
+        if attempt < eval_retries:
+            print(f"  Regenerating clip {clip_id}...")
+            time.sleep(EXTENSION_SETTLE_SECONDS)
+
+    raise ClipEvalFailedError(
+        f"clip {clip_id}: still failing eval after {eval_retries + 1} attempt(s)"
+    )
+
+
 def run_scene_pipeline(
-    client, scene_id, clip_prompts, reference_images=None, first_clip_seconds=8
+    client,
+    scene_id,
+    clip_prompts,
+    reference_images=None,
+    first_clip_seconds=8,
+    verify_clips=False,
+    eval_retries=1,
+    scene=None,
+    characters=None,
 ):
     """
     Generate one scene as a single continuous video via Veo extension.
 
     clip_prompts: one prompt per clip, in order, built by build_clip_prompts.
     first_clip_seconds: 4/6/8 — only takes effect if reference_images is None.
+    verify_clips: if True, transcribe + evaluate each clip against `scene`'s
+        dialogue as it's generated, regenerating up to `eval_retries` times on
+        failure. Requires `scene` and `characters` (the raw scenario.json scene
+        dict and character list — used to look up each clip's expected dialogue).
     """
     num_clips = len(clip_prompts)
     if num_clips < 1:
@@ -43,6 +173,8 @@ def run_scene_pipeline(
             f"{num_clips} clips exceeds Veo's extension ceiling of {MAX_CLIPS} "
             f"clips / ~148s. Split this scene before generating."
         )
+    if verify_clips and (scene is None or characters is None):
+        raise ValueError("verify_clips=True requires both `scene` and `characters`.")
 
     effective_first = 8 if reference_images else first_clip_seconds
     est_seconds = effective_first + (num_clips - 1) * EXTENSION_SECONDS
@@ -54,20 +186,53 @@ def run_scene_pipeline(
     start_time = time.time()
     total_retries = 0
 
-    video_obj, attempts = generate_first_clip(
+    def _clip_dialogue(idx):
+        """0-based clip index -> (dialogue, clip_id) from the raw scene dict."""
+        clip = scene["clips"][idx]
+        return clip.get("dialogue", []), clip.get("clip_id", idx + 1)
+
+    # Clip 1 is generated outside the try/except below (as before verify_clips
+    # existed): if it fails, there is no prior successful video to checkpoint,
+    # so the exception should just propagate to run_scenario_pipeline's
+    # per-scene handler rather than attempt a checkpoint download.
+    dialogue, clip_id = _clip_dialogue(0) if verify_clips else (None, 1)
+    video_obj, attempts, cum_duration = _generate_and_verify(
+        lambda: generate_first_clip(
+            client,
+            clip_prompts[0],
+            clip_index=1,
+            reference_images=reference_images,
+            duration_seconds=first_clip_seconds,
+        ),
+        clip_id,
         client,
+        verify_clips,
+        eval_retries,
+        0.0,
+        scene_id,
+        dialogue,
+        characters,
         clip_prompts[0],
-        clip_index=1,
-        reference_images=reference_images,
-        duration_seconds=first_clip_seconds,
     )
     total_retries += attempts - 1
 
     i = 1
     try:
         for i, prompt in enumerate(clip_prompts[1:], start=2):
-            video_obj, attempts = generate_extension_clip(
-                client, prompt, video_obj, clip_index=i
+            dialogue, clip_id = _clip_dialogue(i - 1) if verify_clips else (None, i)
+            video_obj, attempts, cum_duration = _generate_and_verify(
+                lambda: generate_extension_clip(
+                    client, prompt, video_obj, clip_index=i
+                ),
+                clip_id,
+                client,
+                verify_clips,
+                eval_retries,
+                cum_duration,
+                scene_id,
+                dialogue,
+                characters,
+                prompt,
             )
             total_retries += attempts - 1
             if i < num_clips:
@@ -150,7 +315,11 @@ def run_scene_pipeline(
 
 
 def run_scenario_pipeline(
-    client, scenario: dict, reference_images: list = None
+    client,
+    scenario: dict,
+    reference_images: list = None,
+    verify_clips: bool = False,
+    eval_retries: int = 1,
 ) -> list:
     """
     Build clip prompts for every scene and run the stitching pipeline for each.
@@ -170,6 +339,10 @@ def run_scenario_pipeline(
                 scene_id=scene_id,
                 clip_prompts=clip_prompts,
                 reference_images=reference_images,
+                verify_clips=verify_clips,
+                eval_retries=eval_retries,
+                scene=scene,
+                characters=characters,
             )
             results.append(
                 {

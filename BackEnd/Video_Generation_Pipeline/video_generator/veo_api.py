@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from .logging_utils import OUTPUT_DIR, log_generation
+from .logging_utils import OUTPUT_DIR
 
 # MODELS
 VEO_MODELS = {
@@ -15,7 +15,9 @@ VEO_MODELS = {
 
 # STITCH PIPELINE SETTINGS
 MODEL = "veo-3.1-generate-preview"
+#MODEL = "veo-3.1-fast-generate-preview"
 MODEL_KEY = "veo-3.1"
+# MODEL_KEY = "veo-3.1-fast"
 RESOLUTION = "720p"
 ASPECT_RATIO = "16:9"
 POLL_INTERVAL = 10
@@ -66,6 +68,21 @@ class _VeoExhaustedError(RuntimeError):
 
 class ClipEvalFailedError(RuntimeError):
     """Raised by the pipeline when a clip still fails transcript-eval after all retries."""
+
+
+def _format_operation_error(error) -> str:
+    """Render a finished operation's error as "[code] message" — the raw
+    object's default __str__/__repr__ (as previously interpolated straight
+    into the exception message) isn't guaranteed to surface Veo's actual
+    code/message, so extract them explicitly the same way
+    _is_retryable_operation_error already does."""
+    if isinstance(error, dict):
+        code = error.get("code")
+        message = error.get("message", "") or ""
+    else:
+        code = getattr(error, "code", None)
+        message = getattr(error, "message", "") or ""
+    return f"[{code}] {message}" if (code is not None or message) else str(error)
 
 
 def _is_retryable_operation_error(error):
@@ -150,10 +167,10 @@ def poll_until_done(client, operation):
         if _is_retryable_operation_error(operation.error):
             print(" failed (transient).")
             raise _VeoRetryableError(
-                f"Veo generation failed (transient): {operation.error}"
+                f"Veo generation failed (transient): {_format_operation_error(operation.error)}"
             )
         print(" failed.")
-        raise RuntimeError(f"Veo generation failed: {operation.error}")
+        raise RuntimeError(f"Veo generation failed: {_format_operation_error(operation.error)}")
     if not getattr(operation, "response", None) or not getattr(
         operation.response, "generated_videos", None
     ):

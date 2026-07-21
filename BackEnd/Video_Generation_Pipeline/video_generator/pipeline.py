@@ -22,7 +22,7 @@ from .veo_api import (
 )
 
 
-def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, new_duration, attempt_wall_time):
+def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, new_duration, attempt_wall_time, recovered_error):
     """One clips[] entry per clip-generation attempt made under --verify-clips
     (pass or fail), appended into the scene-attempt's in-memory list rather
     than written immediately — the caller rolls every attempt's cost/duration
@@ -33,7 +33,12 @@ def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, ne
     (new_duration - prev_duration) for duration/cost — not the isolated clip
     video file, which verify_clip deletes once eval passes: relying on that
     file previously meant a passing clip's cost/duration/eval_report_path
-    never got recorded at all."""
+    never got recorded at all.
+
+    error prefers the eval failure reason (more specific/actionable) when
+    eval failed; otherwise falls back to recovered_error — a transient Veo
+    error that got retried past on the way to this successful generation,
+    which would otherwise only ever show up in console output."""
     clip_dur = round(new_duration - prev_duration, 2) if new_duration is not None else None
     passed = report["passed"]
     return {
@@ -44,7 +49,7 @@ def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, ne
         "estimated_cost_usd": estimate_cost(MODEL_KEY, RESOLUTION, clip_dur),
         "generation_time": round(attempt_wall_time, 1),
         "eval_report_path": eval_report_path_for(report["video_path"]),
-        "error": None if passed else eval_failure_reason(report),
+        "error": eval_failure_reason(report) if not passed else recovered_error,
         "prompt": prompt,
     }
 
@@ -62,8 +67,9 @@ def _generate_and_verify(
     prompt,
     clip_log_entries,
 ):
-    """Run generate_fn() — a thunk returning (video_obj, attempts) — and, if
-    verify_clips, check the result against transcript_eval before accepting it.
+    """Run generate_fn() — a thunk returning (video_obj, attempts, recovered_error)
+    — and, if verify_clips, check the result against transcript_eval before
+    accepting it.
 
     A failed eval raises ClipEvalFailedError immediately, with no in-place
     retry: Veo's extension feature makes a regenerated clip highly likely to
@@ -85,7 +91,7 @@ def _generate_and_verify(
     """
     attempt_start = time.time()
     try:
-        video_obj, attempts = generate_fn()
+        video_obj, attempts, recovered_error = generate_fn()
     except Exception as e:
         clip_log_entries.append({
             "clip_id": clip_id,
@@ -101,6 +107,17 @@ def _generate_and_verify(
         raise
 
     if not verify_clips:
+        clip_log_entries.append({
+            "clip_id": clip_id,
+            "attempt_number": scene_attempt,
+            "eval_passed": None,
+            "video_duration_seconds": None,
+            "estimated_cost_usd": None,
+            "generation_time": round(time.time() - attempt_start, 1),
+            "eval_report_path": None,
+            "error": recovered_error,
+            "prompt": prompt,
+        })
         return video_obj, attempts, prev_duration
 
     report, new_duration, failed_clip_path = verify_clip(
@@ -128,7 +145,7 @@ def _generate_and_verify(
     clip_log_entries.append(
         _build_clip_entry(
             clip_id, scene_attempt, prompt, report, prev_duration, new_duration,
-            time.time() - attempt_start,
+            time.time() - attempt_start, recovered_error,
         )
     )
 
@@ -264,26 +281,40 @@ def run_scene_pipeline(
                 checkpoint = str(
                     OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
                 )
-                download_video(client, video_obj, checkpoint)
                 print(f"\n  Extension failed at clip {i}: {e}")
-                print(f"  Last good video saved: {checkpoint}")
 
-                # Count retries used by the failing clip (carried on _VeoExhaustedError)
-                total_retries += getattr(e, "attempts_used", 1) - 1
-
-                wall_time = time.time() - start_time
-                size_mb = round(os.path.getsize(checkpoint) / (1024 * 1024), 2)
-                vid_dur = get_video_duration(checkpoint)
-                # Fallback: estimate from clip count when moviepy is unavailable
+                # Checkpoint save is itself a network call and can fail for the same
+                # reason the clip generation just did (e.g. a connection timeout) —
+                # if it does, still log this scene-attempt with what's known rather
+                # than letting the secondary failure propagate uncaught and silently
+                # skip log_scene_attempt entirely.
+                size_mb = None
+                vid_dur = None
+                try:
+                    download_video(client, video_obj, checkpoint)
+                    print(f"  Last good video saved: {checkpoint}")
+                    size_mb = round(os.path.getsize(checkpoint) / (1024 * 1024), 2)
+                    vid_dur = get_video_duration(checkpoint)
+                except Exception as checkpoint_err:
+                    checkpoint = None
+                    print(f"  Checkpoint save also failed: {checkpoint_err}")
+                # Fallback: estimate from clip count when moviepy is unavailable, or
+                # the checkpoint download itself failed
                 if vid_dur is None:
                     effective_first = 8 if reference_images else first_clip_seconds
                     vid_dur = round(
                         effective_first + (completed_clips - 1) * EXTENSION_SECONDS, 1
                     )
+
+                # Count retries used by the failing clip (carried on _VeoExhaustedError)
+                total_retries += getattr(e, "attempts_used", 1) - 1
+
+                wall_time = time.time() - start_time
                 log_scene_attempt(
                     scene_id=scene_id,
                     scene_attempt=scene_attempt + 1,
                     model_key=MODEL_KEY,
+                    reference_images=reference_images,
                     success=False,
                     eval_passed=None,
                     total_time_seconds=wall_time,
@@ -301,6 +332,7 @@ def run_scene_pipeline(
                 scene_id=scene_id,
                 scene_attempt=scene_attempt + 1,
                 model_key=MODEL_KEY,
+                reference_images=reference_images,
                 success=False,
                 eval_passed=False,
                 total_time_seconds=time.time() - start_time,
@@ -332,6 +364,7 @@ def run_scene_pipeline(
             scene_id=scene_id,
             scene_attempt=scene_attempt + 1,
             model_key=MODEL_KEY,
+            reference_images=reference_images,
             success=True,
             eval_passed=True if verify_clips else None,
             total_time_seconds=wall_time,

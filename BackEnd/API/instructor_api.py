@@ -10,19 +10,25 @@ from Script_Generation_Pipeline import (
 )
 from Image_Generation_Pipeline import (
     generate_background,
-    generate_characters,
-    generate_opening_frames,
     retry_with_feedback,
 )
 
+from API.instructor_api_helpers import (
+    generate_uuid,
+    delete_local_files,
+    generate_character_images_impl,
+    generate_opening_frame_images_impl,
+    setup_supabase_client,
+)
 
 from pydantic import BaseModel
 from pathlib import Path
 import re
 from typing import Any
-import os
-import uuid
 import tempfile
+import json
+
+from storage3.exceptions import StorageApiError
 
 
 # This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
@@ -57,24 +63,21 @@ class ImageRetryRequest(BaseModel):
     )
 
 
-# Function to delete local files after processing to clean up the server storage
-def delete_local_files(file_paths):
-    for file_path in file_paths:
-        os.remove(file_path)
-        print(f"Successfully deleted {file_path}")
+# This Class defines the structure of the request body for uploading project information to the Supabase database
+class UploadProjectInfo(BaseModel):
+    project_name: str
+    script: dict[str, Any]
+    video_paths: dict[
+        int, str
+    ]  # Dictionary containing video paths and their corresponding order
 
 
-# Function to generate a unique identifier (UUID) associated with each request to ensure that files are uniquely named and avoid conflicts
-def generate_uuid():
-    return str(uuid.uuid4())
-
-
-# API router instance to define the endpoints for the FastAPI application
-api_router = APIRouter()
+# API router instance to define the endpoints for the FastAPI application for the instructor
+instructor_router = APIRouter()
 
 
 # This endpoint will be called by the frontend to generate the initial script based on the user's query and the relevant textbook content (currently with decision points included)
-@api_router.post("/initial_script")
+@instructor_router.post("/initial_script")
 def generate_initial_script(
     scene_information: SceneInformation, background_tasks: BackgroundTasks
 ) -> dict:
@@ -148,7 +151,7 @@ def generate_initial_script(
 
 
 # This endpoint will be called by the frontend to generate the reference background image
-@api_router.post("/generate_background_image")
+@instructor_router.post("/generate_background_image")
 def generate_background_image(
     request: ImageGenerationRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -182,7 +185,7 @@ def generate_background_image(
 
 
 # This endpoint will be called by the frontend to generate the reference character images
-@api_router.post("/generate_character_images")
+@instructor_router.post("/generate_character_images")
 def generate_character_images(
     request: ImageGenerationRequest,
     background_tasks: BackgroundTasks,
@@ -216,26 +219,8 @@ def generate_character_images(
     }
 
 
-# This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
-def generate_character_images_impl(
-    script: dict[str, Any], request_id: str, retry_image_id: str | None = None
-) -> tuple[dict[str, str], list[str | None], list[str]]:
-
-    (
-        character_image_file_mapping,
-        character_uploaded_file_names,
-        character_json_file_paths,
-    ) = generate_characters(script, request_id, retry_image_id)
-
-    return (
-        character_image_file_mapping,
-        character_uploaded_file_names,
-        character_json_file_paths,
-    )
-
-
 # This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
-@api_router.post("/generate_opening_frames")
+@instructor_router.post("/generate_opening_frames")
 def generate_opening_frame_images(
     request: ImageGenerationRequest,
     background_tasks: BackgroundTasks,
@@ -277,35 +262,14 @@ def generate_opening_frame_images(
     }
 
 
-# This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
-def generate_opening_frame_images_impl(
-    script: dict[str, Any],
-    background_image_path: str,
-    character_image_file_mapping: dict[str, str],
-    request_id: str,
-    retry_image_id: str | None = None,
-) -> tuple[dict[str, str], list[str | None], list[str]]:
-    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        generate_opening_frames(
-            script,
-            background_image_path,
-            character_image_file_mapping,
-            request_id,
-            retry_image_id=retry_image_id,
-        )
-    )
-
-    return opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths
-
-
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
-@api_router.get("/image/{image_path:path}")
+@instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
     return FileResponse(image_path, media_type="image/png")
 
 
 # This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
-@api_router.post("/retry_generate_background_image")
+@instructor_router.post("/retry_generate_background_image")
 def retry_generate_background_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -348,7 +312,7 @@ def retry_generate_background_image(
 
 
 # This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided
-@api_router.post("/retry_generate_character_image")
+@instructor_router.post("/retry_generate_character_image")
 def retry_generate_character_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -423,7 +387,7 @@ def retry_generate_character_image(
 
 
 # This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
-@api_router.post("/retry_generate_opening_frames")
+@instructor_router.post("/retry_generate_opening_frames")
 def retry_generate_opening_frames(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -508,6 +472,52 @@ def retry_generate_opening_frames(
 
 
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
-@api_router.get("/video/{video_path:path}")
+@instructor_router.get("/video/{video_path:path}")
 def get_video(video_path: str):
     return FileResponse(video_path, media_type="video/mp4")
+
+
+# This endpoint will be called by the frontend to upload the project information (script and generated videos) to the Supabase database
+@instructor_router.post("/upload_project_info")
+def upload_project_info(project_info: UploadProjectInfo):
+    for video_path in project_info.video_paths.values():
+        if not Path(video_path).exists() or not Path(video_path).is_file():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Video file '{video_path}' does not exist.",
+            )
+
+    supabase_client = setup_supabase_client()
+
+    try:
+
+        supabase_client.storage.from_("Scripts").upload(
+            path=f"{project_info.project_name}/script.json",
+            file=json.dumps(project_info.script, indent=2).encode("utf-8"),
+            file_options={"content-type": "application/json", "upsert": "false"},
+        )
+
+        for order, video_path in project_info.video_paths.items():
+            with open(video_path, "rb") as f:
+                supabase_client.storage.from_("Videos").upload(
+                    path=f"{project_info.project_name}/scene_{order}.mp4",
+                    file=f,
+                    file_options={
+                        "content-type": "video/mp4",
+                        "upsert": "false",
+                    },
+                )
+
+        return {"message": "Project information uploaded successfully"}
+
+    except StorageApiError as e:
+        if e.status == 409 or e.code == "Duplicate":
+            raise HTTPException(
+                status_code=409,
+                detail=f"Project with name '{project_info.project_name}' already exists.",
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while uploading project information: {str(e)}. Please try again.",
+            )

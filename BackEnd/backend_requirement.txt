@@ -5,4 +5,8 @@ markdownify
 requests
 beautifulsoup4
 lxml
-moviepy    
+moviepy
+supabase
+openai-whisper
+rapidfuzz
+pillow

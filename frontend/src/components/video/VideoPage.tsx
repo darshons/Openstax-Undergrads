@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Script, Scene, Choice } from '../../types/script';
+import { videoUrl, type VideoGenState } from '../../lib/api';
 
 function fmtDur(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -118,18 +119,80 @@ function PublishControl({ onPublish }: { onPublish?: (name: string) => Promise<v
   );
 }
 
+function GenerateVideosControl({
+  state,
+  error,
+  completedCount,
+  totalCount,
+  disabled,
+  onGenerate,
+}: {
+  state: VideoGenState;
+  error: string | null;
+  completedCount: number;
+  totalCount: number;
+  disabled: boolean;
+  onGenerate: () => void;
+}) {
+  const busy = state === 'queued' || state === 'planning_clips' || state === 'rendering';
+
+  const label = (() => {
+    switch (state) {
+      case 'queued': return 'Queued…';
+      case 'planning_clips': return 'Planning shots…';
+      case 'rendering': return `Rendering… ${completedCount}/${totalCount}`;
+      case 'done': return 'Regenerate videos';
+      case 'completed_with_errors': return 'Retry failed scenes';
+      case 'failed': return 'Retry generation';
+      default: return 'Generate videos';
+    }
+  })();
+
+  return (
+    <div className="video-generate-control">
+      <button className="assets-back" onClick={onGenerate} disabled={disabled || busy} style={{ gap: 6 }}>
+        {label}
+      </button>
+      {error && <span className="video-publish-error">{error}</span>}
+    </div>
+  );
+}
+
 interface VideoPageProps {
   script: Script;
   onBack: () => void;
   onStudentPreview?: () => void;
   onPublish?: (name: string) => Promise<void>;
+  requestId: string | null;
+  hasAssets: boolean;
+  videoGenState: VideoGenState;
+  videoGenError: string | null;
+  sceneVideoPaths: Record<number, string>;
+  onGenerateVideos: () => void;
 }
 
-export default function VideoPage({ script, onBack, onStudentPreview, onPublish }: VideoPageProps) {
+export default function VideoPage({
+  script,
+  onBack,
+  onStudentPreview,
+  onPublish,
+  requestId,
+  hasAssets,
+  videoGenState,
+  videoGenError,
+  sceneVideoPaths,
+  onGenerateVideos,
+}: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
   const scenes = script.scenes ?? [];
   const dps = script.decision_points ?? [];
+
+  const sceneVideos = useMemo(
+    () => Object.fromEntries(
+      Object.entries(sceneVideoPaths).map(([id, path]) => [Number(id), videoUrl(path)]),
+    ),
+    [sceneVideoPaths],
+  );
 
 
   const branchIds = new Set(
@@ -158,6 +221,14 @@ export default function VideoPage({ script, onBack, onStudentPreview, onPublish 
           <p>{script.title || 'Untitled scenario'}</p>
         </div>
         <div className="video-topbar-actions">
+          <GenerateVideosControl
+            state={videoGenState}
+            error={videoGenError}
+            completedCount={Object.keys(sceneVideoPaths).length}
+            totalCount={scenes.length}
+            disabled={!requestId || !hasAssets}
+            onGenerate={onGenerateVideos}
+          />
           <button className="assets-back" onClick={onStudentPreview} disabled={!onStudentPreview} style={{ gap: 6 }}>
             Student Preview →
           </button>

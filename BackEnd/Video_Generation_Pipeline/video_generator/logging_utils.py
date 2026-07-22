@@ -2,7 +2,13 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-OUTPUT_DIR = Path("output")
+# Absolute and anchored at Video_Generation_Pipeline/ rather than a bare
+# relative "output" — this module is imported by both the CLI (run from
+# Video_Generation_Pipeline/) and the FastAPI app (run from BackEnd/), and a
+# relative path silently resolves to a different, nonexistent directory
+# depending on the caller's cwd.
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = OUTPUT_DIR / "generation_log.json"
 
 

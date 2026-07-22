@@ -7,11 +7,17 @@ from Script_Generation_Pipeline import (
     delete_uploaded_files_anthropic,
     generate_script_with_decision_points_gemini,
     delete_uploaded_files_gemini,
+    setup_gemini_client,
 )
 from Image_Generation_Pipeline import (
     generate_background,
     retry_with_feedback,
 )
+from Video_Generation_Pipeline.video_generator.clip_planner import (
+    plan_scenario_clips,
+    ClipPlanningError,
+)
+from Video_Generation_Pipeline.video_generator.pipeline import run_scenario_pipeline
 
 from API.instructor_api_helpers import (
     generate_uuid,
@@ -23,10 +29,13 @@ from API.instructor_api_helpers import (
 
 from pydantic import BaseModel
 from pathlib import Path
+import os
 import re
 from typing import Any
 import tempfile
 import json
+import traceback
+from concurrent.futures import ThreadPoolExecutor
 
 from storage3.exceptions import StorageApiError
 
@@ -521,3 +530,124 @@ def upload_project_info(project_info: UploadProjectInfo):
                 status_code=500,
                 detail=f"An error occurred while uploading project information: {str(e)}. Please try again.",
             )
+
+
+# ---------------------------------------------------------------------------
+# Scenario video generation (Veo)
+# ---------------------------------------------------------------------------
+
+# Anchor the output root at the repo root so it is the same directory whether
+# the API or the CLI (video_generator/cli.py) writes/reads it.
+_VIDEO_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VIDEO_OUTPUT_ROOT = os.environ.get(
+    "VIDEO_OUTPUT_ROOT",
+    os.path.join(_VIDEO_REPO_ROOT, "Video_Generation_Pipeline", "output", "video_runs"),
+)
+# One worker: Veo extension clips within a scene must be generated serially,
+# and this also means one scenario's videos are generated at a time.
+_video_executor = ThreadPoolExecutor(max_workers=1)
+
+
+# This Class defines the structure of the request body for generating scenario videos. background_image_path and character_image_file_mapping come straight from the asset-generation step and are used as Veo reference images for character/environment consistency.
+class VideoGenerationRequest(BaseModel):
+    script: dict[str, Any]
+    request_id: str
+    background_image_path: str
+    character_image_file_mapping: dict[str, str]
+
+
+def _video_status_path(request_id: str) -> str:
+    return os.path.join(VIDEO_OUTPUT_ROOT, request_id, "status.json")
+
+
+def _write_video_status(request_id: str, status: dict) -> None:
+    """Write status.json atomically — write to a sibling temp file then
+    os.replace() over the real path, so a concurrent /video_status read can
+    never observe a truncated/partial write mid-json.dump (reproduced during
+    real testing: a poll landing mid-write raised JSONDecodeError)."""
+    path = _video_status_path(request_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(status, f, indent=2)
+    os.replace(tmp_path, path)
+
+
+def _run_video_generation(
+    script: dict, request_id: str, reference_images: list[str]
+) -> None:
+    """Background job: plan clips for every scene, then render each scene
+    through Veo. Writes status.json after every stage/scene transition so
+    /video_status can report progress without blocking on the whole run.
+    Any unexpected failure still leaves status.json in a terminal "failed"
+    state rather than letting the background thread die silently."""
+    status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
+    _write_video_status(request_id, status)
+
+    try:
+        client = setup_gemini_client()
+
+        try:
+            planned_scenario = plan_scenario_clips(script, client=client)
+        except ClipPlanningError as e:
+            status["state"] = "failed"
+            status["error"] = f"clip planning failed: {e}"
+            _write_video_status(request_id, status)
+            return
+
+        status["state"] = "rendering"
+        _write_video_status(request_id, status)
+
+        def _on_scene_complete(result: dict) -> None:
+            scene_id = str(result["scene_id"])
+            if result["success"]:
+                status["completed_scenes"][scene_id] = result["output_file"]
+            else:
+                status["failed_scenes"][scene_id] = result["error"]
+            _write_video_status(request_id, status)
+
+        run_scenario_pipeline(
+            client=client,
+            scenario=planned_scenario,
+            reference_images=reference_images or None,
+            on_scene_complete=_on_scene_complete,
+        )
+
+        status["state"] = (
+            "done" if not status["failed_scenes"] else "completed_with_errors"
+        )
+        _write_video_status(request_id, status)
+    except Exception as e:
+        status["state"] = "failed"
+        status["error"] = str(e)
+        _write_video_status(request_id, status)
+        print(
+            f"[generate_videos] request {request_id} failed:\n{traceback.format_exc()}"
+        )
+
+
+# This endpoint will be called by the frontend to kick off scenario video generation once assets are approved
+@instructor_router.post("/generate_videos")
+def generate_videos(request: VideoGenerationRequest) -> dict:
+    """Kick off Veo scenario video generation for an approved scenario script.
+    Returns immediately; poll /video_status/{request_id} for progress."""
+    reference_images = [
+        request.background_image_path,
+        *request.character_image_file_mapping.values(),
+    ]
+    _video_executor.submit(
+        _run_video_generation, request.script, request.request_id, reference_images
+    )
+    return {"status": "started", "request_id": request.request_id}
+
+
+# This endpoint will be called by the frontend to poll scenario video generation progress
+@instructor_router.get("/video_status/{request_id}")
+def video_status(request_id: str) -> dict:
+    """Read the background job's status.json for a run (pure file read; the
+    job rewrites it after every stage/scene transition)."""
+    status_path = _video_status_path(request_id)
+    if not os.path.exists(status_path):
+        return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+    with open(status_path, "r", encoding="utf-8") as f:
+        return json.load(f)

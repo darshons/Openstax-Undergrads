@@ -173,6 +173,66 @@ export async function publishScenario(
   if (!res.ok) throw new Error(`Publish failed (${res.status})`);
 }
 
+/**
+ * Convert an absolute server-side video file path into a URL served by the
+ * backend (GET /instructor_api/video/{path:path}), mirroring imageUrl()'s
+ * leading-slash handling.
+ */
+export function videoUrl(serverPath: string): string {
+  const qIdx = serverPath.indexOf('?');
+  const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
+  const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
+  return `/instructor_api/video/${path}${qs}`;
+}
+
+export type VideoGenState =
+  | 'idle'
+  | 'queued'
+  | 'planning_clips'
+  | 'rendering'
+  | 'done'
+  | 'completed_with_errors'
+  | 'failed';
+
+export interface VideoStatus {
+  state: VideoGenState;
+  completed_scenes: Record<string, string>;
+  failed_scenes: Record<string, string>;
+  error?: string;
+}
+
+/**
+ * Kicks off Veo scenario video generation for an approved script. Returns
+ * once the job is queued server-side — poll getVideoStatus for progress.
+ * background_image_path/character_image_file_mapping come straight from the
+ * already-generated Studio assets and anchor character/environment
+ * consistency across every scene's first clip.
+ */
+export async function generateVideos(
+  script: Script,
+  requestId: string,
+  backgroundImagePath: string,
+  characterImageFileMapping: Record<string, string>,
+): Promise<void> {
+  const res = await fetch('/instructor_api/generate_videos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      script,
+      request_id: requestId,
+      background_image_path: backgroundImagePath,
+      character_image_file_mapping: characterImageFileMapping,
+    }),
+  });
+  if (!res.ok) throw new Error(`Video generation failed to start (${res.status})`);
+}
+
+export async function getVideoStatus(requestId: string): Promise<VideoStatus> {
+  const res = await fetch(`/instructor_api/video_status/${encodeURIComponent(requestId)}`);
+  if (!res.ok) throw new Error(`Video status check failed (${res.status})`);
+  return res.json();
+}
+
 interface ScenarioAssets {
   script: Script;
   assetImages: AssetImages;

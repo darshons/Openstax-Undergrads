@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type {
   Script,
@@ -20,6 +20,9 @@ import {
   retryCharacterImage,
   retryOpeningFrame,
   publishScenario,
+  generateVideos as apiGenerateVideos,
+  getVideoStatus,
+  type VideoGenState,
 } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
 import { saveScenario } from './lib/savedScenario';
@@ -43,6 +46,11 @@ export default function Studio() {
   const [assetImages, setAssetImages] = useState<AssetImages>({ bgPath: null, charPaths: {}, framePaths: {} });
   const [assetsStep, setAssetsStep] = useState<AssetsStep>('idle');
   const [assetsError, setAssetsError] = useState<string | null>(null);
+
+  const [videoGenState, setVideoGenState] = useState<VideoGenState>('idle');
+  const [videoGenError, setVideoGenError] = useState<string | null>(null);
+  const [sceneVideoPaths, setSceneVideoPaths] = useState<Record<number, string>>({});
+  const videoPollRef = useRef<number | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -259,6 +267,10 @@ export default function Studio() {
     setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
     setAssetsStep('idle');
     setAssetsError(null);
+    if (videoPollRef.current) clearTimeout(videoPollRef.current);
+    setVideoGenState('idle');
+    setVideoGenError(null);
+    setSceneVideoPaths({});
     setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
@@ -321,6 +333,51 @@ export default function Studio() {
     const rawBgPath = assetImages.bgPath.split('?')[0];
     const path = await retryOpeningFrame(script, requestId, rawBgPath, assetImages.charPaths, sceneId, feedback);
     setAssetImages(prev => ({ ...prev, framePaths: { ...prev.framePaths, [sceneId]: `${path}?t=${Date.now()}` } }));
+  }, [script, requestId, assetImages]);
+
+  // ── Video generation (Veo) ──────────────────────────────────────────────
+
+  useEffect(() => () => {
+    if (videoPollRef.current) clearTimeout(videoPollRef.current);
+  }, []);
+
+  const generateVideos = useCallback(async () => {
+    if (!script || !requestId || !assetImages.bgPath) return;
+    if (videoPollRef.current) clearTimeout(videoPollRef.current);
+
+    setVideoGenState('queued');
+    setVideoGenError(null);
+    setSceneVideoPaths({});
+
+    const rawBgPath = assetImages.bgPath.split('?')[0];
+    const rawCharPaths = Object.fromEntries(
+      Object.entries(assetImages.charPaths).map(([id, path]) => [id, path.split('?')[0]]),
+    );
+
+    const poll = async () => {
+      try {
+        const status = await getVideoStatus(requestId);
+        setVideoGenState(status.state);
+        setSceneVideoPaths(
+          Object.fromEntries(Object.entries(status.completed_scenes).map(([id, path]) => [Number(id), path])),
+        );
+        if (status.error) setVideoGenError(status.error);
+        if (status.state === 'queued' || status.state === 'planning_clips' || status.state === 'rendering') {
+          videoPollRef.current = window.setTimeout(poll, 5000);
+        }
+      } catch (err) {
+        setVideoGenState('failed');
+        setVideoGenError(err instanceof Error ? err.message : 'Video status check failed');
+      }
+    };
+
+    try {
+      await apiGenerateVideos(script, requestId, rawBgPath, rawCharPaths);
+      videoPollRef.current = window.setTimeout(poll, 1000);
+    } catch (err) {
+      setVideoGenState('failed');
+      setVideoGenError(err instanceof Error ? err.message : 'Video generation failed to start');
+    }
   }, [script, requestId, assetImages]);
 
   // ── Derived values ──────────────────────────────────────────────────────
@@ -409,7 +466,13 @@ export default function Studio() {
                 saveScenario(script, assetImages);
                 setPreviewing(true);
               }}
-              onPublish={name => publishScenario(name, script)}
+              onPublish={name => publishScenario(name, script, sceneVideoPaths)}
+              requestId={requestId}
+              hasAssets={!!assetImages.bgPath && Object.keys(assetImages.charPaths).length > 0}
+              videoGenState={videoGenState}
+              videoGenError={videoGenError}
+              sceneVideoPaths={sceneVideoPaths}
+              onGenerateVideos={generateVideos}
             />
           </div>
         )}

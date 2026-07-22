@@ -65,6 +65,7 @@ def _generate_and_verify(
     dialogue,
     characters,
     prompt,
+    clip_duration_hint,
     clip_log_entries,
 ):
     """Run generate_fn() — a thunk returning (video_obj, attempts, recovered_error)
@@ -88,6 +89,11 @@ def _generate_and_verify(
 
     Returns (video_obj, attempts, new_duration). new_duration == prev_duration
     when verify_clips is False (duration tracking only matters for eval).
+
+    clip_duration_hint: Veo's expected length for this clip (first_clip_seconds,
+    or EXTENSION_SECONDS for a hop) — used to log video_duration_seconds/
+    estimated_cost_usd when verify_clips is False, since no video gets
+    downloaded (and so no measured duration exists) until the scene finishes.
     """
     attempt_start = time.time()
     try:
@@ -111,8 +117,8 @@ def _generate_and_verify(
             "clip_id": clip_id,
             "attempt_number": scene_attempt,
             "eval_passed": None,
-            "video_duration_seconds": None,
-            "estimated_cost_usd": None,
+            "video_duration_seconds": clip_duration_hint,
+            "estimated_cost_usd": estimate_cost(MODEL_KEY, RESOLUTION, clip_duration_hint),
             "generation_time": round(time.time() - attempt_start, 1),
             "eval_report_path": None,
             "error": recovered_error,
@@ -239,6 +245,7 @@ def run_scene_pipeline(
                 dialogue,
                 characters,
                 clip_prompts[0],
+                effective_first,
                 clip_log_entries,
             )
             total_retries += attempts - 1
@@ -265,6 +272,7 @@ def run_scene_pipeline(
                         dialogue,
                         characters,
                         prompt,
+                        EXTENSION_SECONDS,
                         clip_log_entries,
                     )
                     total_retries += attempts - 1

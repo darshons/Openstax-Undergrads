@@ -339,10 +339,15 @@ def run_scenario_pipeline(
     reference_images: list = None,
     verify_clips: bool = False,
     eval_retries: int = 1,
+    on_scene_complete=None,
 ) -> list:
     """
     Build clip prompts for every scene and run the stitching pipeline for each.
     Returns a list of result dicts: {scene_id, success, output_file, error}.
+
+    on_scene_complete: optional callback invoked with each scene's result dict
+    right after it finishes (success or failure) — lets a caller (e.g. an async
+    API job) report per-scene progress without waiting on the full scenario.
     """
     characters = scenario["characters"]
     visual_style = scenario["visual_style"]
@@ -363,22 +368,22 @@ def run_scenario_pipeline(
                 scene=scene,
                 characters=characters,
             )
-            results.append(
-                {
-                    "scene_id": scene_id,
-                    "success": True,
-                    "output_file": final_path,
-                    "error": None,
-                }
-            )
+            result = {
+                "scene_id": scene_id,
+                "success": True,
+                "output_file": final_path,
+                "error": None,
+            }
         except Exception as e:
-            results.append(
-                {
-                    "scene_id": scene_id,
-                    "success": False,
-                    "output_file": None,
-                    "error": str(e),
-                }
-            )
+            result = {
+                "scene_id": scene_id,
+                "success": False,
+                "output_file": None,
+                "error": str(e),
+            }
+
+        results.append(result)
+        if on_scene_complete:
+            on_scene_complete(result)
 
     return results

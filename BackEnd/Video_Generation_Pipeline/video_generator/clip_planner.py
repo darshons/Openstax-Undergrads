@@ -37,7 +37,9 @@ def _dialogue_key(line: dict) -> tuple:
 
 def _validate_clips(clips: list, original_dialogue: list, num_clips: int) -> None:
     if len(clips) != num_clips:
-        raise ClipPlanningError(f"expected {num_clips} clips, model returned {len(clips)}")
+        raise ClipPlanningError(
+            f"expected {num_clips} clips, model returned {len(clips)}"
+        )
 
     collected_dialogue = []
     for i, clip in enumerate(clips, start=1):
@@ -56,7 +58,9 @@ def _validate_clips(clips: list, original_dialogue: list, num_clips: int) -> Non
         )
 
 
-def plan_scene_clips(scene: dict, characters: list, visual_style: str, client=None) -> dict:
+def plan_scene_clips(
+    scene: dict, characters: list, visual_style: str, client=None
+) -> dict:
     """Break one authored scene (flat audio/camera/duration) into the `clips`
     breakdown Veo's extension pipeline needs — a per-beat list of dialogue
     chunk + camera + actions, one entry per Veo clip. Returns a new scene dict

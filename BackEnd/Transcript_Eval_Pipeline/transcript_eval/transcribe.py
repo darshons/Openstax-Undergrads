@@ -55,7 +55,7 @@ def transcribe_clip(video_path: str) -> list:
     extract_audio(video_path, audio_path)
 
     model = _get_whisper_model()
-    result = model.transcribe(audio_path)
+    result = model.transcribe(audio_path, fp16=False)
 
     Path(audio_path).unlink(missing_ok=True)
 

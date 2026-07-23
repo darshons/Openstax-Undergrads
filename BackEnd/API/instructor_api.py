@@ -7,7 +7,6 @@ from Script_Generation_Pipeline import (
     delete_uploaded_files_anthropic,
     generate_script_with_decision_points_gemini,
     delete_uploaded_files_gemini,
-    setup_gemini_client,
 )
 from Image_Generation_Pipeline import (
     generate_background,
@@ -20,27 +19,15 @@ from API.instructor_api_helpers import (
     generate_character_images_impl,
     generate_opening_frame_images_impl,
     setup_supabase_client,
+    video_status_path,
+    run_video_generation,
 )
-
-import json
-from concurrent.futures import ThreadPoolExecutor
 
 from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
 from Video_Generation_Pipeline.manim_generator.script_adapter import (
     ScriptValidationError,
     adapt,
 )
-# Aliased: this branch already imports Manim's run_scenario_pipeline above
-# under the bare name — Veo's version (different module, different signature)
-# needs a distinct name to coexist with it.
-from Video_Generation_Pipeline.video_generator.clip_planner import (
-    plan_scenario_clips,
-    ClipPlanningError,
-)
-from Video_Generation_Pipeline.video_generator.pipeline import (
-    run_scenario_pipeline as run_veo_scenario_pipeline,
-)
-
 
 from pydantic import BaseModel
 from pathlib import Path
@@ -49,8 +36,7 @@ from typing import Any
 import tempfile
 import json
 import os
-import traceback
-
+import json
 from storage3.exceptions import StorageApiError
 
 
@@ -66,7 +52,7 @@ class SceneInformation(BaseModel):
 
 
 # This Class defines the structure of the request body for generating images
-class ImageGenerationRequest(BaseModel):
+class VisualGenerationRequest(BaseModel):
     script: dict[str, Any]
     background_image_path: str | None = None
     # This field is optional and will be used when generating opening frames
@@ -77,7 +63,7 @@ class ImageGenerationRequest(BaseModel):
 
 # This Class defines the structure of the request body for retrying image generation
 class ImageRetryRequest(BaseModel):
-    image_request: ImageGenerationRequest
+    image_request: VisualGenerationRequest
     user_feedback: str | None = (
         None  # This field is optional and will be used when retrying image generation based on user feedback
     )
@@ -176,7 +162,7 @@ def generate_initial_script(
 # This endpoint will be called by the frontend to generate the reference background image
 @instructor_router.post("/generate_background_image")
 def generate_background_image(
-    request: ImageGenerationRequest, background_tasks: BackgroundTasks
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
 ) -> dict:
 
     (
@@ -210,7 +196,7 @@ def generate_background_image(
 # This endpoint will be called by the frontend to generate the reference character images
 @instructor_router.post("/generate_character_images")
 def generate_character_images(
-    request: ImageGenerationRequest,
+    request: VisualGenerationRequest,
     background_tasks: BackgroundTasks,
 ) -> dict:
 
@@ -245,7 +231,7 @@ def generate_character_images(
 # This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
 @instructor_router.post("/generate_opening_frames")
 def generate_opening_frame_images(
-    request: ImageGenerationRequest,
+    request: VisualGenerationRequest,
     background_tasks: BackgroundTasks,
 ) -> dict:
     if (
@@ -546,113 +532,36 @@ def upload_project_info(project_info: UploadProjectInfo):
             )
 
 
-# ---------------------------------------------------------------------------
-# Scenario video generation (Veo)
-# ---------------------------------------------------------------------------
-
-# Anchor the output root at the repo root so it is the same directory whether
-# the API or the CLI (video_generator/cli.py) writes/reads it.
-_VIDEO_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VIDEO_OUTPUT_ROOT = os.environ.get(
-    "VIDEO_OUTPUT_ROOT",
-    os.path.join(_VIDEO_REPO_ROOT, "Video_Generation_Pipeline", "output", "video_runs"),
-)
-# One worker: Veo extension clips within a scene must be generated serially,
-# and this also means one scenario's videos are generated at a time.
-_video_executor = ThreadPoolExecutor(max_workers=1)
-
-
-# This Class defines the structure of the request body for generating scenario videos. background_image_path and character_image_file_mapping come straight from the asset-generation step and are used as Veo reference images for character/environment consistency.
-class VideoGenerationRequest(BaseModel):
-    script: dict[str, Any]
-    request_id: str
-    background_image_path: str
-    character_image_file_mapping: dict[str, str]
-
-
-def _video_status_path(request_id: str) -> str:
-    return os.path.join(VIDEO_OUTPUT_ROOT, request_id, "status.json")
-
-
-def _write_video_status(request_id: str, status: dict) -> None:
-    """Write status.json atomically — write to a sibling temp file then
-    os.replace() over the real path, so a concurrent /video_status read can
-    never observe a truncated/partial write mid-json.dump (reproduced during
-    real testing: a poll landing mid-write raised JSONDecodeError)."""
-    path = _video_status_path(request_id)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp_path = f"{path}.tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        json.dump(status, f, indent=2)
-    os.replace(tmp_path, path)
-
-
-def _run_video_generation(
-    script: dict, request_id: str, reference_images: list[str]
-) -> None:
-    """Background job: plan clips for every scene, then render each scene
-    through Veo. Writes status.json after every stage/scene transition so
-    /video_status can report progress without blocking on the whole run.
-    Any unexpected failure still leaves status.json in a terminal "failed"
-    state rather than letting the background thread die silently."""
-    status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
-    _write_video_status(request_id, status)
-
-    try:
-        client = setup_gemini_client()
-
-        try:
-            planned_scenario = plan_scenario_clips(script, client=client)
-        except ClipPlanningError as e:
-            status["state"] = "failed"
-            status["error"] = f"clip planning failed: {e}"
-            _write_video_status(request_id, status)
-            return
-
-        status["state"] = "rendering"
-        _write_video_status(request_id, status)
-
-        def _on_scene_complete(result: dict) -> None:
-            scene_id = str(result["scene_id"])
-            if result["success"]:
-                status["completed_scenes"][scene_id] = result["output_file"]
-            else:
-                status["failed_scenes"][scene_id] = result["error"]
-            _write_video_status(request_id, status)
-
-        run_veo_scenario_pipeline(
-            client=client,
-            scenario=planned_scenario,
-            reference_images=reference_images or None,
-            on_scene_complete=_on_scene_complete,
-        )
-
-        status["state"] = (
-            "done" if not status["failed_scenes"] else "completed_with_errors"
-        )
-        _write_video_status(request_id, status)
-    except Exception as e:
-        status["state"] = "failed"
-        status["error"] = str(e)
-        _write_video_status(request_id, status)
-        print(
-            f"[generate_videos] request {request_id} failed:\n{traceback.format_exc()}"
-        )
-
-
 # This endpoint will be called by the frontend to kick off scenario video generation once assets are approved
 @instructor_router.post("/generate_videos")
-def generate_videos(request: VideoGenerationRequest) -> dict:
+def generate_videos(
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
     """Kick off Veo scenario video generation for an approved scenario script.
     Returns immediately; poll /video_status/{request_id} for progress."""
+
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Video generation requires both background_image_path and character_image_file_mapping",
+        )
+
     reference_images = [
         request.background_image_path,
         *request.character_image_file_mapping.values(),
     ]
-    _video_executor.submit(
-        _run_video_generation, request.script, request.request_id, reference_images
+
+    output_dir = Path(tempfile.gettempdir()) / "Video_Run_Status" / request.request_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    background_tasks.add_task(
+        run_video_generation, request.script, request.request_id, reference_images
     )
-    return {"status": "started", "request_id": request.request_id}
+
+    return {"status": "started"}
 
 
 # This endpoint will be called by the frontend to poll scenario video generation progress
@@ -660,9 +569,12 @@ def generate_videos(request: VideoGenerationRequest) -> dict:
 def video_status(request_id: str) -> dict:
     """Read the background job's status.json for a run (pure file read; the
     job rewrites it after every stage/scene transition)."""
-    status_path = _video_status_path(request_id)
+
+    status_path = video_status_path(request_id)
+
     if not os.path.exists(status_path):
         return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+
     with open(status_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -671,17 +583,12 @@ def video_status(request_id: str) -> dict:
 # Manim branching-video generation ("Manim · Graphics" video type)
 # ---------------------------------------------------------------------------
 
-# TODO!: This code does not currently follow the same pattern of saving to a temp directory and cleaning up after itself. It should be refactored to do so, but for now it is left as-is to avoid breaking the existing pipeline.
-
 # Anchor the output root at the repo root so it is the same directory whether
 # the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIM_OUTPUT_ROOT = os.environ.get(
     "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
 )
-# One worker: scenario renders must be serial (parallel manim subprocesses
-# deadlock), and this also means one scenario is generated at a time.
-_manim_executor = ThreadPoolExecutor(max_workers=1)
 
 
 class ManimVideoRequest(BaseModel):
@@ -690,7 +597,9 @@ class ManimVideoRequest(BaseModel):
 
 
 @instructor_router.post("/generate_manim_videos")
-def generate_manim_videos(request: ManimVideoRequest):
+def generate_manim_videos(
+    request: ManimVideoRequest, background_tasks: BackgroundTasks
+) -> dict:
     """Kick off Manim branching-video generation for an edited scenario script.
     Returns immediately; poll /manim_video_status/{request_id} for progress."""
     try:
@@ -698,7 +607,7 @@ def generate_manim_videos(request: ManimVideoRequest):
     except ScriptValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    _manim_executor.submit(
+    background_tasks.add_task(
         run_scenario_pipeline,
         request.script,
         request.request_id,

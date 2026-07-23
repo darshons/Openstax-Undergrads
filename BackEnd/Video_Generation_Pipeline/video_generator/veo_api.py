@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from .logging_utils import OUTPUT_DIR, log_generation
+from .logging_utils import OUTPUT_DIR
 
 # MODELS
 VEO_MODELS = {
@@ -14,8 +14,13 @@ VEO_MODELS = {
 }
 
 # STITCH PIPELINE SETTINGS
-MODEL = "veo-3.1-generate-preview"
-MODEL_KEY = "veo-3.1"
+# MODEL = "veo-3.1-generate-preview"
+# MODEL_KEY = "veo-3.1"
+
+MODEL = "veo-3.1-fast-generate-preview"
+MODEL_KEY = "veo-3.1-fast"
+
+
 RESOLUTION = "720p"
 ASPECT_RATIO = "16:9"
 POLL_INTERVAL = 10
@@ -23,11 +28,12 @@ POLL_INTERVAL = 10
 # Paths to reference image PNGs for character consistency (first clip only).
 # Place files in reference_images/ and list them here, e.g.:
 #   REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png"]
-REFERENCE_IMAGES = [
-    "reference_images/maya.png",
-    "reference_images/carl.png",
-    "reference_images/background_reference_image.png",
-]
+# REFERENCE_IMAGES = [
+#     "reference_images/maya.png",
+#     "reference_images/carl.png",
+#     "reference_images/background_reference_image.png",
+# ]
+REFERENCE_IMAGES = []
 
 # DURATION CONSTRAINTS
 VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
@@ -66,6 +72,21 @@ class _VeoExhaustedError(RuntimeError):
 
 class ClipEvalFailedError(RuntimeError):
     """Raised by the pipeline when a clip still fails transcript-eval after all retries."""
+
+
+def _format_operation_error(error) -> str:
+    """Render a finished operation's error as "[code] message" — the raw
+    object's default __str__/__repr__ (as previously interpolated straight
+    into the exception message) isn't guaranteed to surface Veo's actual
+    code/message, so extract them explicitly the same way
+    _is_retryable_operation_error already does."""
+    if isinstance(error, dict):
+        code = error.get("code")
+        message = error.get("message", "") or ""
+    else:
+        code = getattr(error, "code", None)
+        message = getattr(error, "message", "") or ""
+    return f"[{code}] {message}" if (code is not None or message) else str(error)
 
 
 def _is_retryable_operation_error(error):
@@ -150,10 +171,10 @@ def poll_until_done(client, operation):
         if _is_retryable_operation_error(operation.error):
             print(" failed (transient).")
             raise _VeoRetryableError(
-                f"Veo generation failed (transient): {operation.error}"
+                f"Veo generation failed (transient): {_format_operation_error(operation.error)}"
             )
         print(" failed.")
-        raise RuntimeError(f"Veo generation failed: {operation.error}")
+        raise RuntimeError(f"Veo generation failed: {_format_operation_error(operation.error)}")
     if not getattr(operation, "response", None) or not getattr(
         operation.response, "generated_videos", None
     ):
@@ -174,12 +195,20 @@ def generate_with_retry(generate_fn, label):
     minutes' guidance. Non-transient errors (content policy, etc.) propagate
     immediately.
 
-    Returns (video_obj, attempts_used).
+    Returns (video_obj, attempts_used, recovered_error) — recovered_error is
+    None on a clean first-try success, or the last transient error's message
+    if the eventual success followed one or more retries (otherwise that
+    error was only ever visible in console output, never in the log).
     """
     last_err = None
     for attempt in range(1, MAX_GENERATION_RETRIES + 1):
         try:
-            return generate_fn(), attempt
+            video_obj = generate_fn()
+            recovered_error = (
+                f"{last_err} (retried, succeeded on attempt {attempt}/{MAX_GENERATION_RETRIES})"
+                if last_err else None
+            )
+            return video_obj, attempt, recovered_error
         except _VeoRetryableError as e:
             last_err = e
             if attempt == MAX_GENERATION_RETRIES:
@@ -204,7 +233,7 @@ def generate_first_clip(
     Asset/subject reference images force 8 second duration for veo-3.1-generate-preview,
     so the value will get overridden in that case.
 
-    Returns (video_obj, attempts_used).
+    Returns (video_obj, attempts_used, recovered_error).
     """
     from google.genai import types
 
@@ -247,7 +276,7 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
     the two are mutually exclusive. Character consistency on extension clips is enforced
     through the is_continuation text anchor in build_veo_prompt instead.
 
-    Returns (video_obj, attempts_used).
+    Returns (video_obj, attempts_used, recovered_error).
     """
     from google.genai import types
 

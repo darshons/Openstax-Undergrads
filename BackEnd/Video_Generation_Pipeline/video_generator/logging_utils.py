@@ -26,56 +26,57 @@ def save_prompt(prompt: str, output_file: str) -> str:
     return str(prompt_file)
 
 
-def log_generation(
+def log_scene_attempt(
+    *,
     scene_id: int,
+    scene_attempt: int,
     model_key: str,
-    prompt: str,
-    output_file: str,
-    duration_seconds: float,
+    reference_images: list = None,
     success: bool,
-    error: str = None,
-    model_api_name: str = None,
-    resolution: str = None,
-    aspect_ratio: str = None,
-    file_size_mb: float = None,
-    video_duration_seconds: float = None,
-    reference_images_count: int = None,
-    retry_count: int = None,
-    estimated_cost_usd: float = None,
-    error_type: str = None,
-    clip_id: int = None,
-    attempt_number: int = None,
     eval_passed: bool = None,
-    eval_report_path: str = None,
+    total_time_seconds: float,
+    clips: list,
+    fallback_cost_usd: float = None,
+    final_output_file: str = None,
+    final_video_duration_seconds: float = None,
+    final_file_size_mb: float = None,
+    retry_count: int = 0,
+    error: str = None,
 ):
-    """clip_id/attempt_number/eval_passed/eval_report_path are only populated
-    for --verify-clips per-clip-attempt entries (one per generation attempt,
-    logged regardless of pass/fail) — None for the pre-existing scene-level
-    final/checkpoint entries."""
+    """One entry per scene-attempt — one full pass through run_scene_pipeline's
+    scene_attempt loop, whether it ends in success or gets discarded (eval
+    failure or a hard generation error). `clips` holds every clip-generation
+    attempt made during this scene-attempt (pass, fail, and discarded alike);
+    total_cost_usd sums their estimated_cost_usd — both the successful clips
+    and any failed/discarded ones — so money spent on a doomed attempt is
+    never dropped, the way per-clip cost/duration used to be lost whenever a
+    clip *passed* eval (its isolated video was deleted before duration/cost
+    could be captured). Falls back to fallback_cost_usd (the whole-video
+    estimate) when clips is empty (verify_clips=False). Scoped to this one
+    scene-attempt only — not cumulative across retries/reruns."""
     entries = load_log()
+    if clips:
+        total_cost = round(
+            sum(c["estimated_cost_usd"] for c in clips if c["estimated_cost_usd"] is not None), 4
+        )
+    else:
+        total_cost = fallback_cost_usd
     entry = {
-        "timestamp": datetime.now().isoformat(),
         "scene_id": scene_id,
-        "clip_id": clip_id,
-        "attempt_number": attempt_number,
+        "scene_attempt": scene_attempt,
         "model": model_key,
-        "model_api_name": model_api_name or model_key,
-        "resolution": resolution,
-        "aspect_ratio": aspect_ratio,
-        "prompt": prompt,
-        "prompt_char_count": len(prompt) if prompt else None,
-        "reference_images_count": reference_images_count,
-        "output_file": output_file,
-        "file_size_mb": file_size_mb,
-        "video_duration_seconds": video_duration_seconds,
-        "generation_time": round(duration_seconds, 1),
-        "retry_count": retry_count,
-        "estimated_cost_usd": estimated_cost_usd,
+        "reference_images": reference_images or [],
         "success": success,
-        "error": error,
-        "error_type": error_type,
         "eval_passed": eval_passed,
-        "eval_report_path": eval_report_path,
+        "total_cost_usd": total_cost,
+        "total_time_seconds": round(total_time_seconds, 1),
+        "final_output_file": final_output_file,
+        "final_video_duration_seconds": final_video_duration_seconds,
+        "final_file_size_mb": final_file_size_mb,
+        "retry_count": retry_count,
+        "timestamp": datetime.now().isoformat(),
+        "clips": clips,
+        "error": error,
     }
     entries.append(entry)
     save_log(entries)

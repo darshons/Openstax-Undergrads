@@ -8,4 +8,5 @@ lxml
 moviepy
 openai-whisper
 rapidfuzz
-pillow    
+pillow
+opencv-python-headless

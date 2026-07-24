@@ -159,6 +159,16 @@ def create_reference_image_configs(reference_images: list) -> list:
     return configs
 
 
+def create_first_frame_image_config(image_path: str):
+    """Build the Veo image-to-video seed image (the `image=` argument on
+    generate_videos) from a first-frame PNG/JPEG path."""
+    from google.genai.types import Image as GenaImage
+
+    with open(image_path, "rb") as f:
+        image_bytes = f.read()
+    return GenaImage(image_bytes=image_bytes, mime_type="image/png")
+
+
 def poll_until_done(client, operation):
     """Poll operation until Veo finishes generating."""
     print("  Waiting for generation ", end="", flush=True)
@@ -224,7 +234,12 @@ def generate_with_retry(generate_fn, label):
 
 
 def generate_first_clip(
-    client, prompt, clip_index=1, reference_images=None, duration_seconds=8
+    client,
+    prompt,
+    clip_index=1,
+    reference_images=None,
+    first_frame_image=None,
+    duration_seconds=8,
 ):
     """
     Generates the opening clip for a scene.
@@ -233,9 +248,20 @@ def generate_first_clip(
     Asset/subject reference images force 8 second duration for veo-3.1-generate-preview,
     so the value will get overridden in that case.
 
+    reference_images and first_frame_image are mutually exclusive Veo seeding
+    modes — asset/character-consistency reference images vs. an image-to-video
+    first frame (e.g. the previous scene's last frame, or a user-supplied seed
+    for scene 1). Passing both is an error.
+
     Returns (video_obj, attempts_used, recovered_error).
     """
     from google.genai import types
+
+    if reference_images and first_frame_image:
+        raise ValueError(
+            "reference_images and first_frame_image are mutually exclusive — "
+            "pass one or the other."
+        )
 
     ref_image_configs = []
     if reference_images:
@@ -247,12 +273,17 @@ def generate_first_clip(
         )
         duration_seconds = 8
 
+    first_frame_config = (
+        create_first_frame_image_config(first_frame_image) if first_frame_image else None
+    )
+
     print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s)...")
 
     def _attempt():
         operation = client.models.generate_videos(
             model=MODEL,
             prompt=prompt,
+            image=first_frame_config,
             config=types.GenerateVideosConfig(
                 aspect_ratio=ASPECT_RATIO,
                 resolution=RESOLUTION,

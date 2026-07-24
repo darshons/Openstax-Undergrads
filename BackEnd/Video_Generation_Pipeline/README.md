@@ -1,6 +1,6 @@
 # video_generator
 
-Generates MP4 videos from a scenario JSON file using Google Veo. Every scene is treated as a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene.
+Generates MP4 videos from a scenario JSON file using Google Veo. Every scene is treated as a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene. Scenes are also chained to each other: each scene's first clip is seeded (via Veo image-to-video) from the last frame extracted from the previous scene's finished video, so a whole scenario reads as one continuous story instead of independent scenes.
 
 ---
 
@@ -11,7 +11,8 @@ video_generator/
   scenario_loader.py   — load and validate the scenario JSON
   prompt_builder.py    — convert scene data into Veo prompt strings
   veo_api.py           — Veo API calls, polling, retry, and download
-  pipeline.py          — scene and scenario orchestration
+  pipeline.py          — scene and scenario orchestration, scene-to-scene chaining
+  frame_extractor.py   — extract a video's last frame (OpenCV), used to seed the next scene
   clip_verification.py — bridges to Transcript_Eval_Pipeline for --verify-clips
   logging_utils.py     — generation log, prompt saving, checkpoints
   cli.py               — argument parsing, entry point, caption burning
@@ -46,9 +47,32 @@ python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-cli
 
 # Generate with per-clip transcript/consistency verification, regenerating failed clips [maximum retries time is 2 for each clip]
 python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-clips --eval-retries 2
+
+# Generate the whole scenario, seeding scene 1's first clip from a user-provided image
+python -m video_generator.cli --scenario scenario.json --first-frame-image seed.png
+
+# Generate scene 1 with no seed image at all — later scenes still chain automatically
+python -m video_generator.cli --scenario scenario.json
+
+# Continue a chain from an existing completed scene video instead of re-running earlier
+# scenes: extracts its last frame and uses it to seed the requested scene(s)
+python -m video_generator.cli --scenario scenario.json --scene-id 4 --seed-video output/scene3_final_no_sprites_20260721_223011.mp4
 ```
 
 Output videos are saved to `output/`. A generation log is written to `output/generation_log.json` after every run.
+
+### Scene-to-scene chaining
+
+`run_scenario_pipeline` no longer generates scenes independently. For a multi-scene run:
+
+- **Scene 1** seeds its first clip from `--first-frame-image` if given, or generates with no seed image at all if omitted (Veo starts purely from the text prompt).
+- **Every later scene** seeds its first clip from the last frame extracted (via `frame_extractor.extract_last_frame`) from the *previous* scene's finished output video — never from `--first-frame-image` or `REFERENCE_IMAGES` again. If the previous scene failed, the next scene falls back to no seed image.
+- The extracted intermediate frame is a temp PNG (deleted automatically once that scene's generation finishes, pass or fail) — it's never left behind in `output/`.
+- `--last-frame-backward-offset N` steps `N` frames back from the true last frame before extracting, for every scene-to-scene hop in the run (useful if a scene's final frame tends to be a mid-transition or blurred frame).
+
+Because a full scene-to-scene run is expensive to redo end-to-end, `--seed-video` lets you resume from an already-generated scene without regenerating anything earlier: it runs `extract_last_frame` on that video up front and feeds the result in as if it were `--first-frame-image` for this run's first scene (which, combined with `--scene-id`, can be any scene in the scenario — not just scene 1). `--first-frame-image` and `--seed-video` are mutually exclusive.
+
+`reference_images` (the old character-consistency mechanism, still supported by `generate_first_clip`) and image-to-video seeding (`first_frame_image`) are mutually exclusive per call — passing both raises `ValueError`.
 
 ---
 
@@ -76,7 +100,7 @@ Drop PNG files in `reference_images/` and list them in `veo_api.py`:
 REFERENCE_IMAGES = ["reference_images/maya.png", "reference_images/carl.png"]
 ```
 
-Reference images pin character appearance on the first clip only. Extension clips inherit appearance from the previous video.
+Reference images pin character appearance on scene 1's first clip only, and only if you're not also passing `--first-frame-image`/`--seed-video` (the two are mutually exclusive Veo seeding modes). Extension clips inherit appearance from the previous video, and scenes 2+ always chain from the previous scene's last frame instead of `REFERENCE_IMAGES`.
 
 ---
 
@@ -90,6 +114,9 @@ Reference images pin character appearance on the first clip only. Extension clip
 | `--add-captions` | Burn dialogue captions onto the generated video (requires `moviepy`) |
 | `--verify-clips` | Transcribe and evaluate each clip against the script as it's generated, regenerating on failure (see [Clip verification](#clip-verification)) |
 | `--eval-retries` | Max regeneration attempts for a clip that fails `--verify-clips` eval (default: `1`) |
+| `--first-frame-image` | Path to an image seeding this run's first scene's first clip (Veo image-to-video). Omit to generate that scene with no seed image. Mutually exclusive with `--seed-video` |
+| `--last-frame-backward-offset` | Frames to step back from the true last frame when extracting a scene's last frame for chaining (default: `0`, the true last frame) |
+| `--seed-video` | Path to an existing completed single-scene video; its last frame is extracted and used to seed this run's first scene instead of `--first-frame-image` — resume a chain without re-running earlier scenes. Mutually exclusive with `--first-frame-image` |
 | `--api-key` | Gemini API key (default: `$GEMINI_API_KEY`) |
 
 ---
@@ -196,7 +223,7 @@ The first clip gets a full prompt (setting, characters, camera, dialogue). Exten
 }
 ```
 
-Decision points drive frontend branching; the video pipeline generates all scenes independently and ignores them.
+Decision points drive frontend branching; the video pipeline chains scenes in the order given in `scenario.json["scenes"]` and ignores `routes_to`/branching data.
 
 ---
 
@@ -204,16 +231,17 @@ Decision points drive frontend branching; the video pipeline generates all scene
 
 ```
 cli.main()
-  └─ pipeline.run_scenario_pipeline()        ← iterates all scenes
+  └─ pipeline.run_scenario_pipeline()        ← iterates all scenes, chains them
+       ├─ frame_extractor.extract_last_frame()    ← scene 2+: seed from previous scene's last frame
        └─ pipeline.run_scene_pipeline()      ← one scene → one video
             ├─ prompt_builder.build_clip_prompts()
-            ├─ veo_api.generate_first_clip()        ← clip 1 (4/6/8 s)
+            ├─ veo_api.generate_first_clip()        ← clip 1 (4/6/8 s), optionally image-seeded
             ├─ veo_api.generate_extension_clip()    ← clip 2 (~7 s)
             ├─ veo_api.generate_extension_clip()    ← clip 3 (~7 s)  ...
             └─ veo_api.download_video()             ← final combined video
 ```
 
-If an extension fails mid-scene, the last successful combined video is saved as a checkpoint (`scene{N}_checkpoint_clip{K}_{ts}.mp4`) and logged so spent API calls are not lost.
+If an extension fails mid-scene, the last successful combined video is saved as a checkpoint (`scene{N}_checkpoint_clip{K}_{ts}.mp4`) and logged so spent API calls are not lost. If a scene fails outright, the next scene in the run still proceeds — it just generates its first clip with no seed image, since there's no output video to extract a last frame from.
 
 ---
 
@@ -284,6 +312,8 @@ Every completed scene is appended to `output/generation_log.json` (this shape is
 
 `estimated_cost_usd` uses the Video+Audio pricing tier (Veo 3.1 models generate audio by default). Pricing source: Google Cloud pricing page.
 
+Scene-attempt entries (written by `log_scene_attempt`, one per pass through `run_scene_pipeline`'s retry loop) also record `first_frame_image` — the seed image path used for that attempt's first clip, or `null` if none was used.
+
 ### Per-clip-attempt entries (`--verify-clips` only)
 
 Every generation attempt for a clip — pass or fail, first try or a retry — gets its own entry, in addition to the scene-level entries above:
@@ -344,7 +374,8 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 | Function | Description |
 |----------|-------------|
 | `create_reference_image_configs(reference_images)` | Convert PNG paths to `VideoGenerationReferenceImage` objects |
-| `generate_first_clip(client, prompt, ...)` | Generate the opening clip (4 / 6 / 8 s); reference images force 8 s; returns `(video_obj, attempts_used)` |
+| `create_first_frame_image_config(image_path)` | Convert one image path to the Veo `image=` (image-to-video) argument |
+| `generate_first_clip(client, prompt, ..., reference_images=None, first_frame_image=None, duration_seconds=8)` | Generate the opening clip (4 / 6 / 8 s); reference images force 8 s; `reference_images`/`first_frame_image` are mutually exclusive (raises `ValueError` if both given); returns `(video_obj, attempts_used)` |
 | `generate_extension_clip(client, prompt, previous_video_obj, clip_index)` | Extend the previous clip by ~7 s; returns `(video_obj, attempts_used)` |
 | `poll_until_done(client, operation)` | Poll until the operation reaches a terminal state; raises on permanent or transient errors |
 | `generate_with_retry(generate_fn, label)` | Wrap a generate+poll thunk with exponential-backoff retry; returns `(result, attempts_used)` |
@@ -357,10 +388,16 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 
 | Function | Description |
 |----------|-------------|
-| `run_scene_pipeline(client, scene_id, clip_prompts, ..., verify_clips=False, eval_retries=1, scene=None, characters=None)` | Generate one scene as a stitched multi-clip video; saves a checkpoint on partial failure; optionally verifies + regenerates each clip |
-| `run_scenario_pipeline(client, scenario, reference_images, verify_clips=False, eval_retries=1)` | Iterate all scenes through the stitching pipeline; returns a list of `{scene_id, success, output_file, error}` dicts |
+| `run_scene_pipeline(client, scene_id, clip_prompts, ..., reference_images=None, first_frame_image=None, verify_clips=False, eval_retries=1, scene=None, characters=None)` | Generate one scene as a stitched multi-clip video; saves a checkpoint on partial failure; optionally verifies + regenerates each clip |
+| `run_scenario_pipeline(client, scenario, reference_images=None, first_frame_image=None, last_frame_backward_offset=0, verify_clips=False, eval_retries=1)` | Iterate all scenes, chaining each scene's first clip from the previous scene's extracted last frame (scene 1 uses `first_frame_image`/`reference_images` instead); returns a list of `{scene_id, success, output_file, error}` dicts |
 | `_generate_and_verify(generate_fn, clip_id, client, verify_clips, eval_retries, prev_duration, scene_id, dialogue, characters, prompt)` | Generate one clip, verify + retry on failure if `verify_clips`, logging every attempt via `_log_clip_attempt`; returns `(video_obj, attempts, new_duration)` or raises `ClipEvalFailedError` |
 | `_log_clip_attempt(scene_id, clip_id, attempt_number, prompt, report, video_path, attempt_wall_time)` | Write one `generation_log.json` entry for a single clip-generation attempt (pass or fail) |
+
+### `frame_extractor`
+
+| Function | Description |
+|----------|-------------|
+| `extract_last_frame(video_path, save_file, backward_offset=0)` | Read a video's last frame (`backward_offset` frames back from the true end) via OpenCV; returns a saved PNG path if `save_file=True`, or a raw `numpy.ndarray` if `False`. Used by `run_scenario_pipeline` to seed each scene from the previous one, and by `cli.main()` for `--seed-video` |
 
 ### `clip_verification`
 
@@ -379,6 +416,7 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 | `save_log(entries)` | Write the log list back to disk |
 | `save_prompt(prompt, output_file)` | Write the prompt text to a `.txt` file next to the output video |
 | `log_generation(scene_id, model_key, prompt, output_file, ..., clip_id=None, attempt_number=None, eval_passed=None, eval_report_path=None)` | Append one generation result to the log; returns the entry dict. The last four kwargs are only populated for `--verify-clips` per-attempt entries |
+| `log_scene_attempt(..., reference_images=None, first_frame_image=None, ...)` | Append one scene-attempt entry; records which seeding mode (if any) that attempt used |
 | `save_checkpoint_metadata(scene_id, clip_index, checkpoint_file, error)` | Append a checkpoint record to the log when a stitch run fails partway |
 
 ### `cli`

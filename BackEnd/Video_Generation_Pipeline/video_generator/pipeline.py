@@ -6,6 +6,7 @@ from pathlib import Path
 from .logging_utils import OUTPUT_DIR, log_scene_attempt
 from .prompt_builder import build_clip_prompts
 from .clip_verification import verify_clip, eval_failure_reason, eval_report_path_for
+from .frame_extractor import extract_last_frame
 from .veo_api import (
     MODEL_KEY,
     RESOLUTION,
@@ -169,6 +170,7 @@ def run_scene_pipeline(
     scene_id,
     clip_prompts,
     reference_images=None,
+    first_frame_image=None,
     first_clip_seconds=8,
     verify_clips=False,
     eval_retries=1,
@@ -180,6 +182,9 @@ def run_scene_pipeline(
 
     clip_prompts: one prompt per clip, in order, built by build_clip_prompts.
     first_clip_seconds: 4/6/8 — only takes effect if reference_images is None.
+    first_frame_image: optional path to a seed image for the first clip
+        (image-to-video). Mutually exclusive with reference_images — see
+        generate_first_clip.
     verify_clips: if True, transcribe + evaluate each clip against `scene`'s
         dialogue as it's generated. Any clip failing eval immediately abandons
         the scene and regenerates it from clip 1 (Veo's extension feature makes
@@ -234,6 +239,7 @@ def run_scene_pipeline(
                     clip_prompts[0],
                     clip_index=1,
                     reference_images=reference_images,
+                    first_frame_image=first_frame_image,
                     duration_seconds=first_clip_seconds,
                 ),
                 clip_id,
@@ -323,6 +329,7 @@ def run_scene_pipeline(
                     scene_attempt=scene_attempt + 1,
                     model_key=MODEL_KEY,
                     reference_images=reference_images,
+                    first_frame_image=first_frame_image,
                     success=False,
                     eval_passed=None,
                     total_time_seconds=wall_time,
@@ -341,6 +348,7 @@ def run_scene_pipeline(
                 scene_attempt=scene_attempt + 1,
                 model_key=MODEL_KEY,
                 reference_images=reference_images,
+                first_frame_image=first_frame_image,
                 success=False,
                 eval_passed=False,
                 total_time_seconds=time.time() - start_time,
@@ -357,7 +365,11 @@ def run_scene_pipeline(
             raise
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        sprite_label = "sprites" if reference_images else "no_sprites"
+        sprite_label = (
+            "sprites" if reference_images
+            else "first_frame" if first_frame_image
+            else "no_sprites"
+        )
         final_path = str(
             OUTPUT_DIR / f"scene{scene_id}_final_{sprite_label}_{timestamp}.mp4"
         )
@@ -373,6 +385,7 @@ def run_scene_pipeline(
             scene_attempt=scene_attempt + 1,
             model_key=MODEL_KEY,
             reference_images=reference_images,
+            first_frame_image=first_frame_image,
             success=True,
             eval_passed=True if verify_clips else None,
             total_time_seconds=wall_time,
@@ -393,11 +406,20 @@ def run_scenario_pipeline(
     client,
     scenario: dict,
     reference_images: list = None,
+    first_frame_image: str = None,
+    last_frame_backward_offset: int = 0,
     verify_clips: bool = False,
     eval_retries: int = 1,
 ) -> list:
     """
-    Build clip prompts for every scene and run the stitching pipeline for each.
+    Build clip prompts for every scene and run the stitching pipeline for each,
+    chaining scenes together: the first scene optionally seeds its first clip
+    from `first_frame_image` (or generates with no seed image at all if it's
+    None); every later scene seeds its first clip from the last frame
+    extracted from the previous scene's output video instead (falling back to
+    no seed image if the previous scene failed). last_frame_backward_offset is
+    passed straight to extract_last_frame — how many frames to step back from
+    the true last frame of the previous scene's video before extracting.
     Returns a list of result dicts: {scene_id, success, output_file, error}.
     """
     characters = scenario["characters"]
@@ -405,15 +427,30 @@ def run_scenario_pipeline(
     scenes = scenario["scenes"]
 
     results = []
-    for scene in scenes:
+    prev_output_file = None
+    for i, scene in enumerate(scenes):
         scene_id = scene["scene_id"]
+        extracted_frame_path = None
+        if i == 0:
+            scene_reference_images = reference_images
+            scene_first_frame_image = first_frame_image
+        else:
+            scene_reference_images = None
+            if prev_output_file:
+                extracted_frame_path = extract_last_frame(
+                    prev_output_file,
+                    save_file=True,
+                    backward_offset=last_frame_backward_offset,
+                )
+            scene_first_frame_image = extracted_frame_path
         try:
             clip_prompts = build_clip_prompts(scene, characters, visual_style)
             final_path = run_scene_pipeline(
                 client=client,
                 scene_id=scene_id,
                 clip_prompts=clip_prompts,
-                reference_images=reference_images,
+                reference_images=scene_reference_images,
+                first_frame_image=scene_first_frame_image,
                 verify_clips=verify_clips,
                 eval_retries=eval_retries,
                 scene=scene,
@@ -427,6 +464,7 @@ def run_scenario_pipeline(
                     "error": None,
                 }
             )
+            prev_output_file = final_path
         except Exception as e:
             results.append(
                 {
@@ -436,5 +474,15 @@ def run_scenario_pipeline(
                     "error": str(e),
                 }
             )
+            prev_output_file = None
+        finally:
+            # Extracted last-frame images are only ever consumed by this one
+            # scene's first clip — the pipeline's own temp file, safe to
+            # remove as soon as this scene is done with it either way.
+            if extracted_frame_path:
+                try:
+                    os.remove(extracted_frame_path)
+                except OSError:
+                    pass
 
     return results

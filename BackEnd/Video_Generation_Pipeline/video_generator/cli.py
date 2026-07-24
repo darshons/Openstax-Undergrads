@@ -7,6 +7,7 @@ from .prompt_builder import build_clip_prompts
 from .scenario_loader import load_scenario
 from .veo_api import REFERENCE_IMAGES
 from .pipeline import run_scenario_pipeline
+from .frame_extractor import extract_last_frame
 
 
 def load_env():
@@ -144,6 +145,28 @@ def parse_args():
         default=1,
         help="Max regeneration attempts for a clip that fails --verify-clips eval (default: 1).",
     )
+    parser.add_argument(
+        "--first-frame-image",
+        default=None,
+        help="Path to an image to seed the first scene's first clip (Veo image-to-video). "
+        "Omit to generate scene 1 with no seed image. Every later scene is instead seeded "
+        "from the last frame of the previous scene's output.",
+    )
+    parser.add_argument(
+        "--last-frame-backward-offset",
+        type=int,
+        default=0,
+        help="Frames to step back from the true last frame when extracting the previous "
+        "scene's last frame for chaining (default: 0, the true last frame).",
+    )
+    parser.add_argument(
+        "--seed-video",
+        default=None,
+        help="Path to an existing completed single-scene video. Its last frame is extracted "
+        "and used to seed the first clip of this run instead of re-running earlier scenes — "
+        "e.g. continue a scene-to-scene chain from a video you already generated. Mutually "
+        "exclusive with --first-frame-image.",
+    )
     return parser.parse_args()
 
 
@@ -153,6 +176,10 @@ def main():
 
     if not args.api_key:
         print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
+        return
+
+    if args.first_frame_image and args.seed_video:
+        print("ERROR: --first-frame-image and --seed-video are mutually exclusive.")
         return
 
     scenario = load_scenario(args.scenario)
@@ -181,14 +208,32 @@ def main():
 
     client = genai.Client(api_key=args.api_key)
 
+    first_frame_image = args.first_frame_image
+    seed_frame_path = None
+    if args.seed_video:
+        seed_frame_path = extract_last_frame(
+            args.seed_video, save_file=True, backward_offset=args.last_frame_backward_offset
+        )
+        first_frame_image = seed_frame_path
+        print(f"Extracted seed frame from {args.seed_video}: {seed_frame_path}")
+
     filtered_scenario = {**scenario, "scenes": scenes}
-    results = run_scenario_pipeline(
-        client=client,
-        scenario=filtered_scenario,
-        reference_images=REFERENCE_IMAGES or None,
-        verify_clips=args.verify_clips,
-        eval_retries=args.eval_retries,
-    )
+    try:
+        results = run_scenario_pipeline(
+            client=client,
+            scenario=filtered_scenario,
+            reference_images=REFERENCE_IMAGES or None,
+            first_frame_image=first_frame_image,
+            last_frame_backward_offset=args.last_frame_backward_offset,
+            verify_clips=args.verify_clips,
+            eval_retries=args.eval_retries,
+        )
+    finally:
+        if seed_frame_path:
+            try:
+                os.remove(seed_frame_path)
+            except OSError:
+                pass
 
     if args.add_captions:
         for result in results:

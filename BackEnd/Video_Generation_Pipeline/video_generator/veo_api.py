@@ -195,7 +195,7 @@ def generate_with_retry(generate_fn, label):
 
 
 def generate_first_clip(
-    client, prompt, clip_index=1, reference_images=None, duration_seconds=8
+    client, prompt, clip_index=1, reference_images=None, duration_seconds=8, model=None
 ):
     """
     Generates the opening clip for a scene.
@@ -204,9 +204,14 @@ def generate_first_clip(
     Asset/subject reference images force 8 second duration for veo-3.1-generate-preview,
     so the value will get overridden in that case.
 
+    model: overrides the module-level MODEL constant (e.g. for running a cheaper
+    model during exploration). Defaults to MODEL when omitted.
+
     Returns (video_obj, attempts_used).
     """
     from google.genai import types
+
+    model = model or MODEL
 
     ref_image_configs = []
     if reference_images:
@@ -218,11 +223,11 @@ def generate_first_clip(
         )
         duration_seconds = 8
 
-    print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s)...")
+    print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s, model={model})...")
 
     def _attempt():
         operation = client.models.generate_videos(
-            model=MODEL,
+            model=model,
             prompt=prompt,
             config=types.GenerateVideosConfig(
                 aspect_ratio=ASPECT_RATIO,

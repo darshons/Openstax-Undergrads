@@ -79,6 +79,7 @@ def judge_segment_speaker(
     response = client.models.generate_content(
         model=GEMINI_MODEL,
         contents=[types.Content(role="user", parts=parts)],
+        config=types.GenerateContentConfig(response_mime_type="application/json"),
     )
 
     try:

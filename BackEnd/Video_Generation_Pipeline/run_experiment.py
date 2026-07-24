@@ -17,10 +17,12 @@ import transcript_eval.eval as transcript_eval_module
 # ── EXPERIMENT CONFIG ────────────────────────────────────────────────────
 EXPERIMENT_NAME = "my_experiment"
 SCENARIO_PATH = "scenario.json"
-SCENE_ID = 3  # None = all scenes, or an int to run just one scene
+SCENE_ID = None  # None = all scenes, or an int to run just one scene
 MODEL_KEY = "veo-3.1-fast"  # must be a key in veo_api.VEO_MODELS
 REFERENCE_IMAGES = veo_api.REFERENCE_IMAGES  # list of image paths, or []
-VERIFY_CLIPS = False
+FIRST_FRAME_IMAGE = None  # path to a seed image for scene 1, or None
+LAST_FRAME_BACKWARD_OFFSET = 0  # frames to step back from the true last frame when chaining
+VERIFY_CLIPS = True
 EVAL_RETRIES = 1
 NUM_EXPERIMENTS = 3  # how many times to repeat the whole run
 # ──────────────────────────────────────────────────────────────────────────
@@ -47,6 +49,8 @@ def run_one(client, scenario, scenes):
         client=client,
         scenario=filtered_scenario,
         reference_images=REFERENCE_IMAGES or None,
+        first_frame_image=FIRST_FRAME_IMAGE,
+        last_frame_backward_offset=LAST_FRAME_BACKWARD_OFFSET,
         verify_clips=VERIFY_CLIPS,
         eval_retries=EVAL_RETRIES,
     )

@@ -181,6 +181,7 @@ def run_scene_pipeline(
     eval_retries=1,
     scene=None,
     characters=None,
+    model=None,
 ):
     """
     Generate one scene as a single continuous video via Veo extension.
@@ -194,6 +195,8 @@ def run_scene_pipeline(
         predecessor), up to `eval_retries` scene-level regenerations. Requires
         `scene` and `characters` (the raw scenario.json scene dict and
         character list — used to look up each clip's expected dialogue).
+    model: overrides the module-level MODEL constant for every clip in this
+        scene (e.g. for running a cheaper model during exploration).
     """
     num_clips = len(clip_prompts)
     if num_clips < 1:
@@ -251,6 +254,7 @@ def run_scene_pipeline(
                     clip_index=1,
                     reference_images=reference_images,
                     duration_seconds=first_clip_seconds,
+                    model=model,
                 ),
                 clip_id,
                 client,
@@ -283,7 +287,7 @@ def run_scene_pipeline(
                     )
                     video_obj, attempts, cum_duration = _generate_and_verify(
                         lambda: generate_extension_clip(
-                            client, prompt, video_obj, clip_index=i
+                            client, prompt, video_obj, clip_index=i, model=model
                         ),
                         clip_id,
                         client,

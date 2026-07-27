@@ -236,7 +236,7 @@ def preview(scenario: dict, cases: list):
                 )
 
 
-def generate(scenario: dict, cases: list, model_key: str, api_key: str):
+def generate(scenario: dict, cases: list, model_key: str, api_key: str, variants=None, repeat=1):
     from google import genai
 
     client = genai.Client(api_key=api_key)
@@ -254,79 +254,89 @@ def generate(scenario: dict, cases: list, model_key: str, api_key: str):
         clip = next(c for c in scene["clips"] if c["clip_id"] == case["clip_id"])
         clip_scene = _resolve_clip_scene(scene, clip)
 
-        for variant_name, variant_fn in BUCKET_VARIANTS[case["bucket"]]:
+        bucket_variants = BUCKET_VARIANTS[case["bucket"]]
+        if variants:
+            bucket_variants = [
+                (name, fn) for name, fn in bucket_variants if name in variants
+            ]
+
+        for variant_name, variant_fn in bucket_variants:
             sub_prompts = variant_fn(clip_scene, characters, visual_style)
             for sub_idx, (dialogue, prompt) in enumerate(sub_prompts):
-                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                label = f"{case['label']}__{variant_name}__sub{sub_idx}_{ts}"
-                video_path = str(EXPERIMENT_DIR / f"{label}.mp4")
-                print(f"\n{'-'*70}\n{label}\n{'-'*70}")
+                for rep in range(repeat):
+                    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    label = f"{case['label']}__{variant_name}__sub{sub_idx}_rep{rep}_{ts}"
+                    video_path = str(EXPERIMENT_DIR / f"{label}.mp4")
+                    print(f"\n{'-'*70}\n{label}\n{'-'*70}")
 
-                start = time.time()
-                error = None
-                report = None
-                try:
-                    video_obj, attempts = generate_first_clip(
-                        client,
-                        prompt,
-                        reference_images=reference_images,
-                        duration_seconds=FIRST_CLIP_SECONDS,
-                        model=model_api_name,
+                    start = time.time()
+                    error = None
+                    report = None
+                    try:
+                        video_obj, attempts = generate_first_clip(
+                            client,
+                            prompt,
+                            reference_images=reference_images,
+                            duration_seconds=FIRST_CLIP_SECONDS,
+                            model=model_api_name,
+                        )
+                        EXPERIMENT_DIR.mkdir(parents=True, exist_ok=True)
+                        download_video(client, video_obj, video_path)
+                        report = evaluate_clip(
+                            client=client,
+                            video_path=video_path,
+                            scene_id=case["scene_id"],
+                            clip_id=f"{case['clip_id']}_{variant_name}_{sub_idx}_{rep}",
+                            dialogue=dialogue,
+                            characters=characters,
+                        )
+                    except Exception as e:
+                        error = str(e)
+                        print(f"  ERROR: {error}")
+
+                    wall_time = time.time() - start
+                    cost = estimate_cost(model_key, RESOLUTION, FIRST_CLIP_SECONDS)
+                    entry = {
+                        "timestamp": datetime.now().isoformat(),
+                        "bucket": case["bucket"],
+                        "case_label": case["label"],
+                        "scene_id": case["scene_id"],
+                        "clip_id": case["clip_id"],
+                        "variant": variant_name,
+                        "sub_clip_index": sub_idx,
+                        "repeat_index": rep,
+                        "expected_speakers": [d["character_id"] for d in dialogue],
+                        "model_key": model_key,
+                        # Not error is None: download can succeed (money already spent)
+                        # even if the later eval step throws - don't orphan that file.
+                        "video_path": video_path if Path(video_path).exists() else None,
+                        "generation_time": round(wall_time, 1),
+                        "estimated_cost_usd": cost,
+                        "error": error,
+                        "dialogue_match_passed": (
+                            report["dialogue_match"]["passed"] if report else None
+                        ),
+                        "attribution_passed": (
+                            report["speaker_attribution"]["attribution_passed"]
+                            if report and report["speaker_attribution"]
+                            else None
+                        ),
+                        "eval_report_path": (
+                            str(Path(video_path).with_suffix("")) + "_eval.json"
+                            if report
+                            else None
+                        ),
+                    }
+                    entries.append(entry)
+                    _save_experiment_log(entries)
+                    results_summary.append(entry)
+
+                    status = (
+                        "PASS" if entry["attribution_passed"]
+                        else "FAIL" if entry["attribution_passed"] is False
+                        else "ERROR"
                     )
-                    EXPERIMENT_DIR.mkdir(parents=True, exist_ok=True)
-                    download_video(client, video_obj, video_path)
-                    report = evaluate_clip(
-                        client=client,
-                        video_path=video_path,
-                        scene_id=case["scene_id"],
-                        clip_id=f"{case['clip_id']}_{variant_name}_{sub_idx}",
-                        dialogue=dialogue,
-                        characters=characters,
-                    )
-                except Exception as e:
-                    error = str(e)
-                    print(f"  ERROR: {error}")
-
-                wall_time = time.time() - start
-                cost = estimate_cost(model_key, RESOLUTION, FIRST_CLIP_SECONDS)
-                entry = {
-                    "timestamp": datetime.now().isoformat(),
-                    "bucket": case["bucket"],
-                    "case_label": case["label"],
-                    "scene_id": case["scene_id"],
-                    "clip_id": case["clip_id"],
-                    "variant": variant_name,
-                    "sub_clip_index": sub_idx,
-                    "expected_speakers": [d["character_id"] for d in dialogue],
-                    "model_key": model_key,
-                    "video_path": video_path if error is None else None,
-                    "generation_time": round(wall_time, 1),
-                    "estimated_cost_usd": cost,
-                    "error": error,
-                    "dialogue_match_passed": (
-                        report["dialogue_match"]["passed"] if report else None
-                    ),
-                    "attribution_passed": (
-                        report["speaker_attribution"]["attribution_passed"]
-                        if report and report["speaker_attribution"]
-                        else None
-                    ),
-                    "eval_report_path": (
-                        str(Path(video_path).with_suffix("")) + "_eval.json"
-                        if report
-                        else None
-                    ),
-                }
-                entries.append(entry)
-                _save_experiment_log(entries)
-                results_summary.append(entry)
-
-                status = (
-                    "PASS" if entry["attribution_passed"]
-                    else "FAIL" if entry["attribution_passed"] is False
-                    else "ERROR"
-                )
-                print(f"  {status}  (~${cost:.2f}, {wall_time:.0f}s)")
+                    print(f"  {status}  (~${cost:.2f}, {wall_time:.0f}s)")
 
     print(f"\n{'='*70}\nSUMMARY\n{'='*70}")
     for e in results_summary:
@@ -337,7 +347,7 @@ def generate(scenario: dict, cases: list, model_key: str, api_key: str):
         )
         print(
             f"  [{status:5s}] {e['case_label']:35s} {e['variant']:25s} "
-            f"sub{e['sub_clip_index']}"
+            f"sub{e['sub_clip_index']} rep{e.get('repeat_index', 0)}"
         )
     total_cost = sum(e["estimated_cost_usd"] or 0 for e in results_summary)
     print(f"\nTotal estimated cost this run: ${total_cost:.2f}")
@@ -352,6 +362,17 @@ def parse_args():
         "--cases",
         default=None,
         help="Comma-separated case labels to restrict to (default: all).",
+    )
+    parser.add_argument(
+        "--variants",
+        default=None,
+        help="Comma-separated variant names to restrict to (default: all variants for each case's bucket).",
+    )
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="Number of independent samples to generate per case/variant/sub-clip (default: 1).",
     )
     parser.add_argument("--api-key", default=os.environ.get("GEMINI_API_KEY"))
     return parser.parse_args()
@@ -374,7 +395,8 @@ def main():
     if not args.api_key:
         print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
         return
-    generate(scenario, cases, args.model_key, args.api_key)
+    variants = set(args.variants.split(",")) if args.variants else None
+    generate(scenario, cases, args.model_key, args.api_key, variants=variants, repeat=args.repeat)
 
 
 if __name__ == "__main__":

@@ -243,7 +243,7 @@ def generate_first_clip(
     return generate_with_retry(_attempt, label=f"clip {clip_index}")
 
 
-def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
+def generate_extension_clip(client, prompt, previous_video_obj, clip_index, model=None):
     """
     Extend the previous Veo video by one ~7s hop. Duration is NOT configurable on
     extension — the API returns a fixed ~7s continuation.
@@ -252,15 +252,20 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
     the two are mutually exclusive. Character consistency on extension clips is enforced
     through the is_continuation text anchor in build_veo_prompt instead.
 
+    model: overrides the module-level MODEL constant (e.g. for running a cheaper
+    model during exploration). Defaults to MODEL when omitted.
+
     Returns (video_obj, attempts_used).
     """
     from google.genai import types
 
-    print(f"\n  Generating clip {clip_index} (extension, ~7s)...")
+    model = model or MODEL
+
+    print(f"\n  Generating clip {clip_index} (extension, ~7s, model={model})...")
 
     def _attempt():
         operation = client.models.generate_videos(
-            model=MODEL,
+            model=model,
             prompt=prompt,
             video=previous_video_obj,
             config=types.GenerateVideosConfig(

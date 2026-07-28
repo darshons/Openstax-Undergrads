@@ -40,7 +40,7 @@ VALID_FIRST_CLIP_SECONDS = (4, 6, 8)
 EXTENSION_SECONDS = 7
 MAX_CLIPS = 21
 # PROCESSING SETTLE
-EXTENSION_SETTLE_SECONDS = 30
+EXTENSION_SETTLE_SECONDS = 15
 # TRANSIENT RETRY
 MAX_GENERATION_RETRIES = 2
 RETRY_BASE_DELAY_SECONDS = 30
@@ -162,6 +162,16 @@ def create_reference_image_configs(reference_images: list) -> list:
 def create_first_frame_image_config(image_path: str):
     """Build the Veo image-to-video seed image (the `image=` argument on
     generate_videos) from a first-frame PNG/JPEG path."""
+    from google.genai.types import Image as GenaImage
+
+    with open(image_path, "rb") as f:
+        image_bytes = f.read()
+    return GenaImage(image_bytes=image_bytes, mime_type="image/png")
+
+
+def create_last_frame_image_config(image_path: str):
+    """Build the Veo end-frame interpolation image (the `config.last_frame`
+    argument on generate_videos) from a last-frame PNG/JPEG path."""
     from google.genai.types import Image as GenaImage
 
     with open(image_path, "rb") as f:
@@ -322,6 +332,51 @@ def generate_extension_clip(client, prompt, previous_video_obj, clip_index):
                 aspect_ratio=ASPECT_RATIO,
                 resolution=RESOLUTION,
                 number_of_videos=1,
+            ),
+        )
+        operation = poll_until_done(client, operation)
+        return operation.response.generated_videos[0].video
+
+    return generate_with_retry(_attempt, label=f"clip {clip_index}")
+
+
+def generate_flf_clip(
+    client,
+    prompt,
+    first_frame_image,
+    last_frame_image,
+    clip_index=1,
+    duration_seconds=8,
+):
+    """
+    Generates one clip from a pinned first frame and last frame (Veo's
+    image-to-video-with-interpolation use case), instead of extending a
+    previous video handle. Each clip is independently anchored by two images,
+    so there is no `video=` continuation and no reference_images (the Veo API
+    rejects reference_images together with last_frame).
+
+    duration_seconds: 4, 6, or 8.
+
+    Returns (video_obj, attempts_used, recovered_error).
+    """
+    from google.genai import types
+
+    first_frame_config = create_first_frame_image_config(first_frame_image)
+    last_frame_config = create_last_frame_image_config(last_frame_image)
+
+    print(f"\n Generating clip {clip_index} (first+last frame, {duration_seconds}s)...")
+
+    def _attempt():
+        operation = client.models.generate_videos(
+            model=MODEL,
+            prompt=prompt,
+            image=first_frame_config,
+            config=types.GenerateVideosConfig(
+                aspect_ratio=ASPECT_RATIO,
+                resolution=RESOLUTION,
+                number_of_videos=1,
+                duration_seconds=duration_seconds,
+                last_frame=last_frame_config,
             ),
         )
         operation = poll_until_done(client, operation)

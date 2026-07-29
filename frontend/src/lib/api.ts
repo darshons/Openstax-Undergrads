@@ -295,3 +295,72 @@ export async function fetchDummyScenario(): Promise<ScenarioAssets> {
   const res = await fetch(apiUrl('/student_api/dummy_assets'));
   return resolveAssetsResponse(res, 'dummy');
 }
+
+export interface ManimAsset {
+  path: string; // run-relative, pass to manimAssetUrl / getManimAssetText
+  name: string;
+  role: 'run' | 'asset_kit' | 'scene' | 'scene_code' | 'scene_error';
+  kind: 'text' | 'image' | 'video' | 'other';
+  size_bytes: number;
+}
+
+export interface ManimSceneAssets {
+  scene_id: number | null;
+  video: ManimAsset | null;
+  plan: ManimAsset | null;
+  code_versions: ManimAsset[]; // ordered v0..vN
+  latest_code: ManimAsset | null;
+  error_logs: ManimAsset[];
+  artifacts: ManimAsset[]; // grid-critic snapshots + overlays
+}
+
+export interface ManimAssets {
+  request_id: string;
+  run: ManimAsset[]; // manifest.json, generation_log.jsonl, golden_path.mp4, ...
+  asset_kit: ManimAsset[];
+  scenes: ManimSceneAssets[];
+}
+
+/** List every intermediate a Manim run produced, grouped per scene. */
+export async function getManimAssets(requestId: string): Promise<ManimAssets> {
+  const res = await fetch(apiUrl(`/instructor_api/manim_assets/${requestId}`));
+  if (!res.ok) throw new Error(`Asset listing failed (${res.status})`);
+  return (await res.json()) as ManimAssets;
+}
+
+/** URL for one intermediate, by its run-relative path (use for <img>/<video>). */
+export function manimAssetUrl(requestId: string, assetPath: string): string {
+  return apiUrl(`/instructor_api/manim_asset/${requestId}/${assetPath}`);
+}
+
+/** Fetch a text intermediate (a scene's plan or generated Manim source). */
+export async function getManimAssetText(requestId: string, assetPath: string): Promise<string> {
+  const res = await fetch(manimAssetUrl(requestId, assetPath));
+  if (!res.ok) throw new Error(`Asset fetch failed (${res.status})`);
+  return await res.text();
+}
+
+/** Re-render ONE scene from edited input, reusing the run's frozen asset kit.
+ *
+ * Pass `plan` to re-plan by hand, `code` to render your own Manim source
+ * verbatim, or `script` to change the scene's dialogue/routing. Omit all three
+ * for a plain retry. Returns immediately — poll getManimStatus for progress. */
+export async function regenerateManimScene(
+  requestId: string,
+  sceneId: number,
+  edits: { plan?: string; code?: string; script?: Script; restitch?: boolean } = {},
+): Promise<{ status: string; sceneId: number }> {
+  const res = await fetch(apiUrl(`/instructor_api/regenerate_manim_scene/${requestId}/${sceneId}`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      plan: edits.plan ?? null,
+      code: edits.code ?? null,
+      script: edits.script ?? null,
+      restitch: edits.restitch ?? true,
+    }),
+  });
+  if (!res.ok) throw new Error(`Scene regeneration failed (${res.status})`);
+  const data = await res.json();
+  return { status: data.status as string, sceneId: data.scene_id as number };
+}

@@ -519,18 +519,30 @@ def get_video(video_path: str):
 import json
 from concurrent.futures import ThreadPoolExecutor
 
-from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+from Video_Generation_Pipeline.manim_generator.pipeline import (
+    read_run_context,
+    regenerate_scene,
+    run_scenario_pipeline,
+)
+from Video_Generation_Pipeline.manim_generator.assets_index import (
+    list_run_assets,
+    media_type_for,
+    resolve_asset_path,
+)
 from Video_Generation_Pipeline.manim_generator.script_adapter import (
     ScriptValidationError,
     adapt,
 )
 
-# Anchor the output root at the repo root so it is the same directory whether
-# the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Anchor the output root at the system temp dir: on Vercel (and other serverless
+# hosts) the deployment filesystem is read-only except for the temp dir, so a
+# repo-relative "output/" is unwritable there. Using an absolute path also keeps
+# the root identical whether the pipeline is launched by the API (cwd=BackEnd/)
+# or the CLI (cwd=repo root). Override with MANIM_OUTPUT_ROOT for a durable dir.
 MANIM_OUTPUT_ROOT = os.environ.get(
-    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
+    "MANIM_OUTPUT_ROOT", str(Path(tempfile.gettempdir()) / "Manim_Video_Output")
 )
+os.makedirs(MANIM_OUTPUT_ROOT, exist_ok=True)
 # One worker: scenario renders must be serial (parallel manim subprocesses
 # deadlock), and this also means one scenario is generated at a time.
 _manim_executor = ThreadPoolExecutor(max_workers=1)
@@ -563,8 +575,103 @@ def generate_manim_videos(request: ManimVideoRequest):
 def manim_video_status(request_id: str):
     """Read the pipeline's status.json for a run (pure file read; the pipeline
     rewrites it after every stage transition)."""
-    status_path = os.path.join(MANIM_OUTPUT_ROOT, request_id, "status.json")
+    status_path = os.path.join(_manim_run_dir(request_id), "status.json")
     if not os.path.exists(status_path):
         return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
     with open(status_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# ---------------------------------------------------------------------------
+# Manim intermediate assets: inspect, edit, regenerate
+#
+# The Veo pipeline lets the user review and regenerate each intermediate before
+# the final video (script, background, characters, opening frames). These give
+# the Manim pipeline the same control surface over what it produces: each
+# scene's plan, its generated Manim source, the grid-critic snapshots, and the
+# render error logs — plus a way to re-render one scene from edited input.
+# ---------------------------------------------------------------------------
+
+
+def _manim_run_dir(request_id: str) -> str:
+    """Resolve a request_id to its run directory, refusing ids that escape the
+    output root (the id reaches us straight from the caller)."""
+    if not request_id or "/" in request_id or "\\" in request_id or request_id.startswith("."):
+        raise HTTPException(status_code=400, detail="Invalid request_id")
+    root = os.path.realpath(MANIM_OUTPUT_ROOT)
+    run_dir = os.path.realpath(os.path.join(root, request_id))
+    if run_dir != root and not run_dir.startswith(root + os.sep):
+        raise HTTPException(status_code=400, detail="Invalid request_id")
+    return run_dir
+
+
+class SceneRegenerateRequest(BaseModel):
+    """All three overrides are optional; supplying none re-renders the scene
+    from scratch (a plain retry). ``plan`` skips the planner, ``code`` also
+    skips codegen so the user's own Manim source is rendered verbatim."""
+
+    plan: str | None = None
+    code: str | None = None
+    script: dict[str, Any] | None = None
+    restitch: bool = True
+
+
+@api_router.get("/manim_assets/{request_id}")
+def list_manim_assets(request_id: str):
+    """Inventory of everything a run produced, grouped per scene, so the
+    frontend can show the intermediates instead of just the final video."""
+    run_dir = _manim_run_dir(request_id)
+    try:
+        assets = list_run_assets(run_dir)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"No run found for {request_id}")
+    return {"request_id": request_id, **assets}
+
+
+@api_router.get("/manim_asset/{request_id}/{asset_path:path}")
+def get_manim_asset(request_id: str, asset_path: str):
+    """Serve one intermediate by its run-relative path (as listed by
+    /manim_assets). Confined to the run directory."""
+    run_dir = _manim_run_dir(request_id)
+    try:
+        target = resolve_asset_path(run_dir, asset_path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"No such asset: {asset_path}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return FileResponse(target, media_type=media_type_for(target))
+
+
+@api_router.post("/regenerate_manim_scene/{request_id}/{scene_id}")
+def regenerate_manim_scene(request_id: str, scene_id: int, request: SceneRegenerateRequest):
+    """Re-render ONE scene of an existing run from edited input, reusing the
+    frozen asset kit so the other scenes and character consistency are
+    untouched. Returns immediately; poll /manim_video_status for progress.
+
+    Shares the single Manim worker — parallel manim subprocesses deadlock, so a
+    regeneration queues behind any run already in flight."""
+    run_dir = _manim_run_dir(request_id)
+    if read_run_context(run_dir) is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No completed run for {request_id} — a scene can only be "
+                   "regenerated after a full run has frozen its asset kit.",
+        )
+
+    if request.script is not None:
+        try:
+            adapt(request.script)  # fail fast on an inconsistent branch graph
+        except ScriptValidationError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+
+    _manim_executor.submit(
+        regenerate_scene,
+        request_id,
+        scene_id,
+        MANIM_OUTPUT_ROOT,
+        request.plan,
+        request.code,
+        request.script,
+        request.restitch,
+    )
+    return {"status": "started", "request_id": request_id, "scene_id": scene_id}

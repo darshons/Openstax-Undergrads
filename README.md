@@ -189,4 +189,4 @@ Runs three stages per clip: local Whisper transcription (free), a fuzzy dialogue
 
 ## License
 
-Internal OpenStax project — add your org's license before making this repo public.
+Licensed under the [MIT License](LICENSE).

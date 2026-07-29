@@ -26,10 +26,17 @@ from video_generator.scenario_loader import load_scenario
 from video_generator.veo_api import REFERENCE_IMAGES, VEO_MODELS
 
 
-def build_scene_clip_prompts(scene: dict, characters: list, visual_style: str) -> list:
-    """One prompt per clip, in order, with V2 applied to single-speaker clips
-    and V1 applied to multi-speaker clips - mirrors build_clip_prompts'
-    per-clip field resolution but swaps in the validated variant per clip."""
+def build_scene_clip_prompts(
+    scene: dict, characters: list, visual_style: str, variant_mode: str = "auto"
+) -> list:
+    """One prompt per clip, in order.
+
+    variant_mode:
+        "auto"   - V2 (singles framing) on single-speaker clips, V1 (silent-partner
+                   text) on multi-speaker clips - the hybrid validated in testing.
+        "v1_all" - V1 applied uniformly to every clip with dialogue, camera left
+                   as originally authored (no singles-framing override).
+    """
     lookup = _char_lookup(characters)
     shared_audio = scene.get("audio", {})
     clips = scene["clips"]
@@ -39,8 +46,9 @@ def build_scene_clip_prompts(scene: dict, characters: list, visual_style: str) -
         dialogue = clip.get("dialogue", [])
         speaker_ids = {d["character_id"] for d in dialogue}
         camera = clip.get("camera") or scene.get("camera", {})
+        use_singles_framing = variant_mode == "auto" and len(speaker_ids) == 1
 
-        if len(speaker_ids) == 1:
+        if use_singles_framing:
             speaker_id = next(iter(speaker_ids))
             speaker = lookup[speaker_id]
             others = [c for c in characters if c["character_id"] != speaker_id]
@@ -68,12 +76,12 @@ def build_scene_clip_prompts(scene: dict, characters: list, visual_style: str) -
             clip_scene, characters, visual_style, is_continuation=(i > 0)
         )
 
-        if len(speaker_ids) == 1:
+        if use_singles_framing:
             other_name = others[0]["name"] if others else ""
             if other_name:
                 prompt = f"{prompt}\n\n{_framing_reinforcement(other_name)}"
             variant = "v2_singles_framing"
-        elif len(speaker_ids) > 1:
+        elif dialogue:
             prompt = f"{prompt}\n\n{SILENT_PARTNER_INSTRUCTION}"
             variant = "v1_silent_partner"
         else:
@@ -92,6 +100,7 @@ def main():
     parser.add_argument("--scene-id", type=int, required=True)
     parser.add_argument("--mode", choices=["preview", "generate"], default="preview")
     parser.add_argument("--model-key", choices=list(VEO_MODELS), default="veo-3.1-fast")
+    parser.add_argument("--variant", choices=["auto", "v1_all"], default="auto")
     parser.add_argument("--verify-clips", action="store_true")
     parser.add_argument("--api-key", default=os.environ.get("GEMINI_API_KEY"))
     args = parser.parse_args()
@@ -101,8 +110,8 @@ def main():
     characters = scenario["characters"]
     visual_style = scenario["visual_style"]
 
-    print(f"\nSCENE {args.scene_id} - assigning variant per clip:")
-    clip_prompts = build_scene_clip_prompts(scene, characters, visual_style)
+    print(f"\nSCENE {args.scene_id} - assigning variant per clip ({args.variant}):")
+    clip_prompts = build_scene_clip_prompts(scene, characters, visual_style, variant_mode=args.variant)
 
     if args.mode == "preview":
         for i, p in enumerate(clip_prompts, start=1):

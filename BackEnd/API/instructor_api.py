@@ -485,12 +485,20 @@ def generate_videos(
 # ---------------------------------------------------------------------------
 # Manim branching-video generation ("Manim · Graphics" video type)
 # ---------------------------------------------------------------------------
-# Anchor the output root at the repo root so it is the same directory whether
-# the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from concurrent.futures import ThreadPoolExecutor
+
+# Anchor the output root at the system temp dir: on Vercel (and other serverless
+# hosts) the deployment filesystem is read-only except for the temp dir, so a
+# repo-relative "output/" is unwritable there. Using an absolute path also keeps
+# the root identical whether the pipeline is launched by the API (cwd=BackEnd/)
+# or the CLI (cwd=repo root). Override with MANIM_OUTPUT_ROOT for a durable dir.
 MANIM_OUTPUT_ROOT = os.environ.get(
-    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
+    "MANIM_OUTPUT_ROOT", str(Path(tempfile.gettempdir()) / "Manim_Video_Output")
 )
+os.makedirs(MANIM_OUTPUT_ROOT, exist_ok=True)
+# One worker: scenario renders must be serial (parallel manim subprocesses
+# deadlock), and this also means one scenario is generated at a time.
+_manim_executor = ThreadPoolExecutor(max_workers=1)
 
 
 class ManimVideoRequest(BaseModel):

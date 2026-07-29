@@ -36,7 +36,7 @@
       "type": "narrative",
       "duration_seconds": 28,
       "setting": "Single-occupancy hospital room, daytime. Soft window light from the left. Bedside table with a water pitcher and glasses resting on it. Vitals monitor visible in background. Clean, quiet, no visitors present.",
-      "character_actions": "Maya enters from the left carrying a small clipboard, approaches Carl's bedside, makes eye contact, and gives a brief professional smile. Carl sits up in bed; he glances up when Maya enters but keeps his arms folded across his chest and he glances around as he gives short answers.",
+      "character_actions": "Maya enters from the left, approaches Carl's bedside, makes eye contact, and gives a brief professional smile. Carl sits up in bed; he glances up when Maya enters but keeps his arms folded across his chest and he glances around as he gives short answers.",
       "camera": {
         "angle": "Medium two-shot showing both characters.",
         "movement": "Static. Both characters fully visible. No zooms or camera movement.",
@@ -52,7 +52,7 @@
           "dialogue": [
             { "character_id": "nurse_maya", "line": "Good morning, Carl. I'm Maya. I'll be your nurse today. Mind if I check in with you for a few minutes?" }
           ],
-          "character_actions": "Maya enters from the left carrying her clipboard, steps to Carl's bedside, and makes a brief professional smile. As she speaks, she settles her weight at the bedside and shifts the clipboard to one hand — a gesture still in motion as the clip ends. Carl glances up when Maya enters but his arms stay folded and his jaw stays slightly tight.",
+          "character_actions": "Maya enters from the left, steps to Carl's bedside, and makes a brief professional smile. As she speaks, she settles her weight at the bedside, hands relaxed at her sides. Carl glances up when Maya enters but his arms stay folded and his jaw stays slightly tight.",
           "camera": { "angle": "Medium two-shot, Maya entering from the left, both characters visible.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         },
         {
@@ -61,7 +61,7 @@
             { "character_id": "patient_carl", "line": "Sure. Go ahead." },
             { "character_id": "nurse_maya", "line": "How are you feeling this morning? Any pain or discomfort I should know about?" }
           ],
-          "character_actions": "Carl gives a minimal nod and his gaze drifts back toward the window mid-nod — the nod still completing as Maya begins her question. Maya tilts her head slightly and holds her clipboard loosely, weight shifting forward toward Carl as she finishes asking.",
+          "character_actions": "Carl gives a minimal nod and his gaze drifts back toward the window mid-nod — the nod still completing as Maya begins her question. Maya tilts her head slightly, weight shifting forward toward Carl as she finishes asking.",
           "camera": { "angle": "Closer framing on Carl during his response, then static cut to medium two-shot for Maya's question.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         },
         {
@@ -72,7 +72,7 @@
             { "character_id": "patient_carl", "line": "Right. Yeah. I know." }
 
           ],
-          "character_actions": "Carl's arms tighten slightly across his chest as he answers. Maya holds a neutral expression and begins lifting her clipboard to make a note — the clipboard still rising as the clip ends, the note not yet written.",
+          "character_actions": "Carl's arms tighten slightly across his chest as he answers. Maya holds a neutral expression, listening attentively, her hands relaxed at her sides.",
           "camera": { "angle": "", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         }
       ],
@@ -120,7 +120,7 @@
       "type": "resolution",
       "duration_seconds": 22,
       "setting": "Same hospital room, continuous from Scene 1.",
-      "character_actions": "Maya pauses, sets her clipboard down on the bedside table, and shifts her posture to face Carl more directly — open stance, leaning slightly forward, maintaining eye contact. Carl looks up; there is a beat of silence, then his shoulders drop slightly and he unfolds his arms, his voice quieter. Maya listens without interrupting, gives a small nod, and leans in a little more, her expression calm and present. By the end, Carl is no longer looking at the window — he is engaged with Maya.",
+      "character_actions": "Maya pauses and shifts her posture to face Carl more directly — open stance, leaning slightly forward, maintaining eye contact. Carl looks up; there is a beat of silence, then his shoulders drop slightly and he unfolds his arms, his voice quieter. Maya listens without interrupting, gives a small nod, and leans in a little more, her expression calm and present. By the end, Carl is no longer looking at the window — he is engaged with Maya.",
       "camera": {
         "angle": "Medium two-shot, with closer framing on each character during dialogue to emphasize the shift in connection.",
         "movement": "Static cuts only.",
@@ -136,7 +136,7 @@
           "dialogue": [
             { "character_id": "nurse_maya", "line": "Carl, I noticed you crossed your arms when I mentioned the doctor coming by. Is there something on your mind about that?" }
           ],
-          "character_actions": "Maya pauses, sets her clipboard on the table, and shifts to face Carl more directly — the postural shift still completing as she begins speaking. Carl is looking at her.",
+          "character_actions": "Maya pauses and shifts to face Carl more directly — the postural shift still completing as she begins speaking. Carl is looking at her.",
           "camera": { "angle": "Medium two-shot, then static cut to closer framing on Maya as she leans forward and asks.", "movement": "Static.", "lens_effect": "Same warm neutral." }
         },
         {
@@ -163,7 +163,7 @@
           "dialogue": [
             { "character_id": "patient_carl", "line": "Right. Yeah. I know." }
           ],
-          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl.",
+          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's hand lowers back to her side, eyes staying on Carl.",
           "camera": { "angle": "Closer framing on Carl's closed posture, then static cut to medium two-shot.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         }
       ],

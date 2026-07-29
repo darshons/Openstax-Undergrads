@@ -106,6 +106,10 @@ Audio: {sound_block}"""
         prompt += (
             " ".join(consistency_lines)
             + " Do not introduce any additional characters into frame."
+            + " Characters only hold or interact with props explicitly described in"
+            " the character actions above. Do not add, invent, or carry over any"
+            " other object (e.g. a clipboard, tablet, or pen) from the reference"
+            " images unless that prop is named in the current scene's actions."
         )
 
     # ------------------------------------------------------------------

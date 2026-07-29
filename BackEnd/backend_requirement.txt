@@ -10,3 +10,4 @@ openai-whisper
 rapidfuzz
 pillow
 opencv-python-headless
+openpyxl

@@ -1,5 +1,7 @@
 import json
 
+from pydantic import BaseModel
+
 FRAMES_PER_SEGMENT = 4
 
 # Gemini 2.5 Flash pricing (input tokens only — judge calls are input-heavy).
@@ -17,7 +19,13 @@ def estimate_judge_cost(num_calls: int) -> float:
 
 
 def sample_frames(video_path: str, start: float, end: float, count: int = FRAMES_PER_SEGMENT) -> list:
-    """Return `count` evenly-spaced frames (as raw bytes) from [start, end]."""
+    """Return `count` evenly-spaced frames (as raw bytes) from [start, end].
+
+    Sampled at (i+1)/(count+1) rather than the segment's true edges — frames
+    right at a segment boundary tend to catch a speaker mid-transition
+    (e.g. still opening their mouth from the prior line), which confuses the
+    judge on intense multi-speaker dialogue.
+    """
     import io
     from moviepy import VideoFileClip
     from PIL import Image
@@ -26,7 +34,7 @@ def sample_frames(video_path: str, start: float, end: float, count: int = FRAMES
     frames = []
     span = max(end - start, 0.01)
     for i in range(count):
-        t = start + span * (i + 0.5) / count
+        t = start + span * (i + 1) / (count + 1)
         t = min(t, video.duration - 0.01)
         frame = video.get_frame(t)
         buf = io.BytesIO()
@@ -55,6 +63,11 @@ def _build_prompt(characters: list) -> str:
     )
 
 
+class _SpeakerJudgment(BaseModel):
+    speaking_characters: list[str]
+    rationale: str
+
+
 def judge_segment_speaker(client, video_path: str, start: float, end: float, characters: list) -> dict:
     """Ask a vision LLM who is speaking across one Whisper segment's time span.
 
@@ -73,14 +86,24 @@ def judge_segment_speaker(client, video_path: str, start: float, end: float, cha
     response = client.models.generate_content(
         model=GEMINI_MODEL,
         contents=[types.Content(role="user", parts=parts)],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=_SpeakerJudgment,
+        ),
     )
 
-    try:
-        parsed = json.loads(response.text)
-        candidates = parsed.get("speaking_characters") or []
-    except (json.JSONDecodeError, AttributeError):
-        parsed = {"rationale": "unparseable model response"}
-        candidates = []
+    # response_schema makes Gemini emit schema-conformant JSON directly, so
+    # response.parsed is populated in the normal case; json.loads(response.text)
+    # is only a fallback for the rare case the SDK couldn't coerce it.
+    judgment = response.parsed
+    if judgment is None:
+        try:
+            judgment = _SpeakerJudgment.model_validate_json(response.text)
+        except (json.JSONDecodeError, ValueError, AttributeError):
+            judgment = None
+
+    candidates = judgment.speaking_characters if judgment else []
+    rationale = judgment.rationale if judgment else "unparseable model response"
 
     return {
         "start": start,
@@ -88,7 +111,7 @@ def judge_segment_speaker(client, video_path: str, start: float, end: float, cha
         "candidates": candidates,
         "judged_speaker": candidates[0] if len(candidates) == 1 else None,
         "ambiguous": len(candidates) > 1,
-        "rationale": parsed.get("rationale"),
+        "rationale": rationale,
     }
 
 

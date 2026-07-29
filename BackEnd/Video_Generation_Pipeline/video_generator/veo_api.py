@@ -20,6 +20,21 @@ VEO_MODELS = {
 MODEL = "veo-3.1-fast-generate-preview"
 MODEL_KEY = "veo-3.1-fast"
 
+# DEPRECATED: the Veo backend is superseded by the local ComfyUI Wan2.2
+# backend (video_generator/local_api.py), which is the CLI default. This
+# module is kept selectable via `--model veo-*` and requires GEMINI_API_KEY.
+
+
+def set_model(model_key: str):
+    """Select which (deprecated) Veo model this module targets. Must be
+    called before video_generator.pipeline is imported — pipeline binds
+    MODEL_KEY by value at import time for logging/cost lookups."""
+    global MODEL, MODEL_KEY
+    if model_key not in VEO_MODELS:
+        raise ValueError(f"Unknown Veo model {model_key!r}; choose from {sorted(VEO_MODELS)}")
+    MODEL = VEO_MODELS[model_key]
+    MODEL_KEY = model_key
+
 
 RESOLUTION = "720p"
 ASPECT_RATIO = "16:9"

@@ -186,7 +186,7 @@ export async function generateManimVideos(
 }
 
 export interface ManimStatus {
-  state: string; // queued | assets | scene_k_of_n | stitching | done | error
+  state: string; // queued | assets | scene_k_of_n | stitching | done | partial | error
   completed_scenes: Record<string, string>; // scene_id -> server video path
   failed_scenes: Record<string, string>;
   manifest?: unknown;

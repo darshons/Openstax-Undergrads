@@ -198,5 +198,31 @@ class TestNoGeminiOnLocalPath(unittest.TestCase):
         )
 
 
+class TestRunStatusTerminalState(unittest.TestCase):
+    """The client keys off `state` alone, so "done" must not be reported while
+    scenes sit in failed_scenes -- that renders as a green finish with no video."""
+
+    def _finish(self, completed, failed):
+        import tempfile
+        from manim_generator.logging_utils import RunStatus
+        status = RunStatus(tempfile.mkdtemp())
+        status._state["completed_scenes"] = completed
+        status._state["failed_scenes"] = failed
+        status.finish({"manifest": True})
+        with open(status.path, encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_all_scenes_rendered_is_done(self):
+        self.assertEqual(self._finish({"1": "a.mp4"}, {})["state"], "done")
+
+    def test_some_scenes_failed_is_partial(self):
+        self.assertEqual(self._finish({"1": "a.mp4"}, {"2": "boom"})["state"], "partial")
+
+    def test_every_scene_failed_is_error(self):
+        st = self._finish({}, {"1": "boom", "2": "boom"})
+        self.assertEqual(st["state"], "error")
+        self.assertTrue(st["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

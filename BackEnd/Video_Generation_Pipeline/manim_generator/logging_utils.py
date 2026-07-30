@@ -64,8 +64,17 @@ class RunStatus:
         self._write()
 
     def finish(self, manifest: dict):
+        # "done" must mean every scene rendered. Reporting it while scenes are in
+        # failed_scenes makes the UI show a green finish with missing videos, since
+        # the client keys off state alone.
         self._state["manifest"] = manifest
-        self._state["state"] = "done"
+        if not self._state["failed_scenes"]:
+            self._state["state"] = "done"
+        elif self._state["completed_scenes"]:
+            self._state["state"] = "partial"
+        else:
+            self._state["state"] = "error"
+            self._state["error"] = "every scene failed to render"
         self._write()
 
     def fail(self, error: str):

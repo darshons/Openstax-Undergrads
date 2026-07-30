@@ -69,7 +69,7 @@ interface VideoPageProps {
   onBack: () => void;
 }
 
-type GenState = 'idle' | 'running' | 'done' | 'error';
+type GenState = 'idle' | 'running' | 'done' | 'partial' | 'error';
 
 export default function VideoPage({ script, requestId, onBack }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -100,6 +100,15 @@ export default function VideoPage({ script, requestId, onBack }: VideoPageProps)
         });
         if (status.state === 'done') {
           setGenState('done');
+        } else if (status.state === 'partial') {
+          // Some scenes rendered and some didn't. Play what exists, but name the
+          // gaps -- a silent "done" here looks like a complete video.
+          const failed = Object.keys(status.failed_scenes || {});
+          setGenState('partial');
+          setGenError(
+            `${failed.length} of ${failed.length + Object.keys(status.completed_scenes || {}).length} ` +
+            `scenes failed to render (scene ${failed.join(', ')}). The rest are playable.`,
+          );
         } else if (status.state === 'error') {
           setGenState('error');
           setGenError(status.error || 'Generation failed');
@@ -163,7 +172,7 @@ export default function VideoPage({ script, requestId, onBack }: VideoPageProps)
         >
           {genState === 'running'
             ? `Generating… ${genStatus}`
-            : genState === 'done'
+            : genState === 'done' || genState === 'partial'
               ? 'Regenerate videos'
               : 'Generate videos'}
         </button>
@@ -172,6 +181,12 @@ export default function VideoPage({ script, requestId, onBack }: VideoPageProps)
       {genState === 'error' && genError && (
         <div className="video-gen-error" style={{ padding: '8px 16px', color: '#c0392b' }}>
           Video generation error: {genError}
+        </div>
+      )}
+
+      {genState === 'partial' && genError && (
+        <div className="video-gen-warning" style={{ padding: '8px 16px', color: '#b7791f' }}>
+          {genError}
         </div>
       )}
 

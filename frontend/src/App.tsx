@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, type ChangeEvent } from 'react';
 import type {
   Script,
   Scene,
@@ -65,6 +65,54 @@ export default function App() {
   const [model, setModel] = useState<ModelChoice>('anthropic');
   const [videoType, setVideoType] = useState<VideoType>('scenario');
   const [userQuery, setUserQuery] = useState('');
+
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── JSON import ─────────────────────────────────────────────────────────
+
+  const handleImport = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setImportError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const json = JSON.parse(reader.result as string);
+
+        if (
+          typeof json.title !== 'string' ||
+          typeof json.learning_goal !== 'string' ||
+          typeof json.target_audience !== 'string' ||
+          typeof json.total_duration_seconds !== 'number' ||
+          typeof json.visual_style !== 'string' ||
+          !Array.isArray(json.characters) ||
+          !Array.isArray(json.scenes) ||
+          !Array.isArray(json.decision_points)
+        ) {
+          setImportError(
+            'Invalid script format. The JSON must include title, learning_goal, target_audience, total_duration_seconds, visual_style, characters, scenes, and decision_points.',
+          );
+          return;
+        }
+
+        setScript(json as Script);
+        setDeleteUndoStack([]);
+        setRequestId(null);
+        setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
+        setAssetsStep('idle');
+        setAssetsError(null);
+        setEditingSceneIdx(null);
+        setEditingCharacterIdx(null);
+      } catch {
+        setImportError('Could not parse the file. Make sure it is valid JSON.');
+      }
+    };
+    reader.readAsText(file);
+
+    e.target.value = '';
+  }, []);
 
   // ── Source-selection mutations ──────────────────────────────────────────
 
@@ -498,6 +546,38 @@ export default function App() {
                     <div className="empty-illust"><div /><div /><div /></div>
                     <h2>Your script will appear here as a storyboard</h2>
                     <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{ color: 'var(--os-orange)' }}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
+                    <p style={{ marginTop: 14, fontSize: 13, color: 'var(--os-ink-2)' }}>
+                      or{' '}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          color: 'var(--os-orange)',
+                          fontWeight: 600,
+                          fontSize: 13,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: 2,
+                        }}
+                      >
+                        Import a JSON Script
+                      </button>
+                    </p>
+                    {importError && (
+                      <p style={{ marginTop: 10, fontSize: 12, color: '#c0392b', background: '#fdecea', borderRadius: 6, padding: '8px 12px', lineHeight: 1.45 }}>
+                        {importError}
+                      </p>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json,application/json"
+                      onChange={handleImport}
+                      style={{ display: 'none' }}
+                    />
                   </div>
                 </div>
               )}

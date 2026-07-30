@@ -1,4 +1,5 @@
 import type { ModelChoice, VideoType } from '../../types/script';
+import { lookupSection } from '../../data/catalog';
 import { I } from '../shared/Icons';
 
 interface GeneratePanelProps {
@@ -42,11 +43,13 @@ export default function GeneratePanel({
       ) : (
         <div className="ctx-pills">
           {pillsArr.slice(0, 12).map(id => {
-            const parts = id.split(':');
-            const s = parts[2];
+            const hit = lookupSection(id);
+            const secN = id.split(':')[2];
+            const sec = hit?.chap.secs.find(s => s.n === secN);
+            const label = sec ? `${sec.n}. ${sec.t}` : `§${secN}`;
             return (
-              <span key={id} className="ctx-pill">
-                §{s}
+              <span key={id} className="ctx-pill" title={label}>
+                {label}
                 <button onClick={() => removeSec(id)} aria-label="Remove">×</button>
               </span>
             );

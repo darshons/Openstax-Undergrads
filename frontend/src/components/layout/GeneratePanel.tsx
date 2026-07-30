@@ -14,19 +14,24 @@ interface GeneratePanelProps {
   userQuery: string;
   setUserQuery: (q: string) => void;
   genError: string | null;
+  height?: number;
 }
 
 export default function GeneratePanel({
   selected, removeSec, onGenerate, busy, hasScript,
   model, setModel, videoType, setVideoType,
   userQuery, setUserQuery, genError,
+  height,
 }: GeneratePanelProps) {
   const pillsArr = Array.from(selected);
   const queryReady = userQuery.trim().length > 0;
   const canRun = selected.size > 0 && queryReady && !busy;
 
   return (
-    <div className="sb-foot">
+    <div
+      className="sb-foot"
+      style={height ? { height, overflowY: 'auto' } : undefined}
+    >
       <div className="ctx-tag">
         <span>Context · {selected.size} section{selected.size === 1 ? '' : 's'}</span>
         {selected.size > 0 && <span>{Math.min(99, selected.size * 4)}k tokens</span>}

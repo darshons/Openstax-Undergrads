@@ -110,7 +110,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .sec-row.on .sec-name{color:var(--os-ink);font-weight:600}
 
 /* ─── Sidebar footer / Generate panel ───────────────────────────────────── */
-.sb-foot{border-top:1px solid var(--os-line);padding:14px 18px 16px;background:#fff;flex-shrink:0}
+.sb-foot{padding:14px 18px 16px;background:#fff;flex-shrink:0}
 .ctx-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;max-height:78px;overflow-y:auto}
 .ctx-pill{font-size:10.5px;padding:3px 7px 3px 8px;border-radius:999px;background:var(--os-orange-tint);color:#a04412;font-weight:600;display:inline-flex;align-items:center;gap:5px;line-height:1.3}
 .ctx-pill button{font-size:13px;line-height:1;color:#a04412;opacity:.55;padding:0;display:flex;align-items:center}
@@ -140,8 +140,11 @@ input, textarea { font-family: inherit; color: inherit; }
 /* ─── Stage bar ─────────────────────────────────────────────────────────── */
 .stage-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#fff;border-bottom:1px solid var(--os-line);z-index:2;zoom:1.1}
 .resize-handle{width:10px;cursor:col-resize;background:transparent;flex-shrink:0;position:relative}
-.resize-handle::after{content:'';position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:2px;background:var(--os-line);transition:background .15s}
+.resize-handle::after{content:'';position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:2px;background:var(--os-line-strong);transition:background .15s}
 .resize-handle:hover::after{background:var(--os-navy)}
+.resize-handle-h{height:8px;cursor:row-resize;background:transparent;flex-shrink:0;position:relative;width:100%}
+.resize-handle-h::after{content:'';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:1px;background:var(--os-line-strong);transition:background .15s}
+.resize-handle-h:hover::after{background:var(--os-navy)}
 .stage-bar-l{display:flex;align-items:center;gap:14px}
 .stage-title{font-size:15px;font-weight:700;color:var(--os-ink);margin:0}
 .stage-title em{font-style:normal;color:var(--os-ink-3);font-weight:400;margin-left:6px}

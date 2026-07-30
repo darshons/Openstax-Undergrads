@@ -52,6 +52,10 @@ export default function App() {
   const [editingSceneIdx, setEditingSceneIdx] = useState<number | null>(null);
   const [editingCharacterIdx, setEditingCharacterIdx] = useState<number | null>(null);
 
+  const [genPanelHeight, setGenPanelHeight] = useState(280);
+  const genPanelHeightRef = useRef(280);
+  const sidebarWrapRef = useRef<HTMLDivElement>(null);
+
   const [selected, setSelected] = useState<Set<string>>(
     new Set(['clinicalnursing:03:3.1']),
   );
@@ -114,6 +118,34 @@ export default function App() {
       // Restore transition and sync React state
       if (grid) grid.style.transition = '';
       setSidebarWidth(sidebarWidthRef.current);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function startVDrag(e: React.MouseEvent) {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = genPanelHeightRef.current;
+    const containerH = sidebarWrapRef.current?.clientHeight ?? 600;
+    const MIN_GEN = 44;
+    const MIN_LIST = 130;
+    const maxGen = containerH - MIN_LIST - 8;
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(ev: MouseEvent) {
+      const h = Math.max(MIN_GEN, Math.min(maxGen, startH - (ev.clientY - startY)));
+      genPanelHeightRef.current = h;
+      setGenPanelHeight(h);
+    }
+
+    function onUp() {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       document.removeEventListener('mousemove', onMove);
@@ -405,6 +437,7 @@ export default function App() {
 
           {/* Sidebar wrap */}
           <div
+            ref={sidebarWrapRef}
             className="flex flex-col min-h-0 overflow-hidden bg-white"
             style={{ zoom: 0.95 }}
           >
@@ -417,6 +450,7 @@ export default function App() {
               filter={filter}
               setFilter={setFilter}
             />
+            <div className="resize-handle-h" onMouseDown={startVDrag} />
             <GeneratePanel
               selected={selected}
               removeSec={removeSec}
@@ -430,6 +464,7 @@ export default function App() {
               userQuery={userQuery}
               setUserQuery={setUserQuery}
               genError={genError}
+              height={genPanelHeight}
             />
           </div>
 

@@ -3,11 +3,15 @@ def build_character_block(characters: list) -> str:
     char_lines = []
     for cid, char in char_lookup.items():
         a = char["appearance"]
-        char_lines.append(
+        distinguishing = a.get("distinguishing_features")
+        line = (
             f"{char['name']} ({char['role']}): "
-            f"{a['skin_tone']} skin, {a['hair']}, {a['uniform']}. "
-            f"Emotional tone: {char['emotional_baseline']}."
+            f"{a['skin_tone']} skin, {a['hair']}, {a['uniform']}"
         )
+        if distinguishing:
+            line += f", {distinguishing}"
+        line += f". Emotional tone: {char['emotional_baseline']}."
+        char_lines.append(line)
     return " | ".join(char_lines)
 
 
@@ -94,11 +98,19 @@ Audio: {sound_block}"""
         consistency_lines = []
         for char in characters:
             a = char["appearance"]
-            consistency_lines.append(
+            distinguishing = a.get("distinguishing_features")
+            line = (
                 f"{char['name']} always wears {a['uniform']}; "
-                f"{a['skin_tone']} skin, {a['hair']}. "
-                f"Do not change {char['name']}'s clothing, hair, skin tone, or facial features at any point."
+                f"{a['skin_tone']} skin, {a['hair']}"
             )
+            if distinguishing:
+                line += f"; always has {distinguishing}"
+            line += (
+                f". Do not change {char['name']}'s clothing, hair, skin tone, "
+                "facial features, or distinguishing features at any point - "
+                "these must be identical in every single shot."
+            )
+            consistency_lines.append(line)
 
         if has_reference_images:
             prompt += "\n\nCharacter reference images are provided. "

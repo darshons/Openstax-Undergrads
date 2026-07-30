@@ -195,7 +195,7 @@ def generate_with_retry(generate_fn, label):
 
 
 def generate_first_clip(
-    client, prompt, clip_index=1, reference_images=None, duration_seconds=8, model=None
+    client, prompt, clip_index=1, reference_images=None, duration_seconds=8, model=None, seed=None
 ):
     """
     Generates the opening clip for a scene.
@@ -206,6 +206,14 @@ def generate_first_clip(
 
     model: overrides the module-level MODEL constant (e.g. for running a cheaper
     model during exploration). Defaults to MODEL when omitted.
+
+    seed: fixed integer seed. NOTE: confirmed unsupported on this project's
+    API tier - the Gemini Developer API rejects it with "seed parameter is
+    only supported in Gemini Enterprise Agent Platform mode" (tested
+    2026-07-30). Left as a no-op passthrough in case the project ever moves
+    to Vertex AI / Enterprise mode, where it could help reduce voice-timbre
+    drift between independently generated clips of the same character, since
+    reference_images only pins visual appearance, not voice.
 
     Returns (video_obj, attempts_used).
     """
@@ -235,6 +243,7 @@ def generate_first_clip(
                 number_of_videos=1,
                 duration_seconds=duration_seconds,
                 reference_images=ref_image_configs if ref_image_configs else None,
+                seed=seed,
             ),
         )
         operation = poll_until_done(client, operation)

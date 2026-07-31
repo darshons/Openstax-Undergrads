@@ -40,7 +40,7 @@ Image Generation Instructions:
 - Depict only the earliest moment of the clip, before its described actions unfold.
 - Use the visual_style description to set the artistic style and rendering quality.
 - Do not include dialogue, captions, subtitles, or any text in the image.
-- Do not introduce any characters not named in the prompt.
+- Do not introduce any characters not named in the prompt. 
 """.strip()
 
 LAST_FRAME_SYSTEM_PROMPT = """

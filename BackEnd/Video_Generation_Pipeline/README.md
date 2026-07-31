@@ -1,6 +1,9 @@
 # video_generator
 
-Generates MP4 videos from a scenario JSON file using Google Veo. Every scene is treated as a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene.
+Generates MP4 videos from a scenario JSON file. The **default backend is local**: a ComfyUI Wan2.2 pipeline running on this machine (`http://127.0.0.1:8188`) — no API key, no cloud cost. The old Google Veo backends remain selectable via `--model veo-*` but are **DEPRECATED** and require `GEMINI_API_KEY`.
+
+- **Local (default)**: each clip is rendered as its own ComfyUI job (Wan2.2-A14B GGUF + lightx2v 4-step distill LoRAs), then the scene's clips are concatenated with ffmpeg into one mp4.
+- **Veo (deprecated)**: every scene is a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene.
 
 ---
 
@@ -9,13 +12,16 @@ Generates MP4 videos from a scenario JSON file using Google Veo. Every scene is 
 ```
 video_generator/
   scenario_loader.py   — load and validate the scenario JSON
-  prompt_builder.py    — convert scene data into Veo prompt strings
-  veo_api.py           — Veo API calls, polling, retry, and download
-  pipeline.py          — scene and scenario orchestration
-  clip_verification.py — bridges to Transcript_Eval_Pipeline for --verify-clips
+  prompt_builder.py    — convert scene data into per-clip prompt strings
+  local_api.py         — LOCAL ComfyUI Wan2.2 backend (default): workflow build,
+                          validation, submit, /history polling, ffmpeg concat
+  veo_api.py           — [DEPRECATED] Veo API calls, polling, retry, and download
+  pipeline.py          — [DEPRECATED] Veo scene/scenario orchestration
+  clip_verification.py — bridges to Transcript_Eval_Pipeline for --verify-clips (Veo only)
   logging_utils.py     — generation log, prompt saving, checkpoints
   cli.py               — argument parsing, entry point, caption burning
 
+tests/                 — offline unit tests (scenario load, prompt build, payload build)
 reference_images/      — place character reference PNGs here
 output/                — generated videos and generation_log.json (created on first run)
   failed_clips/         — videos for clip attempts that failed --verify-clips eval (created on first use)
@@ -23,38 +29,92 @@ output/                — generated videos and generation_log.json (created on 
 
 ---
 
-## Quick start
+## Quick start (local ComfyUI backend — default)
+
+Requires ComfyUI running at `http://127.0.0.1:8188` with the Wan2.2 model files (see [Local backend](#local-comfyui-wan22-backend-default) below). No API key needed.
 
 ```bash
-# First follow the README in the root directory to set up backend
 cd Video_Generation_Pipeline
 
-# Generate one scene
+# Dry run: print the exact ComfyUI /prompt JSON payload per clip, validate the
+# node graph + model files against disk and the live server — submits NOTHING.
+python -m video_generator.cli --scenario scenario.json --scene-id 1 --dry-run
+
+# Generate one scene locally (text-to-video)
 python -m video_generator.cli --scenario scenario.json --scene-id 3
 
-# Generate all scenes
+# Generate all scenes locally
 python -m video_generator.cli --scenario scenario.json
 
-# Preview the per-clip prompts without generating
+# Image-to-video: anchor clip 1 on a start image; later clips chain from the
+# previous clip's last frame (extracted with ffmpeg), like Veo extension did
+python -m video_generator.cli --scenario scenario.json --scene-id 3 \
+    --i2v-start-image reference_images/maya.png
+
+# Apply a character-identity LoRA on the low-noise branch (e.g. the Maya LoRA)
+python -m video_generator.cli --scenario scenario.json --scene-id 3 \
+    --i2v-start-image reference_images/maya.png --character-lora mayanurse_low.safetensors
+
+# Preview the per-clip prompts without generating (backend-agnostic)
 python -m video_generator.cli --scenario scenario.json --scene-id 3 --preview-prompt
-
-# Generate and burn dialogue captions onto the output video
-python -m video_generator.cli --scenario scenario.json --add-captions
-
-# Generate with per-clip transcript/consistency verification, regenerating failed clips [Default retry is 1 time for each clip if failed]
-python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-clips
-
-# Generate with per-clip transcript/consistency verification, regenerating failed clips [maximum retries time is 2 for each clip]
-python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-clips --eval-retries 2
 ```
 
-Output videos are saved to `output/`. A generation log is written to `output/generation_log.json` after every run.
+Per-clip mp4s are written by ComfyUI under `/home/darshon/comfyui/output/wan22/`; the concatenated per-scene video lands in `output/scene{N}_final_local_{ts}.mp4`. A generation log is written to `output/generation_log.json` after every run.
+
+Run the offline unit tests (no GPU, no job submission):
+
+```bash
+../venv/bin/python -m unittest discover -s tests -v
+```
 
 ---
 
-## Configuration
+## Local ComfyUI Wan2.2 backend (default)
 
-Model, resolution, aspect ratio, and reference images are set as constants at the top of `veo_api.py` — not as CLI flags.
+`local_api.py` submits jobs to ComfyUI's HTTP API and polls `/history/<prompt_id>` until completion. The node graph mirrors the proven `wan22_i2v_api.json` reference workflow:
+
+| Nodes | Role |
+|-------|------|
+| 1, 2 | `UnetLoaderGGUF` — Wan2.2-A14B high-noise / low-noise GGUF (T2V or I2V variants) |
+| 3, 4 | `LoraLoaderModelOnly` — lightx2v 4-step distill LoRAs (high / low) |
+| 5, 6 | `ModelSamplingSD3` (shift 5.0) |
+| 7, 8 | `CLIPLoader` (umt5_xxl) / `VAELoader` (wan_2.1_vae) |
+| 9, 10 | `CLIPTextEncode` — positive (the built clip prompt) / negative |
+| 11 (+17) | I2V: `LoadImage` → `WanImageToVideo`; T2V: `EmptyHunyuanLatentVideo` |
+| 12, 13 | `KSamplerAdvanced` — two-stage: high-noise steps 0–4, low-noise steps 4–8, cfg 1.0 |
+| 14–16 | `VAEDecode` → `CreateVideo` (16 fps) → `SaveVideo` (h264 mp4) |
+| 18 | optional character LoRA on the **low-noise branch only** (`--character-lora`) |
+
+Defaults: 832×480, 81 frames (~5 s @ 16 fps), seed 30003. Constants live at the top of `local_api.py` (`COMFY_API`, `COMFY_ROOT` — both overridable via env vars of the same name).
+
+Required model files under `/home/darshon/comfyui/models/`:
+
+- `diffusion_models/Wan2.2-{T2V,I2V}-A14B-{High,Low}Noise-Q6_K.gguf`
+- `loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_{high,low}_noise.safetensors` (T2V)
+- `loras/wan2.2_i2v_lightx2v_4steps_lora_v1_{high,low}_noise.safetensors` (I2V)
+- `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`, `vae/wan_2.1_vae.safetensors`
+
+`--dry-run` builds every clip's payload, checks that all node references resolve, all model filenames exist on disk, and all `class_type`s are known to the live server (read-only GET of `/object_info`) — then exits without submitting.
+
+**No `GEMINI_API_KEY` is required anywhere on the local path.** All Google/Gemini imports are confined to the deprecated `--model veo-*` branch.
+
+---
+
+## Deprecated Veo backend
+
+Select with `--model veo-3.1 | veo-3.1-fast | veo-3.1-lite | veo-2`. Requires `GEMINI_API_KEY` (env var, `.env`, or `--api-key`). Everything below in this section applies **only** to the Veo backend.
+
+```bash
+# Veo (deprecated): generate one scene
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --model veo-3.1-fast
+
+# Veo with per-clip transcript verification
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --model veo-3.1-fast --verify-clips
+```
+
+### Configuration
+
+Resolution, aspect ratio, and reference images are set as constants at the top of `veo_api.py` — not as CLI flags. The model is now chosen via `--model`.
 
 | Constant | Default | Description |
 |----------|---------|-------------|
@@ -86,11 +146,16 @@ Reference images pin character appearance on the first clip only. Extension clip
 |------|-------------|
 | `--scenario` *(required)* | Path to the scenario JSON file |
 | `--scene-id` | Generate only this scene ID; omit to generate all scenes |
-| `--preview-prompt` | Print the per-clip prompts; skip API call |
+| `--model` | Backend: `local` (default, ComfyUI Wan2.2) or a deprecated `veo-*` model |
+| `--dry-run` | *(local)* Print + validate the exact ComfyUI `/prompt` payload per clip; submit nothing |
+| `--i2v-start-image` | *(local)* Start image path — switches T2V → I2V; later clips chain from the previous clip's last frame |
+| `--character-lora` | *(local)* LoRA filename in ComfyUI `models/loras`, applied to the low-noise branch |
+| `--seed` | *(local)* Sampler noise seed (default `30003`) |
+| `--preview-prompt` | Print the per-clip prompts; skip generation entirely |
 | `--add-captions` | Burn dialogue captions onto the generated video (requires `moviepy`) |
-| `--verify-clips` | Transcribe and evaluate each clip against the script as it's generated, regenerating on failure (see [Clip verification](#clip-verification)) |
-| `--eval-retries` | Max regeneration attempts for a clip that fails `--verify-clips` eval (default: `1`) |
-| `--api-key` | Gemini API key (default: `$GEMINI_API_KEY`) |
+| `--verify-clips` | *(veo, deprecated)* Transcribe and evaluate each clip against the script as it's generated, regenerating on failure (see [Clip verification](#clip-verification)) |
+| `--eval-retries` | *(veo, deprecated)* Max regeneration attempts for a clip that fails `--verify-clips` eval (default: `1`) |
+| `--api-key` | *(veo, deprecated)* Gemini API key (default: `$GEMINI_API_KEY`) |
 
 ---
 
@@ -339,7 +404,24 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 | `build_veo_prompt(scene, characters, visual_style, is_continuation)` | Assemble the full prompt; first clip gets full context, extension clips get a compressed continuation prompt |
 | `build_clip_prompts(scene, characters, visual_style)` | Return one prompt per clip for the stitching pipeline |
 
-### `veo_api`
+### `local_api` (default backend)
+
+| Function | Description |
+|----------|-------------|
+| `build_workflow(prompt, mode, start_image, ..., character_lora)` | Build the ComfyUI node graph for one clip (`t2v` or `i2v`) |
+| `build_payload(workflow)` | The exact JSON body POSTed to `/prompt` |
+| `validate_workflow(workflow, check_input_image)` | Return problems: dangling node refs, model files missing on disk |
+| `check_server_node_types(workflow)` | Cross-check `class_type`s against the live server's `/object_info` (read-only) |
+| `submit_workflow(workflow)` | POST to `/prompt`; return `prompt_id` |
+| `wait_for_completion(prompt_id)` | Poll `/history/<id>` until success/failure/timeout |
+| `output_video_paths(history_entry)` | Absolute mp4 paths under `/home/darshon/comfyui/output/` |
+| `generate_clip(prompt, filename_prefix, ...)` | Build → validate → submit → wait; returns the clip's mp4 path |
+| `extract_last_frame(video_path, staged_name)` | ffmpeg last-frame grab into ComfyUI `input/` (i2v chaining) |
+| `concat_clips(clip_paths, out_path)` | Lossless ffmpeg concat of a scene's clips |
+| `dry_run_scene(scene_id, clip_prompts, ...)` | Print + validate every clip's payload; submit nothing |
+| `run_scenario_pipeline_local(scenario, ...)` | Local counterpart of `run_scenario_pipeline`; same result-dict shape |
+
+### `veo_api` [DEPRECATED]
 
 | Function | Description |
 |----------|-------------|

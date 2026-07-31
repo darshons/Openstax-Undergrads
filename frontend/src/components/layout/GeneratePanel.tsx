@@ -66,7 +66,7 @@ export default function GeneratePanel({
       <div className="gp-models">
         <button type="button" className={`gp-model ${videoType === 'scenario' ? 'on' : ''}`} onClick={() => setVideoType('scenario')}>
           <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>🎬</span>
-          Veo · Scenario
+          Local (Wan 2.2) · Scenario
         </button>
         <button type="button" className={`gp-model ${videoType === 'manim' ? 'on' : ''}`} onClick={() => setVideoType('manim')}>
           <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>📊</span>

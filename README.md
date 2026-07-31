@@ -4,7 +4,7 @@
 
 # OpenStax Scenario Studio
 
-An internal authoring tool that lets OpenStax content editors generate, review, and refine **interactive educational scenario scripts** grounded in real OpenStax textbook content — then hand them off to a video generation pipeline.
+An authoring tool that lets OpenStax content editors generate, review, and refine **interactive educational scenario scripts** grounded in real OpenStax textbook content — then turn them into **branching educational videos**. The demo centerpiece is the **Manim graphics pipeline**: every scene of a branching scenario becomes a narrated 3Blue1Brown-style diagram clip, stitched together with decision points.
 
 Built by Team DJ YAM.
 
@@ -14,10 +14,10 @@ Built by Team DJ YAM.
 
 1. **Pick a textbook section** from the sidebar (Biology 2e, Clinical Nursing, Anatomy & Physiology, and more).
 2. **Describe a scenario** — e.g. *"A nursing student watches a patient's glucose metabolism in real time."*
-3. **Choose a model** (Anthropic Claude or Google Gemini) and a **video type** (Veo · Scenario or Manim · Graphics).
+3. **Choose a model** — Anthropic Claude, Google Gemini, or the **local** provider (Claude Code CLI — no API key needed).
 4. **Generate** — the backend crawls the relevant OpenStax HTML, feeds it to the LLM, and returns a structured JSON script with scenes, characters, decision points, and a setting description.
 5. **Edit inline** — scene cards, character cards, and a setting panel are all editable in the browser. Decision-point branches are shown as an interactive tree; click a choice pill to mark it as the correct answer.
-6. **Save & export** — submit the finished script back to the backend, or download it as JSON.
+6. **Generate videos** — kick off the Manim branching-video pipeline straight from the UI, or export the script JSON for the other pipelines.
 
 ---
 
@@ -25,74 +25,93 @@ Built by Team DJ YAM.
 
 ```
 .
-├── frontend/                        # React frontend (Vite)
+├── frontend/                        # React 19 + Vite + Tailwind UI (TypeScript)
 │   └── src/
 │
-└── backend/                         # FastAPI backend
-    ├── main.py                      # App entry point + CORS config
-    ├── api.py                       # Route handlers (/api/initial_script, /api/modified_script)
-    ├── Script_Generation_Pipeline/
-    │   ├── Preprocessing/           # OpenStax HTML crawler → Markdown
-    │   ├── Script_With_Dpoints/     # Anthropic + Gemini LLM script generators (with branching)
-    │   ├── Script_Without_Dpoints/  # Linear script generators
-    │   ├── Dpoints_Separate/        # Add decision points to an existing linear script
-    │   └── _JSON_Templates/          # Output schemas the LLM must follow
-    ├── Image_Generation_Pipeline/
-    │   ├── Character_Generation/
-    │   └── Frame_Generation/
-    ├── Video_Generation_Pipeline/
-    │   ├── scenario.json            # Example scenario
-    │   ├── test_prompt.py           # Print prompts without calling Veo
-    │   └── video_generator/         # Generation package — see its README
-    └── Transcript_Eval_Pipeline/
-        └── transcript_eval/         # Transcript + consistency-eval package — see its README
+├── BackEnd/                         # FastAPI backend
+│   ├── main.py                      # App entry point + CORS config
+│   ├── api.py                       # All /api/* route handlers
+│   ├── backend_requirement.txt      # Backend Python dependencies
+│   ├── Script_Generation_Pipeline/
+│   │   ├── Preprocessing/           # OpenStax HTML crawler → Markdown
+│   │   ├── Script_With_Dpoints/     # Anthropic + Gemini script generators (with branching)
+│   │   ├── Prompt_Rules/            # Script-generation rules fed to the LLM
+│   │   ├── _JSON_Templates/         # Output schemas the LLM must follow
+│   │   └── _Script_Outputs/         # Example generated scripts
+│   ├── Image_Generation_Pipeline/
+│   │   ├── Background_Generation/
+│   │   ├── Character_Generation/
+│   │   ├── Frame_Generation/
+│   │   └── Feedback_Retry/          # Regenerate an image from user feedback
+│   ├── Video_Generation_Pipeline/
+│   │   ├── manim_generator/         # ★ Manim branching-video pipeline — see its README
+│   │   ├── video_generator/         # Veo-based live-action pipeline (being replaced, see below)
+│   │   └── scenario.json            # Example scenario
+│   └── Transcript_Eval_Pipeline/
+│       └── transcript_eval/         # Transcript + consistency eval — see its README
+│
+└── demo_manim_video/                # Pre-rendered Manim demo output (mp4 + srt)
 ```
 
 ---
 
-## Running locally
+## Quickstart
 
-### 1. Start the backend
+### 1. Backend (FastAPI)
 
 ```bash
-cd backend
+cd BackEnd
 python3 -m venv venv && source venv/bin/activate
 pip install -r backend_requirement.txt
 
-# Set your API keys
-export ANTHROPIC_API_KEY=sk-ant-...
-export GEMINI_API_KEY=...
-
-python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+# (equivalently: python main.py)
 ```
 
 Interactive API docs at <http://localhost:8000/docs>.
 
-### 2. Serve the UI
+API keys are read from `BackEnd/backend.env` (loaded by `main.py` via python-dotenv) or the environment:
 
-No build step needed — it's plain HTML.
+```
+ANTHROPIC_API_KEY=sk-ant-...   # for model_choice "anthropic"
+GEMINI_API_KEY=...             # for model_choice "gemini", image gen, and the Manim planner
+```
+
+For Manim video generation, install the extra pipeline requirements into the same venv and point the env at the Kokoro TTS model files (see `BackEnd/Video_Generation_Pipeline/manim_generator/README.md`):
 
 ```bash
-cd scenario-studio-ui
-npx serve .          # serves on :3000
-# or
-python3 -m http.server 8080
+pip install -r Video_Generation_Pipeline/manim_generator/requirements.txt
 ```
 
-Open the printed URL. The UI auto-connects to `http://localhost:8000`; to override, add before `api.js` in `index.html`:
+### 2. Frontend (React + Vite)
 
-```html
-<script>window.OS_API_BASE = "http://my-backend:9000";</script>
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+
+The app is served under the `/openstax/` base path (e.g. <http://localhost:5173/openstax/>). The Vite dev server proxies `/api` to `http://localhost:8000` (see `frontend/vite.config.ts`), so no frontend API configuration is needed. `npm run build` produces a static bundle in `frontend/dist/`.
 
 ---
 
 ## API endpoints
 
+All routes are mounted under `/api` (see `BackEnd/api.py`).
+
 | Method | Path | What it does |
 |--------|------|--------------|
 | `POST` | `/api/initial_script` | Crawls the requested OpenStax section, sends content + user query to the chosen LLM, returns a full script JSON |
-| `POST` | `/api/modified_script` | Receives the user-edited script for downstream processing |
+| `POST` | `/api/generate_background_image` | Generates the reference background image for a script |
+| `POST` | `/api/generate_character_images` | Generates reference character images |
+| `POST` | `/api/generate_opening_frames` | Composites opening frames from background + character references |
+| `POST` | `/api/retry_generate_background_image` | Regenerate the background (optionally guided by user feedback) |
+| `POST` | `/api/retry_generate_character_image` | Regenerate one character image (optionally guided by feedback) |
+| `POST` | `/api/retry_generate_opening_frames` | Regenerate opening frames (optionally guided by feedback) |
+| `GET` | `/api/image/{image_path}` | Serves a generated PNG back to the UI |
+| `GET` | `/api/video/{video_path}` | Serves a generated MP4 back to the UI |
+| `POST` | `/api/generate_manim_videos` | Starts Manim branching-video generation for an edited script (async, single worker) |
+| `GET` | `/api/manim_video_status/{request_id}` | Polls pipeline progress (`queued` / `assets` / `scene_k_of_n` / `stitching` / `done` / `error`) |
 
 ### `POST /api/initial_script` request body
 
@@ -104,12 +123,16 @@ Open the printed URL. The UI auto-connects to `http://localhost:8000`; to overri
   "page_num": "9.1",
   "user_query": "A nursing student watches glucose metabolism in real time.",
   "model_choice": "anthropic",
-  "video_type": "scenario"
+  "video_type": "manim"
 }
 ```
 
-`model_choice`: `"anthropic"` (Claude) or `"gemini"`.  
-`video_type`: `"scenario"` (Veo-style live action) or `"manim"` (animated graphics).
+`model_choice`: `"anthropic"` (Claude API), `"gemini"`, or `"local"` (Claude Code CLI). The field is optional: when omitted it resolves to `"anthropic"` if `ANTHROPIC_API_KEY` is set, otherwise to `"local"`. Requesting `"anthropic"` without an API key also falls back to `"local"` (with a warning in the server log).
+`video_type`: `"manim"` (animated graphics — the demo centerpiece) or `"scenario"` (live action).
+
+### The `local` model provider (no API key needed)
+
+`model_choice: "local"` shells out to the **Claude Code CLI** (`claude -p`) instead of calling the Anthropic API — it works on any machine with Claude Code installed and logged in (credentials in `~/.claude`), with **no `ANTHROPIC_API_KEY` required**. The backend looks for `claude` on `PATH`, falling back to `~/.local/bin/claude`. Because of the automatic fallback described above, a keyless machine works out of the box: just leave `model_choice` unset (or pick Anthropic in the UI) and script generation runs through the local CLI. Implementation: `BackEnd/Script_Generation_Pipeline/Script_With_Dpoints/local_script_generation.py`.
 
 ---
 
@@ -129,41 +152,69 @@ The generated script follows the template in `BackEnd/Script_Generation_Pipeline
 | `scenes` | array | Ordered scenes with dialogue, setting, actions, audio, routing |
 | `decision_points` | array | Questions with A/B/C choices, correct answer, scene routing |
 
-See `scenario-studio-ui/docs/data-contracts.md` for the full schema.
+---
+
+## Manim video generation (demo centerpiece)
+
+`BackEnd/Video_Generation_Pipeline/manim_generator` turns a finalized script into a **branching set of narrated diagram videos**: one Manim clip per scene (Kokoro TTS narration, frozen per-scenario style kit, LLM-generated scene code with automatic render-repair and a grid-layout critic), plus a `manifest.json` describing the decision-point branch graph and a stitched `golden_path.mp4` correct-answers preview. A pre-rendered example lives in `demo_manim_video/`.
+
+**Via the API / UI** — submit the edited script from the frontend, or:
+
+```bash
+curl -X POST http://localhost:8000/api/generate_manim_videos \
+  -H 'Content-Type: application/json' \
+  -d '{"script": { ... }, "request_id": "my-run"}'
+
+curl http://localhost:8000/api/manim_video_status/my-run
+```
+
+Output lands in `output/manim_runs/<request_id>/` at the repo root (override with `MANIM_OUTPUT_ROOT`).
+
+**Via the CLI** — from the repo root with the backend venv active:
+
+```bash
+PYTHONPATH=BackEnd/Video_Generation_Pipeline python -m manim_generator.cli \
+  --script BackEnd/Script_Generation_Pipeline/_Script_Outputs/output_script_with_decision_points_anthropic_new.json \
+  --out output/manim_runs --request-id demo --quality m
+```
+
+`--quality l` (480p) is fastest for iteration, `h` (1080p) for final renders. A full 8-scene scenario takes roughly 30–60 minutes. Full setup and pipeline details: `BackEnd/Video_Generation_Pipeline/manim_generator/README.md`.
 
 ---
 
-## Video generation
+## Live-action video generation (Veo → local Wan2.2)
 
-Once a script is finalized, `backend/Video_Generation_Pipeline/video_generator` takes the exported JSON and produces MP4 videos using Google Veo.
+`BackEnd/Video_Generation_Pipeline/video_generator` is the original live-action pipeline: it takes the exported script JSON and produces MP4s scene-by-scene with Google Veo, chaining each clip from the last frame of the previous one.
 
 ```bash
-cd backend/Video_Generation_Pipeline
+cd BackEnd/Video_Generation_Pipeline
 export GEMINI_API_KEY=your-key-here
 
 # Generate all scenes
 python -m video_generator.cli --scenario scenario.json
 
-# Generate one scene with a specific model
-python -m video_generator.cli --scenario scenario.json --scene-id 1 --model veo-3.1-fast
+# Generate one scene
+python -m video_generator.cli --scenario scenario.json --scene-id 3
 
-# Preview prompts without making API calls
-python test_prompt.py
+# Preview the per-clip prompts without generating
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --preview-prompt
 
 # Verify each clip against the script as it's generated, regenerating on failure
-python -m video_generator.cli --scenario scenario.json --scene-id 1 --verify-clips
+python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-clips
 ```
 
-Supported models: `veo-3.1`, `veo-3.1-fast`, `veo-3.1-lite`, `veo-2`. Output videos and a generation log land in `output/`. `--verify-clips` calls into the transcript/consistency eval system described below as each clip is generated. See `backend/Video_Generation_Pipeline/video_generator/README.md` for the full reference.
+See `BackEnd/Video_Generation_Pipeline/README.md` for the full flag reference.
+
+> **Note — local generation:** the Veo backend is being replaced by **local Wan2.2 video generation via ComfyUI**, which runs on our own GPU with no cloud API key or per-clip cost. The Manim path above is fully local already (apart from the LLM planner calls) and is what the hosted demo showcases.
 
 ---
 
 ## Transcript & consistency eval
 
-`backend/Transcript_Eval_Pipeline/transcript_eval` transcribes a single generated clip's actual audio (independent of the script that produced it), then checks that transcript against the clip's ground-truth `scenario.json` dialogue — catching wrong/garbled dialogue and dialogue attributed to the wrong on-screen character.
+`BackEnd/Transcript_Eval_Pipeline/transcript_eval` transcribes a generated clip's actual audio, then checks the transcript against the clip's ground-truth `scenario.json` dialogue — catching wrong/garbled dialogue and dialogue attributed to the wrong on-screen character.
 
 ```bash
-cd backend/Transcript_Eval_Pipeline
+cd BackEnd/Transcript_Eval_Pipeline
 export GEMINI_API_KEY=your-key-here
 
 python -m transcript_eval.cli \
@@ -172,21 +223,19 @@ python -m transcript_eval.cli \
   --scene-id 3 --clip-id 1
 ```
 
-Runs three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script (loose threshold, early-stops the clip on failure), then — only if that passes — a Gemini vision judge that samples frames to check the speaking character matches the script's expected speaker. Transcripts and eval reports land in `output/transcripts/` and `output/eval_reports/`. Usable standalone (above) or from inside generation itself via `Video_Generation_Pipeline`'s `--verify-clips` flag, which isolates each newly generated clip out of Veo's cumulative video and regenerates it on eval failure. See `backend/Transcript_Eval_Pipeline/README.md` for the full reference.
+Three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script, then a Gemini vision judge that samples frames to confirm the speaking character. Usable standalone or from generation via `video_generator`'s `--verify-clips` flag. See `BackEnd/Transcript_Eval_Pipeline/README.md`.
 
 ---
 
-## UI features at a glance
+## Deployment
 
-- **Decision tree view** — trunk scenes flow horizontally; branching scenes drop below each decision point. Click a wrong-answer pill to mark it correct without scrolling to the DP card.
-- **Inline editing** — every field on every scene, character, and setting card is editable. Large text stays readable in edit mode.
-- **Undo duplicate** — the ↩ Undo duplicate button in the toolbar restores the previous state after any scene duplication.
-- **Choice reordering** — ↑ / ↓ buttons in decision-point cards let you reorder choices so the correct answer isn't locked to position A.
-- **Zoom** — 50 %–150 % canvas zoom in the toolbar.
-- **Export** — downloads the current script as `scenario_script.json`.
+The live demo is served at **<https://lab.darshon.com/openstax/>**:
+
+- The frontend is built with `npm run build` (Vite `base: '/openstax/'`) and served as static files under `/openstax/`.
+- The FastAPI backend is reverse-proxied at **`/openstax-api`** on the same host, so the browser reaches the API without CORS or per-environment configuration.
 
 ---
 
 ## License
 
-Internal OpenStax project — add your org's license before making this repo public.
+Licensed under the [MIT License](LICENSE).

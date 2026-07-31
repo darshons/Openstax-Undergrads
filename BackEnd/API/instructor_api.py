@@ -7,6 +7,7 @@ from Script_Generation_Pipeline import (
     delete_uploaded_files_anthropic,
     generate_script_with_decision_points_gemini,
     delete_uploaded_files_gemini,
+    generate_script_with_decision_points_local,
 )
 from Image_Generation_Pipeline import (
     generate_background,
@@ -31,6 +32,7 @@ from Video_Generation_Pipeline.manim_generator.script_adapter import (
 
 from pydantic import BaseModel
 from pathlib import Path
+import logging
 import re
 from typing import Any
 import tempfile
@@ -38,6 +40,8 @@ import json
 import os
 import json
 from storage3.exceptions import StorageApiError
+
+logger = logging.getLogger("uvicorn.error")
 
 
 # This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
@@ -47,8 +51,28 @@ class SceneInformation(BaseModel):
     chapter_num: int | None = None
     page_num: str | None = None
     user_query: str
-    model_choice: str
+    # "anthropic" | "gemini" | "local". Empty/None resolves to "anthropic" when
+    # ANTHROPIC_API_KEY is set, otherwise "local" (Claude Code CLI).
+    model_choice: str | None = None
     video_type: str
+
+
+def resolve_model_choice(model_choice: str | None) -> str:
+    """Pick the script-generation provider, falling back to the local Claude
+    Code CLI provider when no Anthropic API key is available."""
+    has_anthropic_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+
+    if not model_choice:
+        return "anthropic" if has_anthropic_key else "local"
+
+    if model_choice == "anthropic" and not has_anthropic_key:
+        logger.warning(
+            "model_choice='anthropic' requested but ANTHROPIC_API_KEY is not set; "
+            "falling back to the 'local' provider (Claude Code CLI)."
+        )
+        return "local"
+
+    return model_choice
 
 
 # This Class defines the structure of the request body for generating images
@@ -91,12 +115,19 @@ def generate_initial_script(
     scene_information: SceneInformation, background_tasks: BackgroundTasks
 ) -> dict:
     ## parser functionality call
-    parsedResult = crawl(
-        scene_information.book_title,
-        unit_num=scene_information.unit_num,
-        chapter_num=scene_information.chapter_num,
-        page_num=scene_information.page_num,
-    )
+    try:
+        parsedResult = crawl(
+            scene_information.book_title,
+            unit_num=scene_information.unit_num,
+            chapter_num=scene_information.chapter_num,
+            page_num=scene_information.page_num,
+        )
+    except ValueError as e:
+        # The crawler raises ValueError for unknown book/unit/chapter/page and the
+        # message lists what is actually available — surface it to the caller
+        # instead of letting it become an opaque 500.
+        logger.warning("Textbook crawl failed: %s", e)
+        raise HTTPException(status_code=404, detail=str(e))
 
     # Merge all pages into one Markdown file
     merged = "\n\n---\n\n".join(p["markdown"] for p in parsedResult["pages"])
@@ -126,19 +157,34 @@ def generate_initial_script(
     # script generation functionality call
     initial_script = None
 
-    if scene_information.model_choice == "anthropic":
+    model_choice = resolve_model_choice(scene_information.model_choice)
+
+    if model_choice == "anthropic":
         initial_script, file_ids = generate_script_with_decision_points_anthropic(
             str(md_path), scene_information.user_query
         )
 
         background_tasks.add_task(delete_uploaded_files_anthropic, file_ids)
 
-    elif scene_information.model_choice == "gemini":
+    elif model_choice == "gemini":
         initial_script, file_ids = generate_script_with_decision_points_gemini(
             str(md_path), scene_information.user_query
         )
 
         background_tasks.add_task(delete_uploaded_files_gemini, file_ids)
+
+    elif model_choice == "local":
+        # Shells out to the Claude Code CLI; nothing is uploaded, no cleanup task
+        initial_script, _ = generate_script_with_decision_points_local(
+            str(md_path), scene_information.user_query
+        )
+
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown model_choice '{model_choice}'. "
+            "Valid options: 'anthropic', 'gemini', 'local'.",
+        )
 
     background_tasks.add_task(
         delete_local_files, [md_path]

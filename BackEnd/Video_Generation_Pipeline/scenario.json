@@ -156,15 +156,6 @@
           ],
           "character_actions": "Maya gives a small, genuine nod as Carl finishes. She is leaning in slightly more as she begins responding, her lean continuing to deepen through the clip. Carl's gaze is moving from his hands toward Maya's face",
           "camera": { "angle": "Medium two-shot, then static cut to closer framing on Maya as she responds, then static cut back to two-shot.", "movement": "Static.", "lens_effect": "Same warm neutral. Slightly brighter feel." }
-        },
-        {
-          "clip_id": 4,
-          "setting": "Same hospital room, continuing from the previous clip.",
-          "dialogue": [
-            { "character_id": "patient_carl", "line": "Right. Yeah. I know." }
-          ],
-          "character_actions": "Carl's posture stays closed — arms folded, jaw tight, eyes settled on the window in a fixed stare as he speaks. Maya's clipboard hand is lowering back to her side, eyes staying on Carl.",
-          "camera": { "angle": "Closer framing on Carl's closed posture, then static cut to medium two-shot.", "movement": "Static.", "lens_effect": "Slightly warm, neutral depth. No dramatic focus pulls." }
         }
       ],
       "on_screen_text": null,

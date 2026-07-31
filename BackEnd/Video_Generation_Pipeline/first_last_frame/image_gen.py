@@ -12,8 +12,8 @@ PROMPT_WRITER_MODEL = "gemini-2.5-flash"
 # Character/background reference images, same assets used by video_generator's
 # REFERENCE_IMAGES for cross-clip character consistency.
 REFERENCE_IMAGE_PATHS = [
-    "reference_images/maya.png",
-    "reference_images/carl.png",
+    "reference_images/Nurse_Maya_reference_image.png",
+    "reference_images/patient_Carl_reference_image.png",
 ]
 
 FIRST_FRAME_SYSTEM_PROMPT = """

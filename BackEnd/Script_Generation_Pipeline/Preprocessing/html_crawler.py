@@ -7,15 +7,22 @@ The List of Textbooks For book_title (ABL): https://corgi.ce.openstax.org/api/ab
 For each level (unit / chapter / page), provide either a number or an exact name.
 Note: only provide one of them, not both.
 
-unit_num   / unit_name    (required; provide exactly one)
+unit_num   / unit_name    (optional; omit for books without units)
 chapter_num / chapter_name (optional; omit to crawl all chapters)
 page_num   / page_name    (optional; omit to crawl all pages)
+
+Books may have either:
+  - unit → chapter → page   (e.g. University Physics Volume 1)
+  - chapter → page           (e.g. some nursing or humanities texts)
+
+The crawler auto-detects the structure from the ToC.
 
 Examples:
 crawl("University Physics Volume 1", unit_num=1)
 crawl("University Physics Volume 1", unit_num=1, chapter_num=2)
 crawl("University Physics Volume 1", unit_num=1, chapter_num=2, page_num="2.1")
 crawl("University Physics Volume 1", unit_name="Optics", chapter_name="The Nature of Light")
+crawl("Some Book Without Units", chapter_num=3, page_num="3.1")
 =========================
 Requirements:
 pip install requests beautifulsoup4 lxml
@@ -151,12 +158,11 @@ def _validate_inputs(
     """
     Raise ValueError early if the caller provides conflicting or missing inputs.
 
-    Exactly one of (unit_num, unit_name) must be provided.
+    At most one of (unit_num, unit_name) may be provided (both None is fine
+    for books whose ToC has no unit layer).
     For chapter and page, providing both a number and a name is an error.
     page_num must look like a section number: digits and dots only ("2.1", "10", "3.4").
     """
-    if unit_num is None and unit_name is None:
-        raise ValueError("Provide either unit_num (int) or unit_name (str).")
     if unit_num is not None and unit_name is not None:
         raise ValueError("Provide unit_num OR unit_name, not both.")
 
@@ -313,10 +319,22 @@ def find_unit_node(toc: dict, unit_num=None, unit_name=None) -> dict:
     )
 
 
-def get_all_chapters(unit_node: dict) -> list[dict]:
-    """Return every chapter node that is a direct child of a unit."""
+def toc_has_units(toc: dict) -> bool:
+    """Return True if the ToC's top-level contents contain at least one unit node."""
+    tree = toc.get("tree", toc)
+    return any(
+        n.get("toc_type") == "unit" for n in (tree.get("contents") or [])
+    )
+
+
+def get_all_chapters(parent_node: dict) -> list[dict]:
+    """Return every chapter node that is a direct child of *parent_node*.
+
+    *parent_node* may be a unit node (unit → chapter) or the tree root
+    itself (for books whose ToC goes straight to chapters).
+    """
     return [
-        n for n in (unit_node.get("contents") or []) if n.get("toc_type") == "chapter"
+        n for n in (parent_node.get("contents") or []) if n.get("toc_type") == "chapter"
     ]
 
 
@@ -441,15 +459,30 @@ def resolve_pages(
     """
     Return a flat list of ToC page dicts based on which fields are supplied.
 
+    Supports two ToC shapes:
+      - unit → chapter → page  (unit params select the unit first)
+      - chapter → page         (unit params ignored; chapters live at top level)
+
+    Scope logic:
       unit only              → all pages in every chapter of that unit
       unit + chapter         → all pages in that one chapter
       unit + chapter + page  → that single page
+      chapter only           → all pages in that chapter (no-unit books)
+      chapter + page         → that single page          (no-unit books)
     """
     _validate_inputs(
         unit_num, unit_name, chapter_num, chapter_name, page_num, page_name
     )
     print(f"[4/5] Resolving pages …")
-    unit_label = f"num={unit_num}" if unit_num is not None else f"name='{unit_name}'"
+
+    has_units = toc_has_units(toc)
+    need_unit = unit_num is not None or unit_name is not None
+
+    unit_label = (
+        f"num={unit_num}" if unit_num is not None
+        else f"name='{unit_name}'" if unit_name is not None
+        else "(none)"
+    )
     chapter_label = (
         f"num={chapter_num}"
         if chapter_num is not None
@@ -460,22 +493,41 @@ def resolve_pages(
         if page_num is not None
         else f"name='{page_name}'" if page_name is not None else "(all)"
     )
-    print(f"      unit    = {unit_label}")
+    print(f"      unit    = {unit_label}  (ToC {'has' if has_units else 'has NO'} units)")
     print(f"      chapter = {chapter_label}")
     print(f"      page    = {page_label}\n")
 
-    unit_node = find_unit_node(toc, unit_num=unit_num, unit_name=unit_name)
-    unit_title = strip_html(unit_node.get("title", ""))
+    # Determine the parent node that contains chapters
+    if has_units and need_unit:
+        unit_node = find_unit_node(toc, unit_num=unit_num, unit_name=unit_name)
+        unit_title = strip_html(unit_node.get("title", ""))
+        chapter_parent = unit_node
+    elif has_units and not need_unit:
+        # Book has units but caller didn't specify one — crawl all units' chapters
+        unit_title = ""
+        chapter_parent = toc.get("tree", toc)
+        # Flatten: collect chapters from every unit
+        all_chapters = []
+        for u in (chapter_parent.get("contents") or []):
+            if u.get("toc_type") == "unit":
+                all_chapters.extend(get_all_chapters(u))
+        chapter_parent = {"contents": all_chapters}
+    else:
+        # No unit layer — chapters sit directly under tree.contents
+        if need_unit:
+            print("      ⚠ unit param ignored — this book has no unit layer")
+        unit_title = ""
+        chapter_parent = toc.get("tree", toc)
 
     need_chapter = chapter_num is not None or chapter_name is not None
     chapters = (
         [
             find_chapter_node(
-                unit_node, chapter_num=chapter_num, chapter_name=chapter_name
+                chapter_parent, chapter_num=chapter_num, chapter_name=chapter_name
             )
         ]
         if need_chapter
-        else get_all_chapters(unit_node)
+        else get_all_chapters(chapter_parent)
     )
     print(f"      → {len(chapters)} chapter(s) to process")
 
@@ -563,8 +615,8 @@ def crawl(
     """
     End-to-end crawl. For each level provide the number OR the exact name.
 
-    unit_num / unit_name      required — exactly one must be given
-    chapter_num / chapter_name  optional — omit to crawl all chapters in the unit
+    unit_num / unit_name        optional — omit for books without a unit layer
+    chapter_num / chapter_name  optional — omit to crawl all chapters
     page_num / page_name        optional — omit to crawl all pages in the chapter(s)
 
     page_num format: dotted section number, e.g. "1", "2.1", "10.3"

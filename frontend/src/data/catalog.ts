@@ -9,7 +9,7 @@ export interface CatalogSection {
 
 export interface CatalogChapter {
   n: string;
-  unit: number;
+  unit?: number;
   name: string;
   secs: CatalogSection[];
 }
@@ -284,7 +284,7 @@ export function buildGenerateRequest({
   if (!hit) return null;
   return {
     book_title: hit.book.bookTitle,
-    unit_num: hit.chap.unit,
+    unit_num: hit.chap.unit ?? null,
     chapter_num: parseInt(hit.chap.n, 10),
     page_num: hit.secN,
     user_query: userQuery,

@@ -28,7 +28,7 @@ import tempfile
 # This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
 class SceneInformation(BaseModel):
     book_title: str
-    unit_num: int
+    unit_num: int | None = None
     chapter_num: int | None = None
     page_num: str | None = None
     user_query: str

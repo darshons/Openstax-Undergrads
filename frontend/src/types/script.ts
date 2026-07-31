@@ -179,7 +179,7 @@ export type AssetsStep = 'idle' | 'generating' | 'done' | 'error';
 
 export interface GenerateRequest {
   book_title: string;
-  unit_num: number;
+  unit_num?: number | null;
   chapter_num?: number | null;
   page_num?: string | null;
   user_query: string;

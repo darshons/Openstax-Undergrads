@@ -19,18 +19,37 @@
 # generating them in isolation risks Veo inventing extra dialogue to fill the
 # forced 8s runtime.
 #
+# Per-character pose/camera/backdrop is not hand-authored here - it's derived
+# once per scenario by video_generator.character_rig (one cheap LLM call) and
+# cached to output/<lesson>/character_rig.json, so this script works on any
+# scenario.json without a human writing English descriptions for each new
+# cast of characters first.
+#
 # Usage:
-#   python solo_clip_test.py --scene-id 1 --mode preview
+#   python solo_clip_test.py --mode rig                      # derive+cache the rig, once per scenario
+#   python solo_clip_test.py --scene-id 1 --mode preview      # free, uses cached rig
 #   python solo_clip_test.py --scene-id 1 --mode generate
 #
 import argparse
+import json
 import os
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
-from director_experiment import _char_lookup, _resolve_clip_scene
+from director_experiment import (
+    _char_lookup,
+    _resolve_clip_scene,
+    close_up_camera,
+    interaction_isolation_instruction,
+    references_interaction,
+)
+from video_generator.character_rig import (
+    generate_character_rig,
+    load_cached_rig,
+    rig_cache_path,
+    save_rig_cache,
+)
 from video_generator.cli import load_env
 from video_generator.prompt_builder import build_veo_prompt
 from video_generator.scenario_loader import load_scenario
@@ -66,74 +85,6 @@ NO_INVENT_INSTRUCTION = (
 )
 SHORT_LINE_WORD_LIMIT = 5
 
-# Fixed per-character pose and camera, reused identically across every solo
-# clip in every scene (not derived from each clip's character_actions, which
-# describe one-off blocking like "enters from the left" or "arms tighten").
-# The goal is pixel-level-as-possible consistency of background and body
-# position across cuts - only facial expression is left free to vary with
-# the line's emotional content, per the user's call.
-CHARACTER_BASE_POSE = {
-    "nurse_maya": (
-        "Maya stands beside Carl's hospital bed, weight settled evenly on both "
-        "feet, hands relaxed at her sides, body angled slightly toward the bed. "
-        "This exact standing position and stance is identical in every shot of "
-        "Maya in this scene - she does not enter, walk, or change position."
-    ),
-    "patient_carl": (
-        "Carl sits upright in the hospital bed, propped against the pillow, "
-        "forearms resting loosely on the blanket in front of him. This exact "
-        "seated position is identical in every shot of Carl in this scene - he "
-        "does not shift position in the bed."
-    ),
-}
-
-# Each character gets their own distinct, fixed backdrop - not the same
-# generic "hospital room" behind both of them. The point is that cutting
-# between characters should read as two different camera setups in the room
-# (what's actually visible behind each person), while staying identical
-# across that same character's own clips.
-CHARACTER_BASE_BACKGROUND = {
-    "nurse_maya": (
-        "Directly behind Maya: the window with soft daylight and curtains, and "
-        "the bedside table holding the water pitcher and glasses, positioned "
-        "over her shoulder. The vitals monitor and IV pole are NOT visible in "
-        "Maya's shots - they are out of frame behind the camera."
-    ),
-    "patient_carl": (
-        "Directly behind Carl: the vitals monitor on its wall mount or stand "
-        "and the IV pole beside the bed, with the raised head of the hospital "
-        "bed. The window and curtains are NOT visible in Carl's shots - they "
-        "are out of frame behind the camera."
-    ),
-}
-
-CHARACTER_BASE_CAMERA = {
-    "nurse_maya": {
-        "angle": (
-            "Static medium shot on Maya only, framed from the waist up, camera "
-            "at her eye level, Maya centered in frame. This exact camera "
-            "distance, height, and angle is identical in every shot of Maya in "
-            f"this scene. {CHARACTER_BASE_BACKGROUND['nurse_maya']}"
-        ),
-        "movement": "Static.",
-        "lens_effect": "Shallow depth of field, neutral warm tone, identical lighting in every shot.",
-    },
-    "patient_carl": {
-        "angle": (
-            "Static medium shot on Carl only, framed from the waist up as he "
-            "sits in bed, camera at his eye level, Carl centered in frame. This "
-            "exact camera distance, height, and angle is identical in every "
-            f"shot of Carl in this scene. {CHARACTER_BASE_BACKGROUND['patient_carl']}"
-        ),
-        "movement": "Static.",
-        "lens_effect": "Shallow depth of field, neutral warm tone, identical lighting in every shot.",
-    },
-}
-
-
-def _solo_camera(speaker_id: str) -> dict:
-    return CHARACTER_BASE_CAMERA[speaker_id]
-
 
 def _solo_reinforcement(speaker_name: str, other_name: str) -> str:
     return (
@@ -154,15 +105,15 @@ def _solo_reinforcement(speaker_name: str, other_name: str) -> str:
     )
 
 
-def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str) -> list:
+def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str, rig: dict) -> list:
     """One entry per dialogue line across every clip in the scene, in original
     order. Returns list of dicts: label, clip_id, speaker_id, line, prompt.
 
-    Pose, camera, and background are held fixed per-character (CHARACTER_BASE_POSE /
-    CHARACTER_BASE_CAMERA) rather than pulled from each clip's one-off
-    character_actions text, so cuts back to the same character look like the
-    same shot instead of a new composition each time. Only facial expression
-    is left to vary with the line's content.
+    Pose, camera, and backdrop are held fixed per-character (from `rig`,
+    generated once by character_rig.generate_character_rig) rather than
+    pulled from each clip's one-off character_actions text, so cuts back to
+    the same character look like the same shot instead of a new composition
+    each time. Only facial expression is left to vary with the line's content.
     """
     lookup = _char_lookup(characters)
     entries = []
@@ -176,16 +127,25 @@ def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str) ->
             speaker = lookup[speaker_id]
             others = [c for c in characters if c["character_id"] != speaker_id]
             other_name = others[0]["name"] if others else ""
+            interaction_flagged = references_interaction(line["line"])
 
+            camera = (
+                close_up_camera(speaker["name"], rig[speaker_id]["backdrop"])
+                if interaction_flagged
+                else rig[speaker_id]["camera"]
+            )
             line_scene = {
                 "setting": scene.get("setting", ""),
-                "character_actions": CHARACTER_BASE_POSE[speaker_id],
-                "camera": _solo_camera(speaker_id),
+                "character_actions": rig[speaker_id]["pose"],
+                "camera": camera,
                 "audio": {**clip_scene["audio"], "dialogue": [line]},
             }
             prompt = build_veo_prompt(line_scene, characters, visual_style, is_continuation=False)
             if other_name:
                 prompt = f"{prompt}\n\n{_solo_reinforcement(speaker['name'], other_name)}"
+
+            if interaction_flagged and other_name:
+                prompt = f"{prompt}\n\n{interaction_isolation_instruction(speaker['name'], other_name)}"
 
             word_count = len(line["line"].split())
             guarded = word_count <= SHORT_LINE_WORD_LIMIT
@@ -201,6 +161,7 @@ def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str) ->
                     "line": line["line"],
                     "word_count": word_count,
                     "guarded": guarded,
+                    "interaction_flagged": interaction_flagged,
                     "prompt": prompt,
                 }
             )
@@ -208,10 +169,11 @@ def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str) ->
     return entries
 
 
-def preview(scene: dict, characters: list, visual_style: str):
-    entries = build_solo_clip_prompts(scene, characters, visual_style)
+def preview(scene: dict, characters: list, visual_style: str, rig: dict):
+    entries = build_solo_clip_prompts(scene, characters, visual_style, rig)
     for i, e in enumerate(entries, start=1):
         guard_note = " [no-invent guard]" if e["guarded"] else ""
+        guard_note += " [interaction guard]" if e["interaction_flagged"] else ""
         print(
             f"\n{'='*70}\n{i:02d}  {e['label']}  ({e['word_count']} words){guard_note}\n"
             f"    \"{e['line']}\"\n{'='*70}\n{e['prompt']}\n"
@@ -219,11 +181,11 @@ def preview(scene: dict, characters: list, visual_style: str):
     print(f"\n{len(entries)} solo clips would be generated, {FIRST_CLIP_SECONDS}s each.")
 
 
-def generate(scene: dict, characters: list, visual_style: str, model_key: str, api_key: str, only=None):
+def generate(scene: dict, characters: list, visual_style: str, model_key: str, api_key: str, rig: dict, only=None):
     from google import genai
 
     client = genai.Client(api_key=api_key)
-    all_entries = build_solo_clip_prompts(scene, characters, visual_style)
+    all_entries = build_solo_clip_prompts(scene, characters, visual_style, rig)
     reference_images = REFERENCE_IMAGES or None
     model_api_name = VEO_MODELS[model_key]
 
@@ -298,8 +260,14 @@ def generate(scene: dict, characters: list, visual_style: str, model_key: str, a
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate solo (single-character) clips, one per dialogue line, for manual stitching.")
     parser.add_argument("--scenario", default="scenario.json")
-    parser.add_argument("--scene-id", type=int, required=True)
-    parser.add_argument("--mode", choices=["preview", "generate"], default="preview")
+    parser.add_argument("--scene-id", type=int, default=None, help="Required for --mode preview/generate.")
+    parser.add_argument(
+        "--mode",
+        choices=["rig", "preview", "generate"],
+        default="preview",
+        help="rig: derive+cache the per-character pose/camera/backdrop (one cheap API call, run once per scenario). "
+        "preview: print prompts, free, requires a cached rig. generate: spend real Veo credits.",
+    )
     parser.add_argument("--model-key", choices=list(VEO_MODELS), default="veo-3.1-fast")
     parser.add_argument(
         "--only",
@@ -315,19 +283,42 @@ def main():
     args = parse_args()
 
     scenario = load_scenario(args.scenario)
-    scene = next(s for s in scenario["scenes"] if s["scene_id"] == args.scene_id)
     characters = scenario["characters"]
     visual_style = scenario["visual_style"]
+    rig_path = rig_cache_path(OUTPUT_ROOT.parent)
+
+    if args.mode == "rig":
+        if not args.api_key:
+            print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
+            return
+        from google import genai
+
+        client = genai.Client(api_key=args.api_key)
+        rig = generate_character_rig(client, scenario)
+        save_rig_cache(rig_path, rig)
+        print(f"Character rig saved to {rig_path}:")
+        print(json.dumps(rig, indent=2))
+        return
+
+    rig = load_cached_rig(rig_path)
+    if rig is None:
+        print(f"ERROR: No cached character rig at {rig_path}. Run --mode rig first.")
+        return
+
+    if args.scene_id is None:
+        print("ERROR: --scene-id is required for preview/generate.")
+        return
+    scene = next(s for s in scenario["scenes"] if s["scene_id"] == args.scene_id)
 
     if args.mode == "preview":
-        preview(scene, characters, visual_style)
+        preview(scene, characters, visual_style, rig)
         return
 
     if not args.api_key:
         print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
         return
     only = {int(x) for x in args.only.split(",")} if args.only else None
-    generate(scene, characters, visual_style, args.model_key, args.api_key, only=only)
+    generate(scene, characters, visual_style, args.model_key, args.api_key, rig, only=only)
 
 
 if __name__ == "__main__":

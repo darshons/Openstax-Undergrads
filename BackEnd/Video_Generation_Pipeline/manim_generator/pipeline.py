@@ -34,8 +34,8 @@ from .scene_planner import extract_occupancy_table, plan_scene
 from .script_adapter import adapt
 from .video_renderer import VideoRenderer, truncate_error_log
 
-MAX_SCENE_REPAIRS = 7   # escalating repair rounds (each round runs line->block->full)
-MAX_CRITIC_ROUNDS = 2   # grid-critic re-render rounds after a successful render
+MAX_SCENE_REPAIRS = 7  # escalating repair rounds (each round runs line->block->full)
+MAX_CRITIC_ROUNDS = 2  # grid-critic re-render rounds after a successful render
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -240,7 +240,9 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
     client = make_client(model)
     codegen = CodeGenerator(client)
     renderer = VideoRenderer(quality=quality)
-    banned = [l.strip() for l in load_prompt("banned_reasonings").splitlines() if l.strip()]
+    banned = [
+        l.strip() for l in load_prompt("banned_reasonings").splitlines() if l.strip()
+    ]
 
     # ---- Stage: asset kit (once per scenario, then frozen) ----
     status.set_state("assets")
@@ -252,7 +254,9 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
     for character in spec.characters:
         if character.character_id in voice_map:
             character.voice = voice_map[character.character_id]
-    status.log_event(event="asset_kit_frozen", background=background, voice_map=voice_map)
+    status.log_event(
+        event="asset_kit_frozen", background=background, voice_map=voice_map
+    )
 
     # Persist the inputs a later single-scene regeneration needs. The asset kit is
     # frozen for the scenario's lifetime, so a regen reloads it from disk rather
@@ -283,8 +287,11 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
 
         except Exception:
             status.scene_failed(scene.scene_id, traceback.format_exc(limit=3))
-            status.log_event(event="scene_error", scene_id=scene.scene_id,
-                             error=traceback.format_exc())
+            status.log_event(
+                event="scene_error",
+                scene_id=scene.scene_id,
+                error=traceback.format_exc(),
+            )
 
     # ---- Stage: golden-path preview + manifest ----
     golden_video = None

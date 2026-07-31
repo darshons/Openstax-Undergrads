@@ -14,7 +14,14 @@ TRANSCRIPT_DIR = str(_PACKAGE_ROOT / "output" / "transcripts")
 EVAL_REPORT_DIR = str(_PACKAGE_ROOT / "output" / "eval_reports")
 
 
-def evaluate_clip(client, video_path: str, scene_id: int, clip_id: int, dialogue: list, characters: list) -> dict:
+def evaluate_clip(
+    client,
+    video_path: str,
+    scene_id: int,
+    clip_id: int,
+    dialogue: list,
+    characters: list,
+) -> dict:
     """Run Stage 1 -> 2 -> (3 if not early-stopped) -> aggregate report for one clip."""
     segments = transcribe_clip(video_path)
     transcript_path = save_transcript(video_path, segments, TRANSCRIPT_DIR)
@@ -23,7 +30,9 @@ def evaluate_clip(client, video_path: str, scene_id: int, clip_id: int, dialogue
 
     speaker_attribution = None
     if dialogue_match["passed"]:
-        speaker_attribution = judge_speakers(client, video_path, segments, dialogue, characters)
+        speaker_attribution = judge_speakers(
+            client, video_path, segments, dialogue, characters
+        )
 
     overall_passed = dialogue_match["passed"] and (
         speaker_attribution is not None and speaker_attribution["attribution_passed"]
@@ -37,8 +46,12 @@ def evaluate_clip(client, video_path: str, scene_id: int, clip_id: int, dialogue
         "transcript_path": transcript_path,
         "dialogue_match": dialogue_match,
         "speaker_attribution": speaker_attribution,
-        "speaker_attribution_skipped_reason": None if dialogue_match["passed"] else "early_stop: dialogue_match failed",
-        "estimated_cost_usd": (speaker_attribution or {}).get("estimated_cost_usd", 0.0),
+        "speaker_attribution_skipped_reason": (
+            None if dialogue_match["passed"] else "early_stop: dialogue_match failed"
+        ),
+        "estimated_cost_usd": (speaker_attribution or {}).get(
+            "estimated_cost_usd", 0.0
+        ),
         "passed": overall_passed,
     }
 

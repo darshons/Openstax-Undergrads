@@ -46,7 +46,9 @@ class CodeGenerator:
 
     # ---------------- generation ----------------
 
-    def generate_scene_code(self, prompt: str, label: str = "code_generation") -> tuple[str, str]:
+    def generate_scene_code(
+        self, prompt: str, label: str = "code_generation"
+    ) -> tuple[str, str]:
         """Run a filled code-generation prompt; return (code, raw_response)."""
         response_text = self.client.generate(prompt, label=label)
         code = self._extract_code_with_retries(response_text, CODE_PATTERN, label=label)
@@ -54,8 +56,9 @@ class CodeGenerator:
 
     # ---------------- repair ----------------
 
-    def fix_code_errors(self, scene_plan: str, code: str, error: str,
-                        api_docs: str = "") -> tuple[str, str]:
+    def fix_code_errors(
+        self, scene_plan: str, code: str, error: str, api_docs: str = ""
+    ) -> tuple[str, str]:
         """Full-file repair from a (truncated) render error. `api_docs` is the
         De-Hallucinator signature block injected when the knowledge base
         matched symbols in the failing code (may be empty)."""
@@ -64,16 +67,20 @@ class CodeGenerator:
             scene_plan=scene_plan,
             code=code,
             error=error,
-            api_docs=api_docs or "(no API reference matched — rely on core Manim v0.18 knowledge)",
+            api_docs=api_docs
+            or "(no API reference matched — rely on core Manim v0.18 knowledge)",
         )
         response_text = self.client.generate(prompt, label="fix_error_full")
-        fixed = self._extract_code_with_retries(response_text, CODE_PATTERN, label="fix_error_full")
+        fixed = self._extract_code_with_retries(
+            response_text, CODE_PATTERN, label="fix_error_full"
+        )
         return fixed, response_text
 
     # ---------------- visual critique ----------------
 
-    def visual_self_reflection_grid(self, code: str, grid_image: Image.Image,
-                                    occupancy_table: str = "") -> tuple[str, str]:
+    def visual_self_reflection_grid(
+        self, code: str, grid_image: Image.Image, occupancy_table: str = ""
+    ) -> tuple[str, str]:
         """Grid-anchored layout critic (Code2Video-style). `grid_image` is the
         snapshot with the labeled 6x6 grid already overlaid. Returns
         ("<LGTM>", response) when the layout is clean, else (fixed_code, response).
@@ -81,16 +88,22 @@ class CodeGenerator:
         prompt = fill_prompt(
             load_prompt("prompt_visual_self_reflection_grid"),
             code=code,
-            occupancy_table=occupancy_table or "(no occupancy table declared for this scene)",
+            occupancy_table=occupancy_table
+            or "(no occupancy table declared for this scene)",
         )
-        response_text = self.client.generate(prompt, image=grid_image, label="grid_critic")
+        response_text = self.client.generate(
+            prompt, image=grid_image, label="grid_critic"
+        )
         if "<LGTM>" in response_text:
             return "<LGTM>", response_text
-        fixed = self._extract_code_with_retries(response_text, CODE_PATTERN, label="grid_critic")
+        fixed = self._extract_code_with_retries(
+            response_text, CODE_PATTERN, label="grid_critic"
+        )
         return fixed, response_text
 
-    def critique_asset_lineup(self, code: str, grid_image: Image.Image,
-                             character_block: str) -> tuple[str, str]:
+    def critique_asset_lineup(
+        self, code: str, grid_image: Image.Image, character_block: str
+    ) -> tuple[str, str]:
         """Critique the asset-kit lineup frame against the character
         descriptions. Returns ("<LGTM>", response) or (fixed_assets, response)."""
         prompt = fill_prompt(
@@ -98,16 +111,21 @@ class CodeGenerator:
             code=code,
             character_block=character_block,
         )
-        response_text = self.client.generate(prompt, image=grid_image, label="lineup_critique")
+        response_text = self.client.generate(
+            prompt, image=grid_image, label="lineup_critique"
+        )
         if "<LGTM>" in response_text:
             return "<LGTM>", response_text
-        fixed = self._extract_code_with_retries(response_text, CODE_PATTERN, label="lineup_critique")
+        fixed = self._extract_code_with_retries(
+            response_text, CODE_PATTERN, label="lineup_critique"
+        )
         return fixed, response_text
 
     # ---------------- extraction ----------------
 
-    def _extract_code_with_retries(self, response_text: str, pattern: str,
-                                   label: str = "", max_retries: int = 5) -> str:
+    def _extract_code_with_retries(
+        self, response_text: str, pattern: str, label: str = "", max_retries: int = 5
+    ) -> str:
         for attempt in range(max_retries):
             code_match = re.search(pattern, response_text, re.DOTALL)
             if code_match:
@@ -117,19 +135,27 @@ class CodeGenerator:
             # <CODE> for generation) — isolates code from <THINKING> prose,
             # then strips an inner ```python fence if present.
             for tag in ("FULL_CORRECTED_CODE", "CODE"):
-                tag_match = re.search(rf"<{tag}>(.*?)</{tag}>", response_text, re.DOTALL)
+                tag_match = re.search(
+                    rf"<{tag}>(.*?)</{tag}>", response_text, re.DOTALL
+                )
                 if tag_match:
                     inner = tag_match.group(1)
-                    inner_fence = re.search(r"```(?:python)?\s*\n?(.*?)```", inner, re.DOTALL)
+                    inner_fence = re.search(
+                        r"```(?:python)?\s*\n?(.*?)```", inner, re.DOTALL
+                    )
                     code = inner_fence.group(1) if inner_fence else inner
-                    if "from manim import" in code or ("class" in code and "Scene" in code):
+                    if "from manim import" in code or (
+                        "class" in code and "Scene" in code
+                    ):
                         return code
 
             # Fallback 2: a fenced block with no/other language tag. Prefer the
             # LAST fenced block — earlier ones may sit inside <THINKING> prose.
             fenced = re.findall(r"```[a-zA-Z]*\s*\n?(.*?)```", response_text, re.DOTALL)
             for block in reversed(fenced):
-                if "from manim import" in block or ("class" in block and "Scene" in block):
+                if "from manim import" in block or (
+                    "class" in block and "Scene" in block
+                ):
                     return block
 
             # Fallback 3: the WHOLE response is raw code (no prose, no fences).
@@ -143,10 +169,18 @@ class CodeGenerator:
                 return response_text
 
             if attempt < max_retries - 1:
-                print(f"[{label}] attempt {attempt + 1}: no code pattern found, asking model to reformat")
+                print(
+                    f"[{label}] attempt {attempt + 1}: no code pattern found, asking model to reformat"
+                )
                 response_text = self.client.generate(
-                    fill_prompt(EXTRACT_RETRY_PROMPT, pattern=pattern, response_text=response_text),
+                    fill_prompt(
+                        EXTRACT_RETRY_PROMPT,
+                        pattern=pattern,
+                        response_text=response_text,
+                    ),
                     label=f"{label}_format_retry",
                 )
 
-        raise ValueError(f"[{label}] failed to extract code after {max_retries} attempts")
+        raise ValueError(
+            f"[{label}] failed to extract code after {max_retries} attempts"
+        )

@@ -22,7 +22,11 @@ MAX_ATTEMPTS = 4
 # generous enough that a normal long generation completes.
 REQUEST_TIMEOUT_MS = 600_000
 # Transport-level failures worth retrying (the SDK does not wrap these in APIError).
-_RETRYABLE_TRANSPORT = (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError)
+_RETRYABLE_TRANSPORT = (
+    httpx.ReadTimeout,
+    httpx.ConnectTimeout,
+    httpx.RemoteProtocolError,
+)
 
 
 class GeminiClient:
@@ -51,16 +55,23 @@ class GeminiClient:
                 return text
             except genai_errors.APIError as e:
                 last_err = e
-                if getattr(e, "code", None) not in RETRYABLE_CODES or attempt == MAX_ATTEMPTS:
+                if (
+                    getattr(e, "code", None) not in RETRYABLE_CODES
+                    or attempt == MAX_ATTEMPTS
+                ):
                     raise
-                print(f"[gemini:{label}] transient error {e.code}, retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s")
+                print(
+                    f"[gemini:{label}] transient error {e.code}, retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s"
+                )
                 time.sleep(delay)
                 delay *= 2
             except _RETRYABLE_TRANSPORT as e:
                 last_err = e
                 if attempt == MAX_ATTEMPTS:
                     raise
-                print(f"[gemini:{label}] transport timeout, retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s")
+                print(
+                    f"[gemini:{label}] transport timeout, retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s"
+                )
                 time.sleep(delay)
                 delay *= 2
         raise last_err

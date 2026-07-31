@@ -28,10 +28,17 @@ except ImportError:  # kokoro not installed -> silent fallback below
 
 # Kokoro v0.19 voice names. a*=American, b*=British; f/m = presented voice.
 KNOWN_VOICES = [
-    "af", "af_bella", "af_nicole", "af_sarah", "af_sky",
-    "am_adam", "am_michael",
-    "bf_emma", "bf_isabella",
-    "bm_george", "bm_lewis",
+    "af",
+    "af_bella",
+    "af_nicole",
+    "af_sarah",
+    "af_sky",
+    "am_adam",
+    "am_michael",
+    "bf_emma",
+    "bf_isabella",
+    "bm_george",
+    "bm_lewis",
 ]
 
 DEFAULT_MODEL_PATH = os.environ.get("KOKORO_MODEL_PATH", "models/kokoro-v0_19.onnx")
@@ -107,7 +114,9 @@ class KokoroService(SpeechService):
         write_wav(output_file, sample_rate, samples)
         return output_file
 
-    def generate_from_text(self, text: str, cache_dir: str = None, path: str = None) -> dict:
+    def generate_from_text(
+        self, text: str, cache_dir: str = None, path: str = None
+    ) -> dict:
         if cache_dir is None:
             cache_dir = self.cache_dir
 

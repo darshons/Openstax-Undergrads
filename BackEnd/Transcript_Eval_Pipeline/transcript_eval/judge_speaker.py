@@ -13,7 +13,9 @@ TEXT_PROMPT_TOKENS_ESTIMATE = 200
 
 
 def estimate_judge_cost(num_calls: int) -> float:
-    tokens_per_call = TEXT_PROMPT_TOKENS_ESTIMATE + FRAMES_PER_SEGMENT * TOKENS_PER_IMAGE
+    tokens_per_call = (
+        TEXT_PROMPT_TOKENS_ESTIMATE + FRAMES_PER_SEGMENT * TOKENS_PER_IMAGE
+    )
     total_tokens = num_calls * tokens_per_call
     return round(total_tokens / 1_000_000 * GEMINI_INPUT_COST_PER_1M_TOKENS, 4)
 
@@ -126,7 +128,9 @@ def _collapse_consecutive(speakers: list) -> list:
     return collapsed
 
 
-def judge_speakers(client, video_path: str, segments: list, dialogue: list, characters: list) -> dict:
+def judge_speakers(
+    client, video_path: str, segments: list, dialogue: list, characters: list
+) -> dict:
     """Judge speaker identity for every Whisper segment in a clip, and compare
     the resulting speaker sequence to the expected order from scenario.json.
 
@@ -145,10 +149,14 @@ def judge_speakers(client, video_path: str, segments: list, dialogue: list, char
         for seg in segments
     ]
 
-    judged_order = _collapse_consecutive([j["judged_speaker"] for j in judged if j["judged_speaker"]])
+    judged_order = _collapse_consecutive(
+        [j["judged_speaker"] for j in judged if j["judged_speaker"]]
+    )
     expected_order = _collapse_consecutive([d["character_id"] for d in dialogue])
     ambiguous_count = sum(1 for j in judged if j["ambiguous"])
-    inconclusive_count = sum(1 for j in judged if j["judged_speaker"] is None and not j["ambiguous"])
+    inconclusive_count = sum(
+        1 for j in judged if j["judged_speaker"] is None and not j["ambiguous"]
+    )
 
     return {
         "segments": judged,

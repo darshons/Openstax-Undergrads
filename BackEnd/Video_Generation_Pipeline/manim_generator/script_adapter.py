@@ -23,7 +23,14 @@ from dataclasses import dataclass, field
 # Fallback Kokoro voice rotation, deterministic by character order of
 # appearance. The asset-kit generation step may override this with a
 # VOICE_MAP inferred from the character descriptions.
-FALLBACK_VOICES = ["af_sarah", "am_michael", "bf_emma", "bm_george", "af_nicole", "am_adam"]
+FALLBACK_VOICES = [
+    "af_sarah",
+    "am_michael",
+    "bf_emma",
+    "bm_george",
+    "af_nicole",
+    "am_adam",
+]
 DEFAULT_VOICE = "af_sarah"
 
 
@@ -142,17 +149,21 @@ def load_script(json_path: str) -> dict:
 def _norm_dialogue(audio: dict) -> list[DialogueLine]:
     lines = []
     for d in audio.get("dialogue") or []:
-        lines.append(DialogueLine(
-            character_id=d.get("character_id", ""),
-            line=d.get("line", ""),
-            position=d.get("character_position", "") or "",
-        ))
+        lines.append(
+            DialogueLine(
+                character_id=d.get("character_id", ""),
+                line=d.get("line", ""),
+                position=d.get("character_position", "") or "",
+            )
+        )
     # alternate "clips" dialect (used by the Veo runtime scenario.json)
     for c in audio.get("clips") or []:
-        lines.append(DialogueLine(
-            character_id=c.get("character_id", ""),
-            line=c.get("dialogue", ""),
-        ))
+        lines.append(
+            DialogueLine(
+                character_id=c.get("character_id", ""),
+                line=c.get("dialogue", ""),
+            )
+        )
     return [l for l in lines if l.line.strip()]
 
 
@@ -161,7 +172,9 @@ def _norm_scene(raw: dict) -> Scene:
     setting = raw.get("setting")
     return Scene(
         scene_id=int(raw["scene_id"]),
-        scene_type=(raw.get("type") or raw.get("scene_type") or "narrative").strip().lower(),
+        scene_type=(raw.get("type") or raw.get("scene_type") or "narrative")
+        .strip()
+        .lower(),
         summary=raw.get("scene_summary") or raw.get("description") or "",
         duration_seconds=float(raw.get("duration_seconds") or 0),
         character_actions=raw.get("character_actions", ""),
@@ -224,7 +237,9 @@ def adapt(script: dict) -> ScenarioSpec:
         target_audience=script.get("target_audience", ""),
         total_duration_seconds=float(script.get("total_duration_seconds") or 0),
         visual_style=script.get("visual_style", ""),
-        setting=script.get("setting") if isinstance(script.get("setting"), dict) else {},
+        setting=(
+            script.get("setting") if isinstance(script.get("setting"), dict) else {}
+        ),
         characters=characters,
         scenes=scenes,
         decision_points=dps,
@@ -264,7 +279,10 @@ def adapt(script: dict) -> ScenarioSpec:
             elif not c.is_correct:
                 # incorrect choices should loop back to the same decision point
                 branch = spec.scenes_by_id.get(c.routes_to_scene)
-                if branch is not None and branch.routes_to_dp_id != dp.decision_point_id:
+                if (
+                    branch is not None
+                    and branch.routes_to_dp_id != dp.decision_point_id
+                ):
                     spec.warnings.append(
                         f"Consequence scene {c.routes_to_scene} (DP "
                         f"{dp.decision_point_id} choice {c.choice_id}) does not "
@@ -279,7 +297,9 @@ def adapt(script: dict) -> ScenarioSpec:
     for s in scenes:
         dp_id = s.routes_to_dp_id
         if dp_id is not None and dp_id not in known_dps:
-            errors.append(f"Scene {s.scene_id} routes to nonexistent decision point {dp_id}")
+            errors.append(
+                f"Scene {s.scene_id} routes to nonexistent decision point {dp_id}"
+            )
         next_id = s.routes_to_scene_id
         if next_id is not None and next_id not in known_scenes:
             errors.append(f"Scene {s.scene_id} routes to nonexistent scene {next_id}")

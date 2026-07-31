@@ -11,20 +11,35 @@ from Script_Generation_Pipeline import (
 )
 from Image_Generation_Pipeline import (
     generate_background,
-    generate_characters,
-    generate_opening_frames,
     retry_with_feedback,
 )
 
+from API.instructor_api_helpers import (
+    generate_uuid,
+    delete_local_files,
+    generate_character_images_impl,
+    generate_opening_frame_images_impl,
+    setup_supabase_client,
+    video_status_path,
+    run_video_generation,
+)
+
+from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+from Video_Generation_Pipeline.manim_generator.script_adapter import (
+    ScriptValidationError,
+    adapt,
+)
 
 from pydantic import BaseModel
 from pathlib import Path
 import logging
 import re
 from typing import Any
-import os
-import uuid
 import tempfile
+import json
+import os
+import json
+from storage3.exceptions import StorageApiError
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -61,7 +76,7 @@ def resolve_model_choice(model_choice: str | None) -> str:
 
 
 # This Class defines the structure of the request body for generating images
-class ImageGenerationRequest(BaseModel):
+class VisualGenerationRequest(BaseModel):
     script: dict[str, Any]
     background_image_path: str | None = None
     # This field is optional and will be used when generating opening frames
@@ -72,7 +87,7 @@ class ImageGenerationRequest(BaseModel):
 
 # This Class defines the structure of the request body for retrying image generation
 class ImageRetryRequest(BaseModel):
-    image_request: ImageGenerationRequest
+    image_request: VisualGenerationRequest
     user_feedback: str | None = (
         None  # This field is optional and will be used when retrying image generation based on user feedback
     )
@@ -81,24 +96,21 @@ class ImageRetryRequest(BaseModel):
     )
 
 
-# Function to delete local files after processing to clean up the server storage
-def delete_local_files(file_paths):
-    for file_path in file_paths:
-        os.remove(file_path)
-        print(f"Successfully deleted {file_path}")
+# This Class defines the structure of the request body for uploading project information to the Supabase database
+class UploadProjectInfo(BaseModel):
+    project_name: str
+    script: dict[str, Any]
+    video_paths: dict[
+        int, str
+    ]  # Dictionary containing video paths and their corresponding order
 
 
-# Function to generate a unique identifier (UUID) associated with each request to ensure that files are uniquely named and avoid conflicts
-def generate_uuid():
-    return str(uuid.uuid4())
-
-
-# API router instance to define the endpoints for the FastAPI application
-api_router = APIRouter()
+# API router instance to define the endpoints for the FastAPI application for the instructor
+instructor_router = APIRouter()
 
 
 # This endpoint will be called by the frontend to generate the initial script based on the user's query and the relevant textbook content (currently with decision points included)
-@api_router.post("/initial_script")
+@instructor_router.post("/initial_script")
 def generate_initial_script(
     scene_information: SceneInformation, background_tasks: BackgroundTasks
 ) -> dict:
@@ -194,9 +206,9 @@ def generate_initial_script(
 
 
 # This endpoint will be called by the frontend to generate the reference background image
-@api_router.post("/generate_background_image")
+@instructor_router.post("/generate_background_image")
 def generate_background_image(
-    request: ImageGenerationRequest, background_tasks: BackgroundTasks
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
 ) -> dict:
 
     (
@@ -228,9 +240,9 @@ def generate_background_image(
 
 
 # This endpoint will be called by the frontend to generate the reference character images
-@api_router.post("/generate_character_images")
+@instructor_router.post("/generate_character_images")
 def generate_character_images(
-    request: ImageGenerationRequest,
+    request: VisualGenerationRequest,
     background_tasks: BackgroundTasks,
 ) -> dict:
 
@@ -262,28 +274,10 @@ def generate_character_images(
     }
 
 
-# This function is a helper function that encapsulates the logic for generating character images. It is called by the /generate_character_images endpoint and can also be used for retrying character image generation.
-def generate_character_images_impl(
-    script: dict[str, Any], request_id: str, retry_image_id: str | None = None
-) -> tuple[dict[str, str], list[str | None], list[str]]:
-
-    (
-        character_image_file_mapping,
-        character_uploaded_file_names,
-        character_json_file_paths,
-    ) = generate_characters(script, request_id, retry_image_id)
-
-    return (
-        character_image_file_mapping,
-        character_uploaded_file_names,
-        character_json_file_paths,
-    )
-
-
 # This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
-@api_router.post("/generate_opening_frames")
+@instructor_router.post("/generate_opening_frames")
 def generate_opening_frame_images(
-    request: ImageGenerationRequest,
+    request: VisualGenerationRequest,
     background_tasks: BackgroundTasks,
 ) -> dict:
     if (
@@ -323,35 +317,20 @@ def generate_opening_frame_images(
     }
 
 
-# This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
-def generate_opening_frame_images_impl(
-    script: dict[str, Any],
-    background_image_path: str,
-    character_image_file_mapping: dict[str, str],
-    request_id: str,
-    retry_image_id: str | None = None,
-) -> tuple[dict[str, str], list[str | None], list[str]]:
-    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        generate_opening_frames(
-            script,
-            background_image_path,
-            character_image_file_mapping,
-            request_id,
-            retry_image_id=retry_image_id,
-        )
-    )
-
-    return opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths
-
-
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
-@api_router.get("/image/{image_path:path}")
+@instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
     return FileResponse(image_path, media_type="image/png")
 
 
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@instructor_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(video_path, media_type="video/mp4")
+
+
 # This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
-@api_router.post("/retry_generate_background_image")
+@instructor_router.post("/retry_generate_background_image")
 def retry_generate_background_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -394,7 +373,7 @@ def retry_generate_background_image(
 
 
 # This endpoint will be called by the frontend to retry character image generation based on user feedback or to simply regenerate the character image if no feedback is provided
-@api_router.post("/retry_generate_character_image")
+@instructor_router.post("/retry_generate_character_image")
 def retry_generate_character_image(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -469,7 +448,7 @@ def retry_generate_character_image(
 
 
 # This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
-@api_router.post("/retry_generate_opening_frames")
+@instructor_router.post("/retry_generate_opening_frames")
 def retry_generate_opening_frames(
     image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
 ) -> dict:
@@ -544,7 +523,7 @@ def retry_generate_opening_frames(
         if updated_image_path is None:
             raise HTTPException(
                 status_code=500,
-                detail="Character image generation failed. No image was returned.",
+                detail="Opening frame generation failed. No image was returned.",
             )
 
         return {
@@ -553,23 +532,102 @@ def retry_generate_opening_frames(
         }
 
 
-# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
-@api_router.get("/video/{video_path:path}")
-def get_video(video_path: str):
-    return FileResponse(video_path, media_type="video/mp4")
+# This endpoint will be called by the frontend to upload the project information (script and generated videos) to the Supabase database
+@instructor_router.post("/upload_project_info")
+def upload_project_info(project_info: UploadProjectInfo):
+    for video_path in project_info.video_paths.values():
+        if not Path(video_path).exists() or not Path(video_path).is_file():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Video file '{video_path}' does not exist.",
+            )
+
+    supabase_client = setup_supabase_client()
+
+    try:
+
+        supabase_client.storage.from_("Scripts").upload(
+            path=f"{project_info.project_name}/script.json",
+            file=json.dumps(project_info.script, indent=2).encode("utf-8"),
+            file_options={"content-type": "application/json", "upsert": "false"},
+        )
+
+        for order, video_path in project_info.video_paths.items():
+            with open(video_path, "rb") as f:
+                supabase_client.storage.from_("Videos").upload(
+                    path=f"{project_info.project_name}/scene_{order}.mp4",
+                    file=f,
+                    file_options={
+                        "content-type": "video/mp4",
+                        "upsert": "false",
+                    },
+                )
+
+        return {"message": "Project information uploaded successfully"}
+
+    except StorageApiError as e:
+        if e.status == 409 or e.code == "Duplicate":
+            raise HTTPException(
+                status_code=409,
+                detail=f"Project with name '{project_info.project_name}' already exists.",
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"An error occurred while uploading project information: {str(e)}. Please try again.",
+            )
+
+
+# This endpoint will be called by the frontend to kick off scenario video generation once assets are approved
+@instructor_router.post("/generate_videos")
+def generate_videos(
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
+    """Kick off Veo scenario video generation for an approved scenario script.
+    Returns immediately; poll /video_status/{request_id} for progress."""
+
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Video generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    reference_images = [
+        request.background_image_path,
+        *request.character_image_file_mapping.values(),
+    ]
+
+    output_dir = Path(tempfile.gettempdir()) / "Video_Run_Status" / request.request_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    background_tasks.add_task(
+        run_video_generation, request.script, request.request_id, reference_images
+    )
+
+    return {"status": "started"}
+
+
+# This endpoint will be called by the frontend to poll scenario video generation progress
+@instructor_router.get("/video_status/{request_id}")
+def video_status(request_id: str) -> dict:
+    """Read the background job's status.json for a run (pure file read; the
+    job rewrites it after every stage/scene transition)."""
+
+    status_path = video_status_path(request_id)
+
+    if not os.path.exists(status_path):
+        return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
+
+    with open(status_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 # ---------------------------------------------------------------------------
 # Manim branching-video generation ("Manim · Graphics" video type)
 # ---------------------------------------------------------------------------
-import json
-from concurrent.futures import ThreadPoolExecutor
-
-from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
-from Video_Generation_Pipeline.manim_generator.script_adapter import (
-    ScriptValidationError,
-    adapt,
-)
 
 # Anchor the output root at the repo root so it is the same directory whether
 # the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
@@ -577,9 +635,6 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIM_OUTPUT_ROOT = os.environ.get(
     "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
 )
-# One worker: scenario renders must be serial (parallel manim subprocesses
-# deadlock), and this also means one scenario is generated at a time.
-_manim_executor = ThreadPoolExecutor(max_workers=1)
 
 
 class ManimVideoRequest(BaseModel):
@@ -587,8 +642,10 @@ class ManimVideoRequest(BaseModel):
     request_id: str
 
 
-@api_router.post("/generate_manim_videos")
-def generate_manim_videos(request: ManimVideoRequest):
+@instructor_router.post("/generate_manim_videos")
+def generate_manim_videos(
+    request: ManimVideoRequest, background_tasks: BackgroundTasks
+) -> dict:
     """Kick off Manim branching-video generation for an edited scenario script.
     Returns immediately; poll /manim_video_status/{request_id} for progress."""
     try:
@@ -596,7 +653,7 @@ def generate_manim_videos(request: ManimVideoRequest):
     except ScriptValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    _manim_executor.submit(
+    background_tasks.add_task(
         run_scenario_pipeline,
         request.script,
         request.request_id,
@@ -605,7 +662,7 @@ def generate_manim_videos(request: ManimVideoRequest):
     return {"status": "started", "request_id": request.request_id}
 
 
-@api_router.get("/manim_video_status/{request_id}")
+@instructor_router.get("/manim_video_status/{request_id}")
 def manim_video_status(request_id: str):
     """Read the pipeline's status.json for a run (pure file read; the pipeline
     rewrites it after every stage transition)."""

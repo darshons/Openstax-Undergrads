@@ -227,7 +227,7 @@ def run_scene_pipeline(
             # just propagate rather than attempt a checkpoint download. An
             # eval failure (ClipEvalFailedError) is caught further down to
             # trigger a whole-scene regeneration.
-            dialogue, clip_id = (_clip_dialogue(0) if verify_clips else (None, 1))
+            dialogue, clip_id = _clip_dialogue(0) if verify_clips else (None, 1)
             video_obj, attempts, cum_duration = _generate_and_verify(
                 lambda: generate_first_clip(
                     client,
@@ -260,9 +260,13 @@ def run_scene_pipeline(
             i = 1
             try:
                 for i, prompt in enumerate(clip_prompts[1:], start=2):
-                    dialogue, clip_id = (_clip_dialogue(i - 1) if verify_clips else (None, i))
+                    dialogue, clip_id = (
+                        _clip_dialogue(i - 1) if verify_clips else (None, i)
+                    )
                     video_obj, attempts, cum_duration = _generate_and_verify(
-                        lambda: generate_extension_clip(client, prompt, video_obj, clip_index=i),
+                        lambda: generate_extension_clip(
+                            client, prompt, video_obj, clip_index=i
+                        ),
                         clip_id,
                         client,
                         verify_clips,
@@ -277,7 +281,9 @@ def run_scene_pipeline(
                     )
                     total_retries += attempts - 1
                     if i < num_clips:
-                        print(f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop...")
+                        print(
+                            f"  Settling {EXTENSION_SETTLE_SECONDS}s before next hop..."
+                        )
                         time.sleep(EXTENSION_SETTLE_SECONDS)
             except ClipEvalFailedError:
                 # No checkpoint for an eval failure — the whole attempt is
@@ -287,7 +293,8 @@ def run_scene_pipeline(
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 completed_clips = i - 1
                 checkpoint = str(
-                    OUTPUT_DIR / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
+                    OUTPUT_DIR
+                    / f"scene{scene_id}_checkpoint_clip{completed_clips}_{ts}.mp4"
                 )
                 print(f"\n  Extension failed at clip {i}: {e}")
 
@@ -350,8 +357,10 @@ def run_scene_pipeline(
             )
             if scene_attempt < eval_retries:
                 print(f"\n  Scene {scene_id} failed eval: {e}")
-                print(f"  Regenerating scene {scene_id} from clip 1 "
-                      f"(attempt {scene_attempt + 2}/{eval_retries + 1})...")
+                print(
+                    f"  Regenerating scene {scene_id} from clip 1 "
+                    f"(attempt {scene_attempt + 2}/{eval_retries + 1})..."
+                )
                 time.sleep(EXTENSION_SETTLE_SECONDS)
                 continue
             raise
@@ -395,10 +404,15 @@ def run_scenario_pipeline(
     reference_images: list = None,
     verify_clips: bool = False,
     eval_retries: int = 1,
+    on_scene_complete=None,
 ) -> list:
     """
     Build clip prompts for every scene and run the stitching pipeline for each.
     Returns a list of result dicts: {scene_id, success, output_file, error}.
+
+    on_scene_complete: optional callback invoked with each scene's result dict
+    right after it finishes (success or failure) — lets a caller (e.g. an async
+    API job) report per-scene progress without waiting on the full scenario.
     """
     characters = scenario["characters"]
     visual_style = scenario["visual_style"]
@@ -419,22 +433,22 @@ def run_scenario_pipeline(
                 scene=scene,
                 characters=characters,
             )
-            results.append(
-                {
-                    "scene_id": scene_id,
-                    "success": True,
-                    "output_file": final_path,
-                    "error": None,
-                }
-            )
+            result = {
+                "scene_id": scene_id,
+                "success": True,
+                "output_file": final_path,
+                "error": None,
+            }
         except Exception as e:
-            results.append(
-                {
-                    "scene_id": scene_id,
-                    "success": False,
-                    "output_file": None,
-                    "error": str(e),
-                }
-            )
+            result = {
+                "scene_id": scene_id,
+                "success": False,
+                "output_file": None,
+                "error": str(e),
+            }
+
+        results.append(result)
+        if on_scene_complete:
+            on_scene_complete(result)
 
     return results

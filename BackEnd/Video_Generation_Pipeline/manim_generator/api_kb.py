@@ -54,7 +54,10 @@ def build_kb() -> dict:
             except Exception:
                 continue
         kb["classes"][name] = {
-            "sig": name + _safe_signature(cls.__init__).replace("(self, ", "(").replace("(self)", "()"),
+            "sig": name
+            + _safe_signature(cls.__init__)
+            .replace("(self, ", "(")
+            .replace("(self)", "()"),
             "doc": _first_doc_line(cls),
             "methods": methods,
         }
@@ -73,6 +76,7 @@ def build_kb() -> dict:
 
     try:
         from manim_voiceover import VoiceoverScene
+
         index_class("VoiceoverScene", VoiceoverScene)
     except ImportError:
         pass
@@ -111,14 +115,18 @@ def lookup(code_region: str, max_entries: int = 12) -> str:
         name = match.group(1)
         if name in kb["functions"]:
             entry = kb["functions"][name]
-            line = f"def {entry['sig']}" + (f" — {entry['doc']}" if entry["doc"] else "")
+            line = f"def {entry['sig']}" + (
+                f" — {entry['doc']}" if entry["doc"] else ""
+            )
             if line not in lines:
                 lines.append(line)
 
     method_names = {m.group(1) for m in _METHOD_CALL.finditer(code_region)}
     # Prefer methods on classes actually instantiated in the region; fall back
     # to the Mobject family, where almost all mobject methods live.
-    owners = class_names or [c for c in ("Mobject", "VMobject", "VGroup", "Scene") if c in kb["classes"]]
+    owners = class_names or [
+        c for c in ("Mobject", "VMobject", "VGroup", "Scene") if c in kb["classes"]
+    ]
     for m_name in sorted(method_names):
         for owner in owners:
             methods = kb["classes"].get(owner, {}).get("methods", {})
@@ -152,5 +160,7 @@ if __name__ == "__main__":
     with open(KB_PATH, "w", encoding="utf-8") as f:
         json.dump(kb, f)
     size_kb = os.path.getsize(KB_PATH) // 1024
-    print(f"Wrote {KB_PATH} ({size_kb} KB): "
-          f"{len(kb['classes'])} classes, {len(kb['functions'])} functions")
+    print(
+        f"Wrote {KB_PATH} ({size_kb} KB): "
+        f"{len(kb['classes'])} classes, {len(kb['functions'])} functions"
+    )

@@ -23,8 +23,12 @@ def parse_args():
     )
     parser.add_argument("--video", required=True, help="Path to the clip's video file.")
     parser.add_argument("--scenario", required=True, help="Path to scenario.json.")
-    parser.add_argument("--scene-id", type=int, required=True, help="scene_id in scenario.json.")
-    parser.add_argument("--clip-id", type=int, required=True, help="clip_id within that scene.")
+    parser.add_argument(
+        "--scene-id", type=int, required=True, help="scene_id in scenario.json."
+    )
+    parser.add_argument(
+        "--clip-id", type=int, required=True, help="clip_id within that scene."
+    )
     parser.add_argument(
         "--api-key",
         default=os.environ.get("GEMINI_API_KEY"),
@@ -60,16 +64,20 @@ def main():
     print(f"\n{'─'*60}")
     print(f"EVAL SUMMARY — scene {args.scene_id}, clip {args.clip_id}")
     print(f"{'─'*60}")
-    print(f"Dialogue match : {'PASS' if report['dialogue_match']['passed'] else 'FAIL'} "
-          f"(similarity={report['dialogue_match']['similarity']})")
+    print(
+        f"Dialogue match : {'PASS' if report['dialogue_match']['passed'] else 'FAIL'} "
+        f"(similarity={report['dialogue_match']['similarity']})"
+    )
     if report["speaker_attribution"] is None:
         print("Speaker attrib.: SKIPPED (early stop — dialogue match failed)")
     else:
         sa = report["speaker_attribution"]
         print(f"Speaker attrib.: {'PASS' if sa['attribution_passed'] else 'FAIL'}")
         if sa["ambiguous_segments"] or sa["inconclusive_segments"]:
-            print(f"  ⚠ {sa['ambiguous_segments']} ambiguous (multiple speakers detected), "
-                  f"{sa['inconclusive_segments']} inconclusive segment(s) excluded from judgment")
+            print(
+                f"  ⚠ {sa['ambiguous_segments']} ambiguous (multiple speakers detected), "
+                f"{sa['inconclusive_segments']} inconclusive segment(s) excluded from judgment"
+            )
     print(f"Estimated cost : ${report['estimated_cost_usd']}")
     print(f"Overall        : {'PASS' if report['passed'] else 'FAIL'}")
     print(f"\nTranscript: {report['transcript_path']}")

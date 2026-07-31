@@ -13,7 +13,9 @@ from transcript_eval.eval import evaluate_clip, EVAL_REPORT_DIR  # noqa: E402
 from .veo_api import download_video, get_video_duration  # noqa: E402
 
 
-def extract_new_segment(cumulative_video_path: str, prev_duration: float, new_duration: float, out_path: str) -> str:
+def extract_new_segment(
+    cumulative_video_path: str, prev_duration: float, new_duration: float, out_path: str
+) -> str:
     """Isolate the newest clip's span out of a cumulative Veo download.
 
     Veo's extension API returns the full video-so-far on every call, not an
@@ -32,7 +34,16 @@ def extract_new_segment(cumulative_video_path: str, prev_duration: float, new_du
     return out_path
 
 
-def verify_clip(client, video_obj, prev_duration: float, scene_id: int, clip_id: int, dialogue: list, characters: list, tmp_dir: Path) -> tuple:
+def verify_clip(
+    client,
+    video_obj,
+    prev_duration: float,
+    scene_id: int,
+    clip_id: int,
+    dialogue: list,
+    characters: list,
+    tmp_dir: Path,
+) -> tuple:
     """Download the cumulative video, isolate the newest clip, run transcript_eval
     on it. The cumulative download is always discarded (redundant once isolated).
     The isolated clip video is discarded too if eval passed (its content is
@@ -51,7 +62,9 @@ def verify_clip(client, video_obj, prev_duration: float, scene_id: int, clip_id:
     try:
         download_video(client, video_obj, str(cumulative_path))
         new_duration = get_video_duration(str(cumulative_path))
-        extract_new_segment(str(cumulative_path), prev_duration, new_duration, str(clip_path))
+        extract_new_segment(
+            str(cumulative_path), prev_duration, new_duration, str(clip_path)
+        )
         report = evaluate_clip(
             client=client,
             video_path=str(clip_path),
@@ -74,6 +87,8 @@ def eval_report_path_for(video_path: str) -> str:
 
 def eval_failure_reason(report: dict) -> str:
     if not report["dialogue_match"]["passed"]:
-        return f"dialogue mismatch (similarity={report['dialogue_match']['similarity']})"
+        return (
+            f"dialogue mismatch (similarity={report['dialogue_match']['similarity']})"
+        )
     sa = report["speaker_attribution"]
     return f"speaker attribution mismatch (expected {sa['expected_speaker_order']})"

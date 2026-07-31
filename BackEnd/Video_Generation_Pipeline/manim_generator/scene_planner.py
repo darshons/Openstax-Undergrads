@@ -20,12 +20,17 @@ def extract_occupancy_table(plan: str) -> str:
     start = plan.find("<OCCUPANCY_TABLE>")
     end = plan.find("</OCCUPANCY_TABLE>")
     if start != -1 and end != -1:
-        return plan[start + len("<OCCUPANCY_TABLE>"):end].strip()
+        return plan[start + len("<OCCUPANCY_TABLE>") : end].strip()
     return ""
 
 
-def plan_scene(spec: ScenarioSpec, scene: Scene, asset_api: str,
-               client: GeminiClient, max_retries: int = 2) -> str:
+def plan_scene(
+    spec: ScenarioSpec,
+    scene: Scene,
+    asset_api: str,
+    client: GeminiClient,
+    max_retries: int = 2,
+) -> str:
     prompt = build_scene_plan_prompt(spec, scene, asset_api)
     plan = client.generate(prompt, label=f"scene_plan_{scene.scene_id}")
     for _ in range(max_retries):

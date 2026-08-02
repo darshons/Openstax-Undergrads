@@ -66,6 +66,14 @@ export default function SceneCard({
               <select value={draft.type || ''} onChange={e => upd('type', e.target.value as Scene['type'])}>
                 {SCENE_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
               </select>
+              <select
+                value={draft.render_mode || 'scenario'}
+                onChange={e => upd('render_mode', e.target.value as Scene['render_mode'])}
+                title="Which renderer produces this scene"
+              >
+                <option value="scenario">🎬 CHARACTERS</option>
+                <option value="manim">📊 MANIM</option>
+              </select>
               <input
                 type="number"
                 value={draft.duration_seconds ?? ''}
@@ -167,6 +175,9 @@ export default function SceneCard({
             SCENE <b>{String(s.scene_id).padStart(2, '0')}</b> · {fmtDuration(s.duration_seconds)} · {lineCount} line{lineCount === 1 ? '' : 's'}
             {s.routes_to && 'decision_point_id' in s.routes_to && s.routes_to.decision_point_id != null
               ? ` · → DP ${s.routes_to.decision_point_id}` : ''}
+          </span>
+          <span className={`scene-render-tag ${s.render_mode === 'manim' ? 'manim' : 'scenario'}`}>
+            {s.render_mode === 'manim' ? '📊 MANIM' : '🎬 CHARACTERS'}
           </span>
           <span className={`scene-tag ${tagClass}`}>{tagLabel}</span>
         </div>

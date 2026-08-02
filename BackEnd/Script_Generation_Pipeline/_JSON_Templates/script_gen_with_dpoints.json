@@ -22,16 +22,16 @@
   "setting": {
     "location": "",
     "scene_description": "",
-    "light_source": "", 
+    "light_source": "",
     "time_of_day": "",
     "atmosphere": "",
     "background_furniture": [
-    {
-      "name": "",
-      "count": 0,
-      "description": ""
-    }
-  ],
+      {
+        "name": "",
+        "count": 0,
+        "description": ""
+      }
+    ],
     "background_equipment": [
       {
         "name": "",
@@ -39,7 +39,7 @@
         "description": ""
       }
     ],
-     "camera": {
+    "camera": {
       "angle": "",
       "perspective": ""
     }
@@ -48,19 +48,22 @@
     {
       "scene_id": 1,
       "type": "narrative",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -74,19 +77,22 @@
     {
       "scene_id": 2,
       "type": "consequence",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -100,19 +106,22 @@
     {
       "scene_id": 3,
       "type": "resolution",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -126,19 +135,22 @@
     {
       "scene_id": 4,
       "type": "consequence",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -152,19 +164,22 @@
     {
       "scene_id": 5,
       "type": "narrative",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -178,19 +193,22 @@
     {
       "scene_id": 6,
       "type": "consequence",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -204,19 +222,22 @@
     {
       "scene_id": 7,
       "type": "consequence",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",
@@ -230,19 +251,22 @@
     {
       "scene_id": 8,
       "type": "resolution",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "character_actions": "",
-      "initial_character_positions": [{
-        "character_id": "",
-        "position": ""
-      }],
+      "initial_character_positions": [
+        {
+          "character_id": "",
+          "position": ""
+        }
+      ],
       "audio": {
         "dialogue": [
           {
             "character_id": "",
             "line": "",
-            "character_position" : ""
+            "character_position": ""
           }
         ],
         "sound_effects": "",

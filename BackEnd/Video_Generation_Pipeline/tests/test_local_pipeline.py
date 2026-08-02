@@ -224,5 +224,73 @@ class TestRunStatusTerminalState(unittest.TestCase):
         self.assertTrue(st["error"])
 
 
+class TestRenderModeSelection(unittest.TestCase):
+    """Every scene must leave the API with a usable render_mode, so the
+    renderers can read it unconditionally instead of re-deriving intent."""
+
+    @staticmethod
+    def _mod():
+        import sys
+        backend = HERE.parent  # .../BackEnd
+        if str(backend) not in sys.path:
+            sys.path.insert(0, str(backend))
+        from Script_Generation_Pipeline.render_mode import (
+            normalize_render_modes, infer_render_mode,
+        )
+        return normalize_render_modes, infer_render_mode
+
+    def test_dialogue_scene_infers_scenario(self):
+        _, infer = self._mod()
+        self.assertEqual(
+            infer({"scene_summary": "Maya greets the patient and asks how he slept.",
+                   "character_actions": "Maya sits down beside the bed."}),
+            "scenario")
+
+    def test_graphic_scene_infers_manim(self):
+        _, infer = self._mod()
+        self.assertEqual(
+            infer({"scene_summary": "Show the equation and calculate the ratio.",
+                   "character_actions": ""}),
+            "manim")
+
+    def test_auto_keeps_model_choice_and_normalises_case(self):
+        norm, _ = self._mod()
+        script = {"scenes": [{"scene_id": 1, "render_mode": "MANIM",
+                              "scene_summary": "a conversation"}]}
+        self.assertEqual(norm(script, "auto")["scenes"][0]["render_mode"], "manim")
+
+    def test_auto_repairs_an_invalid_mode(self):
+        norm, _ = self._mod()
+        script = {"scenes": [{"scene_id": 1, "render_mode": "nonsense",
+                              "scene_summary": "A labelled diagram of the nephron."}]}
+        self.assertEqual(norm(script, "auto")["scenes"][0]["render_mode"], "manim")
+
+    def test_explicit_video_type_pins_every_scene(self):
+        norm, _ = self._mod()
+        script = {"scenes": [{"scene_id": 1, "scene_summary": "an equation"},
+                             {"scene_id": 2, "scene_summary": "a conversation"}]}
+        self.assertEqual([s["render_mode"] for s in norm(script, "manim")["scenes"]],
+                         ["manim", "manim"])
+        self.assertEqual([s["render_mode"] for s in norm(script, "scenario")["scenes"]],
+                         ["scenario", "scenario"])
+
+    def test_missing_or_empty_scenes_do_not_raise(self):
+        norm, _ = self._mod()
+        for script in ({}, {"scenes": None}, {"scenes": []}, {"scenes": ["not a dict"]}):
+            norm(script, "auto")
+
+
+class TestScenePromptDescribesRendererChoice(unittest.TestCase):
+    def test_prompt_documents_both_render_modes(self):
+        import sys
+        backend = HERE.parent
+        if str(backend) not in sys.path:
+            sys.path.insert(0, str(backend))
+        rules = (backend / "Script_Generation_Pipeline" / "prompt_assembly.py").read_text()
+        self.assertIn("render_mode", rules)
+        self.assertIn('"manim"', rules)
+        self.assertIn('"scenario"', rules)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -35,7 +35,21 @@ Decision Point Constraints:
 
 Dialogue should sound natural and conversational rather than textbook-like.
 
-The narrative scene should establish the situation clearly and end at a natural moment of uncertainty requiring a decision. The consequence scene should feel like a realistic continuation of events rather than a punishment. The resolution scene should provide a satisfying outcome that reinforces the underlying concept without becoming overly didactic."""
+The narrative scene should establish the situation clearly and end at a natural moment of uncertainty requiring a decision. The consequence scene should feel like a realistic continuation of events rather than a punishment. The resolution scene should provide a satisfying outcome that reinforces the underlying concept without becoming overly didactic.
+
+Per-Scene Renderer Selection:
+Two different renderers produce the final video, and you must choose one for every scene by setting that scene's "render_mode" field. Pick per scene based on what the scene actually has to show — a scenario will normally mix both.
+
+• "scenario" — a character animation renderer. Choose it when the teaching happens between people: dialogue, an interview or handoff, a clinical interaction, an emotional beat, body language, a decision being made face to face. This renderer is good at characters, expression, and setting, and cannot render legible text, equations, numbers, or diagrams.
+• "manim" — a programmatic graphics renderer. Choose it when the teaching happens on the screen rather than between people: equations and derivations, labelled diagrams, anatomical or molecular structures, data, graphs, timelines, step-by-step processes, before/after comparisons, anything requiring precise numbers or on-screen labels. This renderer draws crisp text and geometry and has no characters in it.
+
+Rules for choosing:
+• Decide from the scene's own content, not from the scenario as a whole.
+• If a scene's point rests on a quantity, a label, a structure, or a process diagram, use "manim" even when characters could be present — the character renderer cannot draw readable text.
+• If a scene's point rests on what a person says, decides, or feels, use "scenario".
+• When a scene would genuinely need both, split it into two consecutive scenes with different render_mode values rather than forcing one renderer to do both.
+• A "manim" scene must not depend on character_actions or on-screen characters; carry its meaning in narration plus the graphic. Its dialogue becomes voice-over narration.
+• Every scene must have a render_mode of exactly "scenario" or "manim". Never leave it blank."""
 
 OUTPUT_FORMAT_INSTRUCTION = (
     "Output your response strictly as a JSON object following the exact "

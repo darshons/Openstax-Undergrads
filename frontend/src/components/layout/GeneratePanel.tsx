@@ -64,6 +64,10 @@ export default function GeneratePanel({
 
       <label className="gp-label">Video type</label>
       <div className="gp-models">
+        <button type="button" className={`gp-model ${videoType === 'auto' ? 'on' : ''}`} onClick={() => setVideoType('auto')}>
+          <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>✦</span>
+          Auto · Per scene
+        </button>
         <button type="button" className={`gp-model ${videoType === 'scenario' ? 'on' : ''}`} onClick={() => setVideoType('scenario')}>
           <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>🎬</span>
           Local (Wan 2.2) · Scenario
@@ -73,6 +77,13 @@ export default function GeneratePanel({
           Manim · Graphics
         </button>
       </div>
+      <p className="gp-hint">
+        {videoType === 'auto'
+          ? 'The script generator picks a renderer for each scene — characters for dialogue, Manim for equations and diagrams.'
+          : videoType === 'manim'
+            ? 'Every scene renders as Manim graphics.'
+            : 'Every scene renders as character animation.'}
+      </p>
 
       <label className="gp-label">Model</label>
       <div className="gp-models">

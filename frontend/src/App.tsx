@@ -59,7 +59,7 @@ export default function App() {
   const [filter, setFilter] = useState('All');
 
   const [model, setModel] = useState<ModelChoice>('anthropic');
-  const [videoType, setVideoType] = useState<VideoType>('scenario');
+  const [videoType, setVideoType] = useState<VideoType>('auto');
   const [userQuery, setUserQuery] = useState('');
 
   // ── Source-selection mutations ──────────────────────────────────────────

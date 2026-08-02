@@ -9,6 +9,7 @@ from Script_Generation_Pipeline import (
     delete_uploaded_files_gemini,
     generate_script_with_decision_points_local,
 )
+from Script_Generation_Pipeline.render_mode import normalize_render_modes
 from Image_Generation_Pipeline import (
     generate_background,
     retry_with_feedback,
@@ -54,7 +55,9 @@ class SceneInformation(BaseModel):
     # "anthropic" | "gemini" | "local". Empty/None resolves to "anthropic" when
     # ANTHROPIC_API_KEY is set, otherwise "local" (Claude Code CLI).
     model_choice: str | None = None
-    video_type: str
+    # "scenario" | "manim" pin every scene to one renderer. "auto" (the default)
+    # lets the script generator pick per scene -- see normalize_render_modes.
+    video_type: str = "auto"
 
 
 def resolve_model_choice(model_choice: str | None) -> str:
@@ -198,6 +201,8 @@ def generate_initial_script(
             detail="Initial script generation failed. No script was returned.",
         )
 
+    normalize_render_modes(initial_script, scene_information.video_type)
+
     return {
         "message": "Initial script generation completed",
         "script": initial_script,
@@ -317,10 +322,52 @@ def generate_opening_frame_images(
     }
 
 
+def _image_roots() -> list[Path]:
+    tmp = Path(tempfile.gettempdir())
+    return [tmp / "Background_Image_Output",
+            tmp / "Character_Image_Output",
+            tmp / "Frame_Image_Output"]
+
+
+def _video_roots() -> list[Path]:
+    return [Path(MANIM_OUTPUT_ROOT),
+            Path(_REPO_ROOT) / "Video_Generation_Pipeline" / "output"]
+
+
+def _resolve_media(raw_path: str, roots: list[Path]) -> Path:
+    """Map a client-supplied path to a real file inside one of `roots`.
+
+    Two things are going on. The frontend builds these URLs as
+    `/api/image/<absolute server path>`, which strips the leading slash --
+    so the path arrives relative and FileResponse would resolve it against
+    the server's CWD and 500. Restore the slash before resolving.
+
+    And resolving alone is not enough: FileResponse on an unchecked path
+    serves any file the backend can read (backend.env included), so the
+    resolved path must be confined to a known output directory.
+    """
+    candidate = Path(raw_path if raw_path.startswith("/") else "/" + raw_path)
+    try:
+        candidate = candidate.resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    for root in roots:
+        try:
+            candidate.relative_to(root.resolve())
+        except (ValueError, OSError):
+            continue
+        if candidate.is_file():
+            return candidate
+        raise HTTPException(status_code=404, detail="File not found")
+
+    raise HTTPException(status_code=403, detail="Path is outside the served media directories")
+
+
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
 @instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
-    return FileResponse(image_path, media_type="image/png")
+    return FileResponse(_resolve_media(image_path, _image_roots()), media_type="image/png")
 
 
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
@@ -623,6 +670,12 @@ def video_status(request_id: str) -> dict:
 
     with open(status_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
+@instructor_router.get("/video/{video_path:path}")
+def get_video(video_path: str):
+    return FileResponse(_resolve_media(video_path, _video_roots()), media_type="video/mp4")
 
 
 # ---------------------------------------------------------------------------

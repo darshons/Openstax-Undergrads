@@ -472,10 +472,17 @@ def run_scenario_pipeline_local(
     start_image: str = None,
     seed: int = DEFAULT_SEED,
     character_lora: str = None,
+    on_scene_complete=None,
 ) -> list:
     """Local counterpart of pipeline.run_scenario_pipeline. Renders each clip
     as its own ComfyUI job, then concatenates a scene's clips into one mp4 in
-    output/. Returns [{scene_id, success, output_file, error}, ...]."""
+    output/. Returns [{scene_id, success, output_file, error}, ...].
+
+    on_scene_complete, when given, is called with each scene's result dict as
+    soon as that scene finishes -- same contract as the Veo pipeline, so the
+    API can report progress instead of blocking until every scene is done.
+    A local run is minutes per scene, so this is the difference between a
+    progress bar and a silent wait."""
     from .prompt_builder import build_clip_prompts
     from .logging_utils import log_scene_attempt
 
@@ -544,8 +551,11 @@ def run_scenario_pipeline_local(
                 final_file_size_mb=round(os.path.getsize(final_path) / (1024 * 1024), 2),
             )
             print(f"\nScene {scene_id} complete in {wall:.0f}s\nFinal video: {final_path}")
-            results.append({"scene_id": scene_id, "success": True,
-                            "output_file": final_path, "error": None})
+            result = {"scene_id": scene_id, "success": True,
+                      "output_file": final_path, "error": None}
+            results.append(result)
+            if on_scene_complete:
+                on_scene_complete(result)
         except Exception as e:
             log_scene_attempt(
                 scene_id=scene_id,
@@ -558,7 +568,10 @@ def run_scenario_pipeline_local(
                 clips=clip_log_entries,
                 error=str(e),
             )
-            results.append({"scene_id": scene_id, "success": False,
-                            "output_file": None, "error": str(e)})
+            result = {"scene_id": scene_id, "success": False,
+                      "output_file": None, "error": str(e)}
+            results.append(result)
+            if on_scene_complete:
+                on_scene_complete(result)
 
     return results

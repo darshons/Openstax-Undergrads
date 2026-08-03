@@ -23,6 +23,7 @@ from API.instructor_api_helpers import (
     setup_supabase_client,
     video_status_path,
     run_video_generation,
+    SCENARIO_BACKENDS,
 )
 
 from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
@@ -86,6 +87,12 @@ class VisualGenerationRequest(BaseModel):
     character_image_file_mapping: dict[str, str] | None = None
     # This field is optional and will be used when generating opening frames
     request_id: str
+    # Which character-video backend renders the scenario scenes: "local"
+    # (Wan 2.2 on this machine's GPU, free) or "veo" (Google Veo, billed,
+    # needs GEMINI_API_KEY).
+    backend: str = "local"
+    # Optional LoRA filename in ComfyUI models/loras, local backend only.
+    character_lora: str | None = None
 
 
 # This Class defines the structure of the request body for retrying image generation
@@ -642,6 +649,22 @@ def generate_videos(
             detail="Video generation requires both background_image_path and character_image_file_mapping",
         )
 
+    if request.backend not in SCENARIO_BACKENDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown backend '{request.backend}'. "
+            f"Valid options: {', '.join(SCENARIO_BACKENDS)}.",
+        )
+
+    # Fail here rather than inside the background task, where the caller would
+    # only learn about it by polling /video_status and reading a traceback.
+    if request.backend == "veo" and not os.environ.get("GEMINI_API_KEY"):
+        raise HTTPException(
+            status_code=400,
+            detail="backend='veo' requires GEMINI_API_KEY. Set it, or use "
+            "backend='local' to render on this machine's GPU instead.",
+        )
+
     reference_images = [
         request.background_image_path,
         *request.character_image_file_mapping.values(),
@@ -651,10 +674,15 @@ def generate_videos(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     background_tasks.add_task(
-        run_video_generation, request.script, request.request_id, reference_images
+        run_video_generation,
+        request.script,
+        request.request_id,
+        reference_images,
+        request.backend,
+        request.character_lora,
     )
 
-    return {"status": "started"}
+    return {"status": "started", "backend": request.backend}
 
 
 # This endpoint will be called by the frontend to poll scenario video generation progress

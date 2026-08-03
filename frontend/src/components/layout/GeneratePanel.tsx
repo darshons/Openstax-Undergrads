@@ -1,4 +1,4 @@
-import type { ModelChoice, VideoType } from '../../types/script';
+import type { ModelChoice, ScenarioBackend, VideoType } from '../../types/script';
 import { I } from '../shared/Icons';
 
 interface GeneratePanelProps {
@@ -11,6 +11,8 @@ interface GeneratePanelProps {
   setModel: (m: ModelChoice) => void;
   videoType: VideoType;
   setVideoType: (v: VideoType) => void;
+  scenarioBackend: ScenarioBackend;
+  setScenarioBackend: (v: ScenarioBackend) => void;
   userQuery: string;
   setUserQuery: (q: string) => void;
   genError: string | null;
@@ -18,7 +20,7 @@ interface GeneratePanelProps {
 
 export default function GeneratePanel({
   selected, removeSec, onGenerate, busy, hasScript,
-  model, setModel, videoType, setVideoType,
+  model, setModel, videoType, setVideoType, scenarioBackend, setScenarioBackend,
   userQuery, setUserQuery, genError,
 }: GeneratePanelProps) {
   const pillsArr = Array.from(selected);
@@ -84,6 +86,27 @@ export default function GeneratePanel({
             ? 'Every scene renders as Manim graphics.'
             : 'Every scene renders as character animation.'}
       </p>
+
+      {videoType !== 'manim' && (
+        <>
+          <label className="gp-label">Character renderer</label>
+          <div className="gp-models">
+            <button type="button" className={`gp-model ${scenarioBackend === 'local' ? 'on' : ''}`} onClick={() => setScenarioBackend('local')}>
+              <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>🖥️</span>
+              Local · Wan 2.2
+            </button>
+            <button type="button" className={`gp-model ${scenarioBackend === 'veo' ? 'on' : ''}`} onClick={() => setScenarioBackend('veo')}>
+              <span style={{ display: 'block', fontSize: '1.1em', marginBottom: 2 }}>☁️</span>
+              Veo · Google
+            </button>
+          </div>
+          <p className="gp-hint">
+            {scenarioBackend === 'local'
+              ? 'Renders on this machine’s GPU. No API key, no cost, a few minutes per scene.'
+              : 'Renders through Google Veo. Billed per clip and needs GEMINI_API_KEY on the server.'}
+          </p>
+        </>
+      )}
 
       <label className="gp-label">Model</label>
       <div className="gp-models">

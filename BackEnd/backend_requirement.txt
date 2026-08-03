@@ -18,3 +18,4 @@ moviepy
 
 # Manim video generation has its own pinned requirements:
 #   pip install -r Video_Generation_Pipeline/manim_generator/requirements.txt
+supabase

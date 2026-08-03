@@ -7,7 +7,7 @@ import type {
   Page,
   ViewMode,
   ModelChoice,
-  VideoType,
+  ScenarioBackend, VideoType,
   AssetImages,
   AssetsStep,
 } from './types/script';
@@ -60,6 +60,7 @@ export default function App() {
 
   const [model, setModel] = useState<ModelChoice>('anthropic');
   const [videoType, setVideoType] = useState<VideoType>('auto');
+  const [scenarioBackend, setScenarioBackend] = useState<ScenarioBackend>('local');
   const [userQuery, setUserQuery] = useState('');
 
   // ── Source-selection mutations ──────────────────────────────────────────
@@ -391,6 +392,8 @@ export default function App() {
             <VideoPage
               script={script}
               requestId={requestId}
+              scenarioBackend={scenarioBackend}
+              assetImages={assetImages}
               onBack={() => setCurrentPage('assets')}
             />
           </div>
@@ -431,6 +434,8 @@ export default function App() {
               setModel={setModel}
               videoType={videoType}
               setVideoType={setVideoType}
+              scenarioBackend={scenarioBackend}
+              setScenarioBackend={setScenarioBackend}
               userQuery={userQuery}
               setUserQuery={setUserQuery}
               genError={genError}

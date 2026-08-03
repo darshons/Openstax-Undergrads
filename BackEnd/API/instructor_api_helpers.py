@@ -136,14 +136,28 @@ def make_on_scene_complete_callback(
 
 
 # This function runs the video generation process in the background. It plans clips for every scene, renders each scene through Veo, and writes the status to a status.json file after every stage/scene transition. If any unexpected failure occurs, it leaves the status.json in a terminal "failed" state rather than letting the background thread die silently.
+SCENARIO_BACKENDS = ("local", "veo")
+
+
 def run_video_generation(
-    script: dict, request_id: str, reference_images: list[str]
+    script: dict,
+    request_id: str,
+    reference_images: list[str],
+    backend: str = "local",
+    character_lora: str | None = None,
 ) -> None:
     """Background job: plan clips for every scene, then render each scene
-    through Veo. Writes status.json after every stage/scene transition so
-    /video_status can report progress without blocking on the whole run.
-    Any unexpected failure still leaves status.json in a terminal "failed"
-    state rather than letting the background thread die silently."""
+    through the chosen character-video backend. Writes status.json after every
+    stage/scene transition so /video_status can report progress without
+    blocking on the whole run. Any unexpected failure still leaves status.json
+    in a terminal "failed" state rather than letting the background thread die
+    silently.
+
+    backend picks where the rendering happens, which is a cost decision rather
+    than a content one: "local" runs Wan 2.2 on this machine's GPU for free,
+    "veo" calls Google Veo and needs GEMINI_API_KEY. Clip planning still uses
+    Gemini in both cases.
+    """
 
     status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
     write_video_status(request_id, status)
@@ -159,12 +173,29 @@ def run_video_generation(
 
         on_scene_complete = make_on_scene_complete_callback(status, request_id)
 
-        run_veo_scenario_pipeline(
-            client=client,
-            scenario=planned_scenario,
-            reference_images=reference_images or None,
-            on_scene_complete=on_scene_complete,
-        )
+        if backend == "veo":
+            run_veo_scenario_pipeline(
+                client=client,
+                scenario=planned_scenario,
+                reference_images=reference_images or None,
+                on_scene_complete=on_scene_complete,
+            )
+        else:
+            from Video_Generation_Pipeline.video_generator.local_api import (
+                run_scenario_pipeline_local,
+            )
+
+            # Reference images become the i2v start frame: the opening frame
+            # already carries the approved character and background, so
+            # chaining from it keeps the local render on-model.
+            start_image = reference_images[0] if reference_images else None
+            run_scenario_pipeline_local(
+                scenario=planned_scenario,
+                mode="i2v" if start_image else "t2v",
+                start_image=start_image,
+                character_lora=character_lora,
+                on_scene_complete=on_scene_complete,
+            )
 
         status["state"] = (
             "done" if not status["failed_scenes"] else "completed_with_errors"

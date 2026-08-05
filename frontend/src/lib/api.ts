@@ -1,4 +1,4 @@
-import type { GenerateRequest, Script } from '../types/script';
+import type { GenerateRequest, ScenarioBackend, Script } from '../types/script';
 
 /**
  * Backend base URL.
@@ -7,7 +7,7 @@ import type { GenerateRequest, Script } from '../types/script';
  *  - Prod default: same-origin '/openstax-api' — the reverse proxy is expected
  *    to strip that prefix and forward to the backend root, e.g. nginx:
  *      location /openstax-api/ { proxy_pass http://127.0.0.1:8000/; }
- * All routes below keep their '/api/...' path (FastAPI mounts the router at /api).
+ * All routes below use '/instructor_api/...' (FastAPI mounts the instructor router there).
  */
 export const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined) ??
@@ -20,7 +20,7 @@ function apiUrl(path: string): string {
 export async function fetchInitialScript(
   req: GenerateRequest,
 ): Promise<{ script: Script; requestId: string }> {
-  const res = await fetch(apiUrl('/api/initial_script'), {
+  const res = await fetch(apiUrl('/instructor_api/initial_script'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
@@ -34,7 +34,7 @@ export async function generateBackgroundImage(
   script: Script,
   requestId: string,
 ): Promise<string> {
-  const res = await fetch(apiUrl('/api/generate_background_image'), {
+  const res = await fetch(apiUrl('/instructor_api/generate_background_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -48,7 +48,7 @@ export async function generateCharacterImages(
   script: Script,
   requestId: string,
 ): Promise<Record<string, string>> {
-  const res = await fetch(apiUrl('/api/generate_character_images'), {
+  const res = await fetch(apiUrl('/instructor_api/generate_character_images'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -64,7 +64,7 @@ export async function generateOpeningFrames(
   backgroundImagePath: string,
   characterImageFileMapping: Record<string, string>,
 ): Promise<Record<string, string>> {
-  const res = await fetch(apiUrl('/api/generate_opening_frames'), {
+  const res = await fetch(apiUrl('/instructor_api/generate_opening_frames'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -92,7 +92,7 @@ export async function retryBackgroundImage(
   requestId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch(apiUrl('/api/retry_generate_background_image'), {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_background_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -112,7 +112,7 @@ export async function retryCharacterImage(
   characterId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch(apiUrl('/api/retry_generate_character_image'), {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_character_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -136,7 +136,7 @@ export async function retryOpeningFrame(
   sceneId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch(apiUrl('/api/retry_generate_opening_frames'), {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_opening_frames'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -162,12 +162,12 @@ export function imageUrl(serverPath: string): string {
   const qIdx = serverPath.indexOf('?');
   const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
   const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
-  return apiUrl(`/api/image/${path.replace(/^\//, '')}${qs}`);
+  return apiUrl(`/instructor_api/image/${path.replace(/^\//, '')}${qs}`);
 }
 
 /** Convert an absolute server-side video path into a URL served by the backend. */
 export function videoUrl(serverPath: string): string {
-  return apiUrl(`/api/video/${serverPath}`);
+  return apiUrl(`/instructor_api/video/${serverPath}`);
 }
 
 /** Kick off Manim branching-video generation for the current edited script. */
@@ -175,7 +175,7 @@ export async function generateManimVideos(
   script: Script,
   requestId: string,
 ): Promise<{ status: string; requestId: string }> {
-  const res = await fetch(apiUrl('/api/generate_manim_videos'), {
+  const res = await fetch(apiUrl('/instructor_api/generate_manim_videos'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -193,9 +193,49 @@ export interface ManimStatus {
   error?: string | null;
 }
 
+/** Kick off character-scene video generation on the chosen backend. */
+export async function generateScenarioVideos(
+  script: Script,
+  requestId: string,
+  backend: ScenarioBackend,
+  opts: {
+    backgroundImagePath?: string | null;
+    characterImageFileMapping?: Record<string, string> | null;
+    characterLora?: string | null;
+  } = {},
+): Promise<{ status: string; backend: string }> {
+  const res = await fetch(apiUrl('/instructor_api/generate_videos'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      script,
+      request_id: requestId,
+      backend,
+      background_image_path: opts.backgroundImagePath ?? null,
+      character_image_file_mapping: opts.characterImageFileMapping ?? null,
+      character_lora: opts.characterLora ?? null,
+    }),
+  });
+  if (!res.ok) {
+    // The backend returns a usable message for the common cases (missing
+    // GEMINI_API_KEY, missing reference images) -- surface it rather than a code.
+    const detail = await res.json().then(d => d?.detail).catch(() => null);
+    throw new Error(detail || `Scenario video generation failed (${res.status})`);
+  }
+  const data = await res.json();
+  return { status: data.status as string, backend: data.backend as string };
+}
+
+/** Poll the status of a character-scene generation run. */
+export async function getScenarioStatus(requestId: string): Promise<ManimStatus> {
+  const res = await fetch(apiUrl(`/instructor_api/video_status/${requestId}`));
+  if (!res.ok) throw new Error(`Status check failed (${res.status})`);
+  return (await res.json()) as ManimStatus;
+}
+
 /** Poll the status of a Manim video-generation run. */
 export async function getManimStatus(requestId: string): Promise<ManimStatus> {
-  const res = await fetch(apiUrl(`/api/manim_video_status/${requestId}`));
+  const res = await fetch(apiUrl(`/instructor_api/manim_video_status/${requestId}`));
   if (!res.ok) throw new Error(`Status check failed (${res.status})`);
   return (await res.json()) as ManimStatus;
 }

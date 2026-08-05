@@ -15,6 +15,8 @@ export type ModelChoice = 'anthropic' | 'gemini';
 export type VideoType = 'scenario' | 'manim' | 'auto';
 /** Renderer chosen for a single scene. 'auto' is a request-level option only. */
 export type RenderMode = 'scenario' | 'manim';
+/** Where character scenes render. A cost choice, not a content one. */
+export type ScenarioBackend = 'local' | 'veo';
 export type Page = 'script' | 'assets' | 'videos';
 
 // ── Routing ────────────────────────────────────────────────────────────────

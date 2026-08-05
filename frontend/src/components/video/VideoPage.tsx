@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Script, Scene, Choice } from '../../types/script';
-import { generateManimVideos, getManimStatus, videoUrl as toVideoUrl } from '../../lib/api';
+import type { AssetImages, ScenarioBackend, Script, Scene, Choice } from '../../types/script';
+import {
+  generateManimVideos, getManimStatus,
+  generateScenarioVideos, getScenarioStatus,
+  videoUrl as toVideoUrl,
+} from '../../lib/api';
 
 function fmtDur(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -66,12 +70,14 @@ function VideoClipCard({ scene, selected, onClick, branch, choice, videoUrl }: {
 interface VideoPageProps {
   script: Script;
   requestId: string | null;
+  scenarioBackend: ScenarioBackend;
+  assetImages: AssetImages;
   onBack: () => void;
 }
 
 type GenState = 'idle' | 'running' | 'done' | 'partial' | 'error';
 
-export default function VideoPage({ script, requestId, onBack }: VideoPageProps) {
+export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
   const [genState, setGenState] = useState<GenState>('idle');
@@ -86,32 +92,53 @@ export default function VideoPage({ script, requestId, onBack }: VideoPageProps)
   useEffect(() => {
     if (genState !== 'running' || !requestId) return;
     let cancelled = false;
+    const wantsManim = scenes.some(sc => sc.render_mode === 'manim');
+    const wantsScenario = scenes.some(sc => sc.render_mode !== 'manim');
+
+    // A terminal state for the run as a whole means every renderer it started
+    // has finished; the run is only clean if none of them reported failures.
+    const TERMINAL = ['done', 'partial', 'error', 'completed_with_errors', 'failed'];
+
     const tick = async () => {
       try {
-        const status = await getManimStatus(requestId);
+        const [manim, scenario] = await Promise.all([
+          wantsManim ? getManimStatus(requestId) : Promise.resolve(null),
+          wantsScenario ? getScenarioStatus(requestId) : Promise.resolve(null),
+        ]);
         if (cancelled) return;
-        setGenStatus(status.state);
+
+        const active = [manim, scenario].filter(Boolean) as NonNullable<typeof manim>[];
+        setGenStatus(active.map(st => st.state).join(' · '));
+
         setSceneVideos(prev => {
           const next = { ...prev };
-          for (const [id, path] of Object.entries(status.completed_scenes || {})) {
-            next[Number(id)] = toVideoUrl(path);
+          for (const st of active) {
+            for (const [id, path] of Object.entries(st.completed_scenes || {})) {
+              next[Number(id)] = toVideoUrl(path);
+            }
           }
           return next;
         });
-        if (status.state === 'done') {
+
+        if (!active.every(st => TERMINAL.includes(st.state))) return;
+
+        const failed = active.flatMap(st => Object.keys(st.failed_scenes || {}));
+        const completed = active.flatMap(st => Object.keys(st.completed_scenes || {}));
+        const hardError = active.find(st => st.state === 'error' || st.state === 'failed');
+
+        if (failed.length === 0 && !hardError) {
           setGenState('done');
-        } else if (status.state === 'partial') {
+        } else if (completed.length > 0) {
           // Some scenes rendered and some didn't. Play what exists, but name the
           // gaps -- a silent "done" here looks like a complete video.
-          const failed = Object.keys(status.failed_scenes || {});
           setGenState('partial');
           setGenError(
-            `${failed.length} of ${failed.length + Object.keys(status.completed_scenes || {}).length} ` +
-            `scenes failed to render (scene ${failed.join(', ')}). The rest are playable.`,
+            `${failed.length} of ${failed.length + completed.length} scenes failed to render ` +
+            `(scene ${failed.join(', ')}). The rest are playable.`,
           );
-        } else if (status.state === 'error') {
+        } else {
           setGenState('error');
-          setGenError(status.error || 'Generation failed');
+          setGenError(hardError?.error || 'Generation failed');
         }
       } catch (e) {
         if (!cancelled) { setGenState('error'); setGenError(String(e)); }
@@ -130,11 +157,30 @@ export default function VideoPage({ script, requestId, onBack }: VideoPageProps)
     setGenError(null);
     setGenState('running');
     setGenStatus('starting');
+
+    // A script can now mix renderers, so start whichever ones it actually
+    // needs. Both write scene_id -> path, so the poller merges them.
+    const wantsManim = scenes.some(sc => sc.render_mode === 'manim');
+    const wantsScenario = scenes.some(sc => sc.render_mode !== 'manim');
+
     try {
-      await generateManimVideos(script, requestId);
+      const jobs: Promise<unknown>[] = [];
+      if (wantsManim) jobs.push(generateManimVideos(script, requestId));
+      if (wantsScenario) {
+        jobs.push(generateScenarioVideos(script, requestId, scenarioBackend, {
+          backgroundImagePath: assetImages.bgPath,
+          characterImageFileMapping: assetImages.charPaths,
+        }));
+      }
+      if (jobs.length === 0) {
+        setGenState('error');
+        setGenError('This script has no scenes to render.');
+        return;
+      }
+      await Promise.all(jobs);
     } catch (e) {
       setGenState('error');
-      setGenError(String(e));
+      setGenError(e instanceof Error ? e.message : String(e));
     }
   };
 

@@ -211,7 +211,7 @@ See `BackEnd/Video_Generation_Pipeline/README.md` for the full flag reference.
 
 ## Transcript & consistency eval
 
-`BackEnd/Transcript_Eval_Pipeline/transcript_eval` transcribes a generated clip's actual audio, then checks the transcript against the clip's ground-truth `scenario.json` dialogue — catching wrong/garbled dialogue and dialogue attributed to the wrong on-screen character.
+`BackEnd/Transcript_Eval_Pipeline/transcript_eval` judges a generated clip against its ground-truth `scenario.json` script with a single Gemini call over the clip's native video + audio — catching physically implausible motion, dialogue attributed to the wrong on-screen character, and spoken content that diverges from the script.
 
 ```bash
 cd BackEnd/Transcript_Eval_Pipeline
@@ -223,7 +223,7 @@ python -m transcript_eval.cli \
   --scene-id 3 --clip-id 1
 ```
 
-Three stages per clip: local Whisper transcription (free), a fuzzy dialogue match against the script, then a Gemini vision judge that samples frames to confirm the speaking character. Usable standalone or from generation via `video_generator`'s `--verify-clips` flag. See `BackEnd/Transcript_Eval_Pipeline/README.md`.
+One Gemini vision+audio judge call per clip (`gemini-3.6-flash`) checks visual consistency, dialogue/speaker attribution, and script alignment together. Usable standalone or from generation via `video_generator`'s `--verify-clips` flag. See `BackEnd/Transcript_Eval_Pipeline/README.md`.
 
 ---
 

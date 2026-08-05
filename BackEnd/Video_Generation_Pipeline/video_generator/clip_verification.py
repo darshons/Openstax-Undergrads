@@ -8,7 +8,8 @@ _TRANSCRIPT_EVAL_ROOT = Path(__file__).resolve().parents[2] / "Transcript_Eval_P
 if str(_TRANSCRIPT_EVAL_ROOT) not in sys.path:
     sys.path.insert(0, str(_TRANSCRIPT_EVAL_ROOT))
 
-from transcript_eval.eval import evaluate_clip, EVAL_REPORT_DIR  # noqa: E402
+from transcript_eval.video_judge import evaluate_clip  # noqa: E402
+from transcript_eval.report_utils import EVAL_REPORT_DIR  # noqa: E402
 
 from .veo_api import download_video, get_video_duration  # noqa: E402
 
@@ -43,16 +44,22 @@ def verify_clip(
     dialogue: list,
     characters: list,
     tmp_dir: Path,
+    setting: str = "",
+    character_actions: str = "",
 ) -> tuple:
     """Download the cumulative video, isolate the newest clip, run transcript_eval
-    on it. The cumulative download is always discarded (redundant once isolated).
-    The isolated clip video is discarded too if eval passed (its content is
-    already part of the ongoing cumulative video, no need to duplicate it) —
-    but kept on disk if eval failed, so the caller can persist it for review
-    alongside the generation_log entry, rather than a log line with no video
-    to actually look at.
+    on the isolated clip only (eval still judges just this clip's own audio/visuals,
+    not the whole scene-so-far). The isolated clip video is only ever an eval
+    input and is always discarded once eval finishes.
 
-    Returns (report, new_cumulative_duration, kept_clip_path_or_None).
+    The cumulative video (the whole scene so far, including this clip) is
+    discarded if eval passed — but kept on disk if eval failed. A failed clip
+    causes the entire scene attempt to be discarded and regenerated from clip 1
+    (see _generate_and_verify's ClipEvalFailedError handling), so the isolated
+    clip alone wouldn't be useful for review after the fact; the full
+    scene-so-far is the artifact worth keeping.
+
+    Returns (report, new_cumulative_duration, kept_cumulative_path_or_None).
     """
     tmp_dir.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S")
@@ -72,13 +79,19 @@ def verify_clip(
             clip_id=clip_id,
             dialogue=dialogue,
             characters=characters,
+            setting=setting,
+            character_actions=character_actions,
         )
-        if report["passed"]:
-            clip_path.unlink(missing_ok=True)
-            return report, new_duration, None
-        return report, new_duration, str(clip_path)
-    finally:
+    except Exception:
         cumulative_path.unlink(missing_ok=True)
+        raise
+    finally:
+        clip_path.unlink(missing_ok=True)
+
+    if report["passed"]:
+        cumulative_path.unlink(missing_ok=True)
+        return report, new_duration, None
+    return report, new_duration, str(cumulative_path)
 
 
 def eval_report_path_for(video_path: str) -> str:
@@ -86,9 +99,15 @@ def eval_report_path_for(video_path: str) -> str:
 
 
 def eval_failure_reason(report: dict) -> str:
-    if not report["dialogue_match"]["passed"]:
-        return (
-            f"dialogue mismatch (similarity={report['dialogue_match']['similarity']})"
-        )
-    sa = report["speaker_attribution"]
-    return f"speaker attribution mismatch (expected {sa['expected_speaker_order']})"
+    vj = report["video_judge"]
+    if vj["status"] == "pass":
+        return "unknown eval failure"
+
+    reasons = []
+    if vj["visual_issues_found"]:
+        reasons.append(f"visual: {vj['visual_notes']}")
+    if vj["dialogue_issues_found"]:
+        reasons.append(f"dialogue: {vj['dialogue_notes']}")
+    if vj["script_alignment_issues_found"]:
+        reasons.append(f"script alignment: {vj['script_alignment_notes']}")
+    return "; ".join(reasons) if reasons else "video judge flagged an issue"

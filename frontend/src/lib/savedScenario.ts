@@ -11,6 +11,7 @@ const STORAGE_KEY = 'openstax:savedScenario';
 export interface SavedScenario {
   script: Script;
   assetImages: AssetImages;
+  videoLinks?: Record<string, string>;
 }
 
 export function saveScenario(script: Script, assetImages: AssetImages): void {

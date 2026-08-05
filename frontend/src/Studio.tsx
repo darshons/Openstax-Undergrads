@@ -22,6 +22,8 @@ import {
   publishScenario,
   generateVideos as apiGenerateVideos,
   getVideoStatus,
+  generateManimVideos as apiGenerateManimVideos,
+  getManimStatus,
   type VideoGenState,
 } from './lib/api';
 import { buildGenerateRequest } from './data/catalog';
@@ -342,21 +344,21 @@ export default function Studio() {
   }, []);
 
   const generateVideos = useCallback(async () => {
-    if (!script || !requestId || !assetImages.bgPath) return;
+    if (!script || !requestId) return;
+    // Veo needs reference images to anchor character/environment consistency;
+    // Manim renders diagrams from the script text alone, so no asset gate.
+    if (videoType === 'scenario' && !assetImages.bgPath) return;
     if (videoPollRef.current) clearTimeout(videoPollRef.current);
 
     setVideoGenState('queued');
     setVideoGenError(null);
     setSceneVideoPaths({});
 
-    const rawBgPath = assetImages.bgPath.split('?')[0];
-    const rawCharPaths = Object.fromEntries(
-      Object.entries(assetImages.charPaths).map(([id, path]) => [id, path.split('?')[0]]),
-    );
+    const fetchStatus = videoType === 'manim' ? getManimStatus : getVideoStatus;
 
     const poll = async () => {
       try {
-        const status = await getVideoStatus(requestId);
+        const status = await fetchStatus(requestId);
         setVideoGenState(status.state);
         setSceneVideoPaths(
           Object.fromEntries(Object.entries(status.completed_scenes).map(([id, path]) => [Number(id), path])),
@@ -372,13 +374,21 @@ export default function Studio() {
     };
 
     try {
-      await apiGenerateVideos(script, requestId, rawBgPath, rawCharPaths);
+      if (videoType === 'manim') {
+        await apiGenerateManimVideos(script, requestId);
+      } else {
+        const rawBgPath = assetImages.bgPath!.split('?')[0];
+        const rawCharPaths = Object.fromEntries(
+          Object.entries(assetImages.charPaths).map(([id, path]) => [id, path.split('?')[0]]),
+        );
+        await apiGenerateVideos(script, requestId, rawBgPath, rawCharPaths);
+      }
       videoPollRef.current = window.setTimeout(poll, 1000);
     } catch (err) {
       setVideoGenState('failed');
       setVideoGenError(err instanceof Error ? err.message : 'Video generation failed to start');
     }
-  }, [script, requestId, assetImages]);
+  }, [script, requestId, assetImages, videoType]);
 
   // ── Derived values ──────────────────────────────────────────────────────
 
@@ -468,7 +478,7 @@ export default function Studio() {
               }}
               onPublish={name => publishScenario(name, script, sceneVideoPaths)}
               requestId={requestId}
-              hasAssets={!!assetImages.bgPath && Object.keys(assetImages.charPaths).length > 0}
+              hasAssets={videoType === 'manim' ? true : (!!assetImages.bgPath && Object.keys(assetImages.charPaths).length > 0)}
               videoGenState={videoGenState}
               videoGenError={videoGenError}
               sceneVideoPaths={sceneVideoPaths}

@@ -46,19 +46,27 @@ For each character, decide:
    room features to each person so that cutting between characters reads as
    two different camera setups in the same room, not the same shot reused
    with a different person swapped in.
+3. gaze_direction: either "screen_left" or "screen_right" - which way this
+   character's head and eyes should be turned, off-camera, as if looking
+   toward whoever they are conversing with in the room. Base this on the
+   character's position relative to the others (someone positioned on the
+   left side of the room typically turns toward screen_right to face
+   whoever is to their right, and vice versa). This character is never
+   looking directly into the camera lens.
 
 If the input includes explicit initial character positions, treat that as
-the strongest signal for pose. If the room does not have enough distinct
-furniture/equipment for every character to get a fully unique backdrop, do
-your best to differentiate by describing a different direction/angle within
-the room instead (e.g. "the wall behind them, without the window" vs "the
-corner near the door").
+the strongest signal for pose and gaze_direction. If the room does not have
+enough distinct furniture/equipment for every character to get a fully
+unique backdrop, do your best to differentiate by describing a different
+direction/angle within the room instead (e.g. "the wall behind them,
+without the window" vs "the corner near the door").
 
 Respond with ONLY a JSON object, no other text, in this exact shape:
 {
   "<character_id>": {
     "pose_core": "...",
-    "backdrop_core": "..."
+    "backdrop_core": "...",
+    "gaze_direction": "screen_left" | "screen_right"
   },
   ...
 }
@@ -66,7 +74,7 @@ Include every character_id given in the input, no more, no fewer.
 """
 
 
-def _setting_summary(scenario: dict) -> str:
+def setting_summary(scenario: dict) -> str:
     """Handles both scenario schemas seen so far: a top-level 'setting'
     object with structured furniture/equipment lists, or per-scene 'setting'
     prose plus 'character_actions' (older format, room described in text)."""
@@ -130,7 +138,7 @@ def generate_character_rig(client, scenario: dict) -> dict:
 
     user_prompt = (
         f"Characters:\n{_character_summary(characters)}\n\n"
-        f"Room setting:\n{_setting_summary(scenario)}\n\n"
+        f"Room setting:\n{setting_summary(scenario)}\n\n"
         f"Initial character positions (if given):\n{_initial_positions_summary(scenario)}\n"
     )
 
@@ -154,6 +162,8 @@ def generate_character_rig(client, scenario: dict) -> dict:
         name = lookup[cid]["name"]
         pose_core = raw[cid]["pose_core"]
         backdrop_core = raw[cid]["backdrop_core"]
+        gaze_direction = raw[cid].get("gaze_direction", "screen_left")
+        gaze_side = "screen left" if gaze_direction == "screen_left" else "screen right"
 
         pose = (
             f"{pose_core} This exact position is identical in every shot of "
@@ -165,7 +175,13 @@ def generate_character_rig(client, scenario: dict) -> dict:
             f"camera distance, height, and angle is identical in every shot of "
             f"{name} in this scene. Directly behind {name}: {backdrop_core}. "
             f"Nothing associated with other characters is visible in {name}'s "
-            f"shots - it is out of frame behind the camera."
+            f"shots - it is out of frame behind the camera. "
+            f"{name}'s head and eyes are turned away from the camera at roughly "
+            f"a 45-degree angle toward {gaze_side}, as though looking at someone "
+            f"they are talking to just out of frame - {name} does not make direct "
+            f"eye contact with the camera lens and never faces the camera "
+            f"head-on. This exact head angle and gaze direction is identical in "
+            f"every shot of {name} in this scene."
         )
         rig[cid] = {
             "pose": pose,

@@ -233,6 +233,52 @@ export async function getVideoStatus(requestId: string): Promise<VideoStatus> {
   return res.json();
 }
 
+// ── Manim graphics video generation ─────────────────────────────────────────
+// Mirrors generateVideos/getVideoStatus above, but the pipeline needs no
+// reference images (diagrams, not characters) and its status.json uses a
+// finer-grained, open-ended state string (e.g. "scene_3_of_8") rather than
+// Veo's fixed enum. normalizeManimState folds that into the same VideoGenState
+// union so VideoPage's state handling stays video-type-agnostic.
+
+interface RawManimStatus {
+  state: string; // queued | assets | scene_k_of_n | stitching | done | error
+  completed_scenes: Record<string, string>;
+  failed_scenes: Record<string, string>;
+  manifest?: unknown;
+  error?: string | null;
+}
+
+function normalizeManimState(state: string): VideoGenState {
+  if (state === 'done') return 'done';
+  if (state === 'error') return 'failed';
+  if (state === 'queued') return 'queued';
+  return 'rendering'; // assets | scene_k_of_n | stitching
+}
+
+export async function generateManimVideos(
+  script: Script,
+  requestId: string,
+): Promise<void> {
+  const res = await fetch('/instructor_api/generate_manim_videos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ script, request_id: requestId }),
+  });
+  if (!res.ok) throw new Error(`Manim video generation failed to start (${res.status})`);
+}
+
+export async function getManimStatus(requestId: string): Promise<VideoStatus> {
+  const res = await fetch(`/instructor_api/manim_video_status/${encodeURIComponent(requestId)}`);
+  if (!res.ok) throw new Error(`Manim status check failed (${res.status})`);
+  const data = (await res.json()) as RawManimStatus;
+  return {
+    state: normalizeManimState(data.state),
+    completed_scenes: data.completed_scenes,
+    failed_scenes: data.failed_scenes,
+    error: data.error ?? undefined,
+  };
+}
+
 interface ScenarioAssets {
   script: Script;
   assetImages: AssetImages;

@@ -319,9 +319,6 @@ export default function VideoPage({
                               const rt = bs.routes_to;
                               const isRetry = rt && 'decision_point_id' in rt;
                               const isContinue = rt && 'scene_id' in rt;
-                              const routeLabel = isRetry && 'decision_point_id' in rt
-                                ? `↩ retry · DP ${rt.decision_point_id}`
-                                : isContinue && 'scene_id' in rt ? `→ Scene ${rt.scene_id}` : null;
                               return (
                                 <div key={bs.scene_id} className="video-branch-item">
                                   <VideoClipCard

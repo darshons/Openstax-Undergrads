@@ -23,11 +23,15 @@
 # once per scenario by video_generator.character_rig (one cheap LLM call) and
 # cached to output/<lesson>/character_rig.json, so this script works on any
 # scenario.json without a human writing English descriptions for each new
-# cast of characters first.
+# cast of characters first. --mode images (video_generator.reference_images)
+# is the same idea applied to character portraits + the background
+# reference image - both stages are idempotent, only spending on what's
+# actually missing, so re-running either is always safe.
 #
 # Usage:
-#   python solo_clip_test.py --mode rig                      # derive+cache the rig, once per scenario
-#   python solo_clip_test.py --scene-id 1 --mode preview      # free, uses cached rig
+#   python solo_clip_test.py --mode images                    # generate+cache reference images, once per scenario
+#   python solo_clip_test.py --mode rig                       # derive+cache the rig, once per scenario
+#   python solo_clip_test.py --scene-id 1 --mode preview       # free, uses cached rig
 #   python solo_clip_test.py --scene-id 1 --mode generate
 #
 import argparse
@@ -50,6 +54,7 @@ from video_generator.character_rig import (
     rig_cache_path,
     save_rig_cache,
 )
+from video_generator.reference_images import ensure_reference_images
 from video_generator.cli import load_env
 from video_generator.prompt_builder import build_veo_prompt
 from video_generator.scenario_loader import load_scenario
@@ -68,6 +73,7 @@ if str(_TRANSCRIPT_EVAL_ROOT) not in sys.path:
 from transcript_eval.eval import evaluate_clip  # noqa: E402
 
 OUTPUT_ROOT = Path(__file__).resolve().parent / "output" / "what_do_you_say_next" / "raw"
+REFERENCE_IMAGES_DIR = Path(__file__).resolve().parent / "reference_images"
 FIRST_CLIP_SECONDS = 8
 
 
@@ -140,7 +146,10 @@ def build_solo_clip_prompts(scene: dict, characters: list, visual_style: str, ri
                 "camera": camera,
                 "audio": {**clip_scene["audio"], "dialogue": [line]},
             }
-            prompt = build_veo_prompt(line_scene, characters, visual_style, is_continuation=False)
+            # Only the speaker's own appearance is described here - the other
+            # character's full physical description has no reason to be in a
+            # prompt for a shot they're not supposed to appear in at all.
+            prompt = build_veo_prompt(line_scene, [speaker], visual_style, is_continuation=False)
             if other_name:
                 prompt = f"{prompt}\n\n{_solo_reinforcement(speaker['name'], other_name)}"
 
@@ -255,6 +264,40 @@ def generate(scene: dict, characters: list, visual_style: str, model_key: str, a
         print(f"  [{r['status']:14s}] {i:02d}_{r['label']}")
     print(f"\nClips saved to: {output_dir}")
     print("Stitch order = numeric filename prefix (01, 02, 03, ...).")
+    return results
+
+
+def run_full_lesson(scenario: dict, characters: list, visual_style: str, model_key: str, api_key: str, rig: dict):
+    """The Option B orchestrator: generate + stitch every scene in the
+    scenario in one pass, instead of invoking --scene-id by hand per scene.
+    Each scene gets its own stitched output file (scenes are branch points
+    in an interactive lesson, not a linear sequence to concatenate into one
+    video)."""
+    from stitch_solo_clips import _default_output_path, stitch
+
+    scenes = scenario["scenes"]
+    print(f"\n{'#'*70}\nFULL LESSON: {len(scenes)} scenes\n{'#'*70}")
+
+    scene_reports = []
+    for scene in scenes:
+        scene_id = scene["scene_id"]
+        print(f"\n{'='*70}\nSCENE {scene_id}\n{'='*70}")
+        results = generate(scene, characters, visual_style, model_key, api_key, rig)
+        needs_review = [r for r in results if r["status"] not in ("PASS",)]
+
+        clips_dir = _output_dir(scene_id)
+        output_path = _default_output_path(clips_dir)
+        stitch(clips_dir, output_path)
+
+        scene_reports.append(
+            {"scene_id": scene_id, "clip_count": len(results), "needs_review": len(needs_review), "stitched_path": str(output_path)}
+        )
+
+    print(f"\n{'#'*70}\nFULL LESSON SUMMARY\n{'#'*70}")
+    for r in scene_reports:
+        flag = f"  <-- {r['needs_review']} clip(s) need review" if r["needs_review"] else ""
+        print(f"  Scene {r['scene_id']}: {r['clip_count']} clips -> {r['stitched_path']}{flag}")
+    return scene_reports
 
 
 def parse_args():
@@ -263,10 +306,12 @@ def parse_args():
     parser.add_argument("--scene-id", type=int, default=None, help="Required for --mode preview/generate.")
     parser.add_argument(
         "--mode",
-        choices=["rig", "preview", "generate"],
+        choices=["images", "rig", "preview", "generate", "full"],
         default="preview",
-        help="rig: derive+cache the per-character pose/camera/backdrop (one cheap API call, run once per scenario). "
-        "preview: print prompts, free, requires a cached rig. generate: spend real Veo credits.",
+        help="images: generate+cache character portraits and the background reference image (skips any already present). "
+        "rig: derive+cache the per-character pose/camera/backdrop (one cheap API call, run once per scenario). "
+        "preview: print prompts, free, requires a cached rig. generate: spend real Veo credits, one scene (--scene-id). "
+        "full: generate+stitch every scene in the scenario, spends real Veo credits.",
     )
     parser.add_argument("--model-key", choices=list(VEO_MODELS), default="veo-3.1-fast")
     parser.add_argument(
@@ -287,6 +332,16 @@ def main():
     visual_style = scenario["visual_style"]
     rig_path = rig_cache_path(OUTPUT_ROOT.parent)
 
+    if args.mode == "images":
+        if not args.api_key:
+            print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
+            return
+        os.environ["GEMINI_API_KEY"] = args.api_key
+        paths = ensure_reference_images(scenario, REFERENCE_IMAGES_DIR, request_id="what_do_you_say_next")
+        print(f"Reference images ready in {REFERENCE_IMAGES_DIR}:")
+        print(json.dumps(paths, indent=2))
+        return
+
     if args.mode == "rig":
         if not args.api_key:
             print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
@@ -303,6 +358,13 @@ def main():
     rig = load_cached_rig(rig_path)
     if rig is None:
         print(f"ERROR: No cached character rig at {rig_path}. Run --mode rig first.")
+        return
+
+    if args.mode == "full":
+        if not args.api_key:
+            print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY.")
+            return
+        run_full_lesson(scenario, characters, visual_style, args.model_key, args.api_key, rig)
         return
 
     if args.scene_id is None:

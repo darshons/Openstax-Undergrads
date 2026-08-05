@@ -1,0 +1,759 @@
+{
+  "title": "General Survey: First Impressions and Initial Assessment",
+  "learning_goal": "Learners will identify and correctly prioritize observations during a general survey, including patient appearance, behavior, and cognitive status, and select appropriate follow-up actions based on those findings.",
+  "target_audience": "Nursing students in foundational clinical assessment coursework",
+  "total_duration_seconds": 290,
+  "visual_style": "2D semi-flat limited animation with dynamic but constrained movement. Characters express emotion through head turns, nods, subtle posture shifts, and facial expressions. Mouth movement suggests speech without phoneme-level lip sync. Consistent character designs and color palette across all clips.",
+  "characters": [
+    {
+      "character_id": "caleb",
+      "name": "Caleb",
+      "role": "Registered Nurse",
+      "appearance": {
+        "skin_tone": "Medium brown, warm undertone",
+        "hair": "Short, dark black, neatly trimmed",
+        "build": "Average height, medium build",
+        "uniform": "Navy blue scrub top and pants, plain white undershirt",
+        "distinguishing_features": ""
+      },
+      "emotional_baseline": "Calm, attentive, professional"
+    },
+    {
+      "character_id": "patient",
+      "name": "Diane",
+      "role": "Patient",
+      "appearance": {
+        "skin_tone": "Light, fair complexion",
+        "hair": "Short, curly, dark brown",
+        "build": "Average height, medium build",
+        "uniform": "Light blue hospital gown",
+        "distinguishing_features": ""
+      },
+      "emotional_baseline": "Mildly anxious, cooperative"
+    }
+  ],
+  "setting": {
+    "location": "Hospital patient room",
+    "scene_description": "A standard single-bed hospital room with soft overhead lighting. A hospital bed is centered against the back wall. A chair is positioned to the left of the bed. The room is tidy and quiet.",
+    "light_source": "Overhead fluorescent ceiling lights, slightly warm tone",
+    "time_of_day": "Morning",
+    "atmosphere": "Calm and clinical. The room is uncluttered and orderly.",
+    "background_furniture": [
+      {
+        "name": "Hospital bed",
+        "count": 1,
+        "description": "Standard adjustable hospital bed with white linens, positioned against the back wall and slightly raised at the head"
+      },
+      {
+        "name": "Bedside chair",
+        "count": 1,
+        "description": "Plain padded chair positioned to the left of the bed"
+      },
+      {
+        "name": "Bedside table",
+        "count": 1,
+        "description": "Small rolling table pushed to the far right, angled away from camera with no items on its surface visible"
+      }
+    ],
+    "background_equipment": [
+      {
+        "name": "Vital signs monitor",
+        "count": 1,
+        "description": "Standard bedside vital signs monitor on a stand to the right of the bed, screen faced away from camera"
+      },
+      {
+        "name": "IV pole",
+        "count": 1,
+        "description": "Bare IV pole standing in the back right corner, no bag attached"
+      }
+    ],
+    "camera": {
+      "angle": "Medium two-shot showing both Caleb standing at the left side of the bed and Diane seated upright in the bed",
+      "perspective": "Slightly elevated, eye level with a standing adult"
+    }
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "type": "narrative",
+      "scene_summary": "Caleb enters Diane's hospital room for the first time and begins his general survey by observing her overall appearance before speaking. Diane is sitting upright in bed. Caleb notices she appears pale and is leaning slightly forward. He approaches calmly.",
+      "duration_seconds": 28,
+      "character_actions": "Caleb steps into the room from the left side of frame, pauses briefly near the doorway, and then walks toward the left side of the bed. He makes brief eye contact with Diane and offers a professional nod. Diane is seated upright in the hospital bed, her posture slightly forward, hands resting in her lap. Her expression is mild and cooperative.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Left side of frame, entering from doorway, moving toward the left side of the bed"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated upright in the hospital bed, centered in frame"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb greets the patient by saying: Good morning. My name is Caleb, and I will be your nurse today. I am going to ask you a few questions and take a look at how you are doing.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane responds quietly: Okay. Sure.",
+            "character_position": "Seated in bed, facing Caleb"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb observes her appearance and says: Before we get into your history, I just want to make sure you are comfortable. Can you tell me how you have been feeling this morning?",
+            "character_position": "Standing at the left side of the bed, slightly turned toward Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says: A little off, honestly. I have been a bit short of breath and just tired.",
+            "character_position": "Seated in bed, hands resting in lap"
+          }
+        ],
+        "sound_effects": "Soft footsteps as Caleb enters the room",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "introduction"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb greets the patient by saying: Good morning."
+            },
+            {
+              "character_id": "caleb",
+              "line": "My name is Caleb, and I will be your nurse today. I am going to ask you a few questions and take a look at how you are doing."
+            }
+          ],
+          "character_actions": "Caleb steps into the room from the left side of frame, pauses briefly near the doorway, and then walks toward the left side of the bed. He makes brief eye contact with Diane and offers a professional nod. Diane is seated upright in the hospital bed, her posture slightly forward, hands resting in her lap. Her expression is mild and cooperative."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane responds quietly: Okay. Sure."
+            }, 
+            {
+              "character_id": "caleb",
+              "line": "Caleb observes her appearance and says: Before we get into your history, I just want to make sure you are comfortable. Can you tell me how you have been feeling this morning?"
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane says: A little off, honestly. I have been a bit short of breath and just tired."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 2,
+      "type": "consequence",
+      "scene_summary": "Caleb proceeds directly to reviewing the chart without first completing his visual observation of Diane. He misses that she is leaning forward and appears pale. When he returns to ask a question, the charge nurse passes by and notes the oversight.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb turns away from Diane toward the bedside table and looks down as if reviewing information. Diane remains seated with a slight forward lean and pale complexion. A moment passes. Caleb turns back toward Diane without having noted her posture or coloring.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, turned slightly away from Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, leaning slightly forward, hands in lap"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: Let me just go through your medical history first, and then we will move on from there.",
+            "character_position": "Standing at the left side of the bed, turned slightly away from Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane replies: Alright.",
+            "character_position": "Seated in bed, leaning slightly forward"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb asks: Have you had any shortness of breath before today?",
+            "character_position": "Standing at the left side of the bed, facing Diane again"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says: Yes, but it seems worse when I sit back. I have been leaning forward like this since this morning.",
+            "character_position": "Seated in bed, demonstrating her forward lean"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: Let me just go through your medical history first, and then we will move on from there."
+            },
+            {
+              "character_id": "patient",
+              "line": "Diane replies: Alright."
+            }
+          ],
+          "character_actions": "Caleb turns away from Diane toward the bedside table and looks down as if reviewing information. Diane remains seated with a slight forward lean and pale complexion. A moment passes. Caleb turns back toward Diane without having noted her posture or coloring."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb asks: Have you had any shortness of breath before today?"
+            }, 
+            {
+              "character_id": "patient",
+              "line": "Diane says: Yes, but it seems worse when I sit back."
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "I have been leaning forward like this since this morning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 3,
+      "type": "resolution",
+      "scene_summary": "Caleb completes his visual observation before speaking further. He notes Diane's pale skin, forward-leaning posture, and mild signs of respiratory effort. He documents these findings mentally and proceeds with confidence.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb stands at the left side of the bed, taking a brief but deliberate visual scan of Diane from head to midsection. He notes her posture, skin color, and overall demeanor before speaking. His expression is calm and focused. Diane sits quietly, watching him.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, facing Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, leaning slightly forward, hands in lap"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb observes calmly and says: I can see you are leaning forward a bit, and your color looks a little pale. I want to make sure we address that.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane nods and says: Yeah, sitting straight back just makes it harder to breathe.",
+            "character_position": "Seated in bed, slightly forward"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: That is helpful to know. I am going to keep that in mind as we continue.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "true_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb observes calmly and says: I can see you are leaning forward a bit, and your color looks a little pale. I want to make sure we address that."
+            }
+          ],
+          "character_actions": "Caleb stands at the left side of the bed, taking a brief but deliberate visual scan of Diane from head to midsection. He notes her posture, skin color, and overall demeanor before speaking. His expression is calm and focused. Diane sits quietly, watching him."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane nods and says: Yeah, sitting straight back just makes it harder to breathe."
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: That's helpful to know. I am going to keep that in mind as we continue."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 4,
+      "type": "consequence",
+      "scene_summary": "Caleb assumes the forward-leaning posture is simply a comfort preference and does not associate it with a possible sign of respiratory distress. He moves on without noting the observation. Later in the conversation Diane becomes more visibly breathless.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb glances briefly at Diane's posture and then looks away, reaching for his clipboard. He begins asking questions in a routine manner. Diane's forward lean becomes more pronounced as the clip continues. Caleb does not react to the change.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, turning slightly away to reach for clipboard"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, forward lean becoming more visible"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: All right, let us go ahead and get started with your history. Are you allergic to anything?",
+            "character_position": "Standing at the left side of the bed, face turned slightly toward his clipboard"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says quietly, with slightly more effort: No allergies. Sorry, it is just a little harder to talk right now.",
+            "character_position": "Seated in bed, leaning forward more noticeably"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 1,
+        "type": "false_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: All right, let us go ahead and get started with your history. Are you allergic to anything?"
+            }
+          ],
+          "character_actions": "Caleb glances briefly at Diane's posture and then looks away, reaching for his clipboard. He begins asking questions in a routine manner. Diane's forward lean becomes more pronounced as the clip continues. Caleb does not react to the change."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane says quietly, with slightly more effort: No allergies. Sorry, it is just a little harder to talk right now."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 5,
+      "type": "narrative",
+      "scene_summary": "Having completed his visual observation and noted Diane's appearance and behavior, Caleb now begins assessing her cognitive status. He needs to determine her level of orientation. He starts asking orientation questions in a conversational tone.",
+      "duration_seconds": 28,
+      "character_actions": "Caleb stands at the left side of the bed, his weight settled, posture relaxed but attentive. Diane remains seated in the bed, her forward lean slightly reduced. Caleb speaks in a measured and natural tone, watching Diane's face as she responds.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, facing Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, slightly forward, hands resting in lap"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says conversationally: I want to ask you a few quick questions, just routine stuff.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says: Of course, go ahead.",
+            "character_position": "Seated in bed, facing Caleb"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb asks: Can you tell me your full name for me?",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane answers: Diane. Diane Holloway.",
+            "character_position": "Seated in bed, facing Caleb"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb follows up: And do you know where you are right now, and roughly what time of day it is?",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane responds: I am at the hospital. And it is morning, I think. Honestly, I am not sure what day it is. They all kind of blend together in here.",
+            "character_position": "Seated in bed, expression slightly uncertain"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "introduction"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says conversationally: I want to ask you a few quick questions, just routine stuff."
+            },
+            {
+              "character_id": "patient",
+              "line": "Diane says: Of course, go ahead."
+            }
+          ],
+          "character_actions": "Caleb stands at the left side of the bed, his weight settled, posture relaxed but attentive. Diane remains seated in the bed, her forward lean slightly reduced. Caleb speaks in a measured and natural tone, watching Diane's face as she responds."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb asks: Can you tell me your full name for me?"
+            },
+            {
+              "character_id": "patient",
+              "line": "Diane answers: Diane. Diane Holloway."
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb follows up: And do you know where you are right now, and roughly what time of day it is?"
+            }
+          ]
+        },
+        {
+          "clip_id": 4,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane responds: I am at the hospital. And it is morning, I think. Honestly, I am not sure what day it is. They all kind of blend together in here."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 6,
+      "type": "consequence",
+      "scene_summary": "Caleb documents Diane as alert and oriented times four because she answered name, location, and time of day correctly, and assumes the missed date is not significant. He does not probe further. The charge nurse reviewing his documentation later notes that the orientation was incomplete.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb gives a brief nod and makes a small notation gesture near his side as if recording. Diane watches him, expression unchanged. Caleb moves on to the next topic without asking any further orientation questions.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, facing Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, watching Caleb"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: That all sounds fine. Let us move on.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says: Okay. Did I do all right?",
+            "character_position": "Seated in bed, expression mildly uncertain"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb replies: You did fine. Everything checks out.",
+            "character_position": "Standing at the left side of the bed, turning slightly away"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: That all sounds fine. Let us move on."
+            },
+            {
+              "character_id": "patient",
+              "line": "Diane says: Okay. Did I do all right?"
+            }
+          ],
+          "character_actions": "Caleb gives a brief nod and makes a small notation gesture near his side as if recording. Diane watches him, expression unchanged. Caleb moves on to the next topic without asking any further orientation questions."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb replies: You did fine. Everything checks out."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 7,
+      "type": "consequence",
+      "scene_summary": "Caleb flags Diane as having an altered level of consciousness because she could not state the date, and he documents her as alert and oriented times two. He does not ask the follow-up question about why she is hospitalized, which could have helped clarify her orientation.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb's expression shifts to mild concern. He gives a small nod but does not follow up further. Diane looks slightly unsettled by his reaction. Caleb turns to jot a note and then faces her again.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, facing Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, expression slightly worried"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: Okay, so you were not able to tell me the date. I will note that.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane says, a little anxious: Is that a problem? The days really do all blend together when you are stuck in a room.",
+            "character_position": "Seated in bed, expression mildly worried"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb replies: It is something I have to document.",
+            "character_position": "Standing at the left side of the bed, face slightly averted"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "false_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: Okay, so you were not able to tell me the date. I will note that."
+            }
+          ],
+          "character_actions": "Caleb's expression shifts to mild concern. He gives a small nod but does not follow up further. Diane looks slightly unsettled by his reaction. Caleb turns to jot a note and then faces her again."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane says, a little anxious: Is that a problem? The days really do all blend together when you are stuck in a room."
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb replies: It is something I have to document."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": 8,
+      "type": "resolution",
+      "scene_summary": "Caleb uses a follow-up question to clarify Diane's orientation. He asks why she is hospitalized. She answers correctly and in detail. Caleb appropriately documents her as alert and oriented times four, recognizing that missed dates are common among hospitalized patients.",
+      "duration_seconds": 18,
+      "character_actions": "Caleb gives a calm, brief nod and holds his position at the left side of the bed. He asks an additional question in a natural, unhurried tone. Diane's expression relaxes as she answers. Caleb gives a small nod of acknowledgment.",
+      "initial_character_positions": [
+        {
+          "character_id": "caleb",
+          "position": "Standing at the left side of the bed, facing Diane"
+        },
+        {
+          "character_id": "patient",
+          "position": "Seated in bed, facing Caleb"
+        }
+      ],
+      "audio": {
+        "dialogue": [
+          {
+            "character_id": "caleb",
+            "line": "Caleb says gently: No worries on the date. That is actually really common when you have been here a few days. Can you tell me why you came in to the hospital?",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          },
+          {
+            "character_id": "patient",
+            "line": "Diane replies: I have been having shortness of breath and just feeling really run down. My breathing gets worse when I walk around.",
+            "character_position": "Seated in bed, expression relaxing slightly"
+          },
+          {
+            "character_id": "caleb",
+            "line": "Caleb says: That is very helpful. You are doing well. I have everything I need from this part of the assessment.",
+            "character_position": "Standing at the left side of the bed, facing Diane"
+          }
+        ],
+        "sound_effects": "",
+        "ambience": "Quiet hospital room, faint low hum of ventilation in background"
+      },
+      "routes_to": {
+        "decision_point_id": 2,
+        "type": "true_choice"
+      },
+      "clips": [
+        {
+          "clip_id": 1,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says gently: No worries on the date. That is actually really common when you have been here a few days."
+            }
+          ],
+          "character_actions": "Caleb gives a calm, brief nod and holds his position at the left side of the bed. He asks an additional question in a natural, unhurried tone. Diane's expression relaxes as she answers. Caleb gives a small nod of acknowledgment."
+        },
+        {
+          "clip_id": 2,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Can you tell me why you came in to the hospital?"
+            }
+          ]
+        },
+        {
+          "clip_id": 3,
+          "dialogue": [
+            {
+              "character_id": "patient",
+              "line": "Diane replies: I have been having shortness of breath and just feeling really run down. My breathing gets worse when I walk around."
+            }
+          ]
+        },
+        {
+          "clip_id": 4,
+          "dialogue": [
+            {
+              "character_id": "caleb",
+              "line": "Caleb says: That is very helpful. You are doing well. I have everything I need from this part of the assessment."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decision_points": [
+    {
+      "decision_point_id": 1,
+      "question_text": "Caleb has just entered the room and begun his first encounter with Diane. She is pale, leaning forward, and reports shortness of breath and fatigue. What should Caleb do first as part of his general survey?",
+      "associated_introduction_scene_id": 1,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Pause and complete a deliberate visual observation of Diane, noting her skin color, posture, and any signs of respiratory effort before proceeding.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 3
+        },
+        {
+          "choice_id": "B",
+          "text": "Start with the medical history review so the assessment follows a structured order and no information is missed.",
+          "is_correct": false,
+          "misconception": "Learners may believe that following a fixed documentation sequence is the priority, but the general survey begins with observation before history-taking. Pallor and forward-leaning posture in a patient reporting shortness of breath are immediate visual cues that must be noted first.",
+          "routes_to_scene": 2
+        },
+        {
+          "choice_id": "C",
+          "text": "Note that Diane is sitting forward but assume it is a comfort preference, and begin asking intake questions right away.",
+          "is_correct": false,
+          "misconception": "Learners may interpret a forward-leaning posture as simply a patient positioning choice, but this posture is a known sign of respiratory distress. A nurse conducting a general survey must recognize and follow up on behavioral and postural cues, not dismiss them.",
+          "routes_to_scene": 4
+        }
+      ]
+    },
+    {
+      "decision_point_id": 2,
+      "question_text": "Diane correctly states her name, location, and the approximate time of day, but says she does not know what day it is. How should Caleb interpret and respond to this finding?",
+      "associated_introduction_scene_id": 5,
+      "choices": [
+        {
+          "choice_id": "A",
+          "text": "Ask Diane a follow-up question, such as why she came to the hospital, to help clarify her overall level of orientation before making a documentation decision.",
+          "is_correct": true,
+          "misconception": null,
+          "routes_to_scene": 8
+        },
+        {
+          "choice_id": "B",
+          "text": "Document Diane as alert and oriented times four because she answered three of the four questions correctly and the missed date is likely not meaningful.",
+          "is_correct": false,
+          "misconception": "Learners may think that nearly correct answers justify a full orientation score, but orientation must be documented accurately based on what the patient actually demonstrated. A follow-up question is the appropriate step before finalizing the assessment.",
+          "routes_to_scene": 6
+        },
+        {
+          "choice_id": "C",
+          "text": "Document Diane as alert and oriented times two because she could not identify the date, and flag this as a potential change in cognition.",
+          "is_correct": false,
+          "misconception": "Learners may over-correct by treating a missed date as a significant cognitive deficit without considering that hospitalized patients commonly lose track of dates due to disrupted routines. The chapter notes this explicitly and recommends a follow-up question rather than an immediate downgrade of orientation status.",
+          "routes_to_scene": 7
+        }
+      ]
+    }
+  ]
+}

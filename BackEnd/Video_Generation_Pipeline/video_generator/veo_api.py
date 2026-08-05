@@ -193,10 +193,16 @@ def poll_until_done(client, operation):
     if not getattr(operation, "response", None) or not getattr(
         operation.response, "generated_videos", None
     ):
-        print(" failed (empty response).")
-        raise RuntimeError(
-            "Veo returned no videos — operation completed but response is empty. "
-            "Possible causes: content policy rejection, API quota, or transient generation failure."
+        reasons = getattr(operation.response, "rai_media_filtered_reasons", None) or []
+        reason_text = " ".join(reasons) or "no reason given by Veo"
+        # Empirically these RAI-filtered empty responses fire on entirely benign
+        # lines and clear on a plain retry (Veo's own message says as much: "you
+        # have not been charged for this attempt, please try again") - treat as
+        # transient rather than a hard content-policy stop, same retry budget as
+        # code-13 overload failures.
+        print(" failed (empty response, retrying).")
+        raise _VeoRetryableError(
+            f"Veo returned no videos — operation completed but response is empty. {reason_text}"
         )
     print(" done!")
     return operation
@@ -239,7 +245,8 @@ def generate_with_retry(generate_fn, label):
 
 
 def generate_first_clip(
-    client, prompt, clip_index=1, reference_images=None, duration_seconds=8, model=None, seed=None
+    client, prompt, clip_index=1, reference_images=None, duration_seconds=8, model=None, seed=None,
+    seed_image_bytes=None,
 ):
     """
     Generates the opening clip for a scene.
@@ -259,11 +266,43 @@ def generate_first_clip(
     drift between independently generated clips of the same character, since
     reference_images only pins visual appearance, not voice.
 
+    seed_image_bytes: raw PNG/JPEG bytes of an existing frame to seed this
+    clip's first frame from (Veo's `image=` image-to-video mode), instead of
+    reference_images. Confirmed mutually exclusive with reference_images -
+    the API rejects passing both (tested 2026-08-03) - so when this is set,
+    reference_images/duration_seconds-forcing is skipped entirely. Produces
+    much tighter position/framing consistency across independently generated
+    clips of the same character than reference_images text-repetition alone,
+    at the cost of losing the reference-image identity/backdrop anchor for
+    this specific call - the caller is expected to have validated the seed
+    frame is itself clean (no bleed-through, correct appearance) before
+    reusing it, since any defect in the seed propagates to every clip seeded
+    from it.
+
     Returns (video_obj, attempts_used, recovered_error).
     """
     from google.genai import types
 
     model = model or MODEL
+
+    if seed_image_bytes:
+        print(f"\n Generating clip {clip_index} (first-frame seeded, model={model})...")
+
+        def _attempt():
+            operation = client.models.generate_videos(
+                model=model,
+                prompt=prompt,
+                image=types.Image(image_bytes=seed_image_bytes, mime_type="image/png"),
+                config=types.GenerateVideosConfig(
+                    aspect_ratio=ASPECT_RATIO,
+                    resolution=RESOLUTION,
+                    number_of_videos=1,
+                ),
+            )
+            operation = poll_until_done(client, operation)
+            return operation.response.generated_videos[0].video
+
+        return generate_with_retry(_attempt, label=f"clip {clip_index}")
 
     ref_image_configs = []
     if reference_images:

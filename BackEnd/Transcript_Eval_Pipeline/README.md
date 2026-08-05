@@ -1,8 +1,8 @@
 # transcript_eval
 
-Generates a transcript from a rendered Veo clip — independent of anything the video generator knew about its own script — then evaluates that transcript against the clip's ground-truth `scenario.json` dialogue. Catches two failure modes Veo can introduce: wrong/garbled spoken dialogue, and dialogue delivered by the wrong character on screen.
+Judges a rendered Veo clip against its ground-truth `scenario.json` script using a single Gemini call over the clip's native video + audio — no separate transcription step, no per-segment frame sampling. Catches visual inconsistency (physically implausible motion), dialogue misattribution (wrong character's mouth moving), and script misalignment (spoken content diverging from the intended line), in one pass.
 
-Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]` (both read out of `scenario.json`) in, one eval report out. This package can be run standalone via its own CLI (below), and is also wired into `Video_Generation_Pipeline` via `--verify-clips` — see [`video_generator`'s README](../Video_Generation_Pipeline/README.md#clip-verification) for how generation calls into this package to verify (and regenerate) clips as they're produced.
+Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]`/`setting`/`character_actions` (all read out of `scenario.json`) in, one eval report out. This package can be run standalone via its own CLI (below), and is also wired into `Video_Generation_Pipeline` via `--verify-clips` — see [`video_generator`'s README](../Video_Generation_Pipeline/README.md#clip-verification) for how generation calls into this package to verify (and regenerate) clips as they're produced.
 
 ---
 
@@ -10,16 +10,13 @@ Operates **per clip**, not per stitched scene video: one clip video in, plus tha
 
 ```
 transcript_eval/
-  scenario_loader.py   — load scenario JSON, look up one clip's dialogue + characters
-  transcribe.py         — Stage 1: audio extraction + local Whisper ASR
-  match_dialogue.py     — Stage 2: deterministic fuzzy match vs. scenario.json, early-stop gate
-  judge_speaker.py       — Stage 3: frame sampling + vision LLM speaker-attribution judge
-  eval.py                 — orchestrates stages 1→2→3, aggregates the report
-  cli.py                  — argument parsing, entry point
+  scenario_loader.py   — load scenario JSON, look up one clip's dialogue + characters + setting/actions
+  video_judge.py        — the judge: uploads the clip to Gemini, asks for visual/dialogue/script-alignment issues, aggregates the report
+  report_utils.py       — shared output-dir constant + report writer
+  cli.py                 — argument parsing, entry point
 
 output/
-  transcripts/            — one JSON per clip: raw Whisper segments (created on first run)
-  eval_reports/            — one JSON per clip: full eval report (created on first run)
+  eval_reports/           — one JSON per clip: full eval report (created on first run)
 
 test_clips/               — sample single-clip videos for manual/smoke testing (gitignored contents; not eval input/output)
 ```
@@ -39,11 +36,9 @@ python -m transcript_eval.cli \
   --clip-id 1
 ```
 
-Prints a pass/fail summary and writes:
-- `output/transcripts/<clip_video_stem>.json` — the raw Whisper transcript
-- `output/eval_reports/<clip_video_stem>_eval.json` — the full eval report
+Prints a pass/fail summary and writes `output/eval_reports/<clip_video_stem>_eval.json` — the full eval report.
 
-These paths are anchored to this package's own directory (`Path(__file__).resolve().parent.parent`), not the caller's working directory — so `--verify-clips` calls from `Video_Generation_Pipeline` (run from *its* own directory) still land here, not in `Video_Generation_Pipeline/output/`.
+This path is anchored to this package's own directory (`Path(__file__).resolve().parent.parent`), not the caller's working directory — so `--verify-clips` calls from `Video_Generation_Pipeline` (run from *its* own directory) still land here, not in `Video_Generation_Pipeline/output/`.
 
 The input `--video` must be a single clip's video (not a multi-clip stitched scene) — see [Why per-clip](#why-per-clip).
 
@@ -51,13 +46,9 @@ The input `--video` must be a single clip's video (not a multi-clip stitched sce
 
 ## Setup
 
-Depends on `moviepy`, `openai-whisper`, `rapidfuzz`, `pillow`, and `google-genai` — all listed in `backend/backend_requirement.txt`.
+Depends on `moviepy` (to read clip duration for cost estimation) and `google-genai`, both listed in `backend/backend_requirement.txt`.
 
-`openai-whisper` runs entirely locally (no API key, no per-call cost) but shells out to an `ffmpeg` binary on `PATH`. `moviepy` bundles its own ffmpeg via `imageio-ffmpeg`, but under a platform-suffixed filename `whisper` won't find directly — `transcribe.py` handles this automatically by symlinking it to a plain `ffmpeg` name in a temp directory and prepending that to `PATH` at runtime. No manual ffmpeg install is required.
-
-The first `transcribe_clip()` call downloads the Whisper `base` model (~140 MB) to `~/.cache/whisper` and caches it for subsequent runs.
-
-Only Stage 3 (`judge_speaker.py`) calls a paid API — Gemini, via the existing `GEMINI_API_KEY`. Stage 1 and Stage 2 are free.
+The only API call is Gemini (`gemini-3.6-flash`), via the existing `GEMINI_API_KEY`. There's no local model or free stage — every judged clip costs an upload + one `generate_content` call.
 
 ---
 
@@ -70,99 +61,52 @@ Veo generates one scene as a chain of extension clips (see `Video_Generation_Pip
 
 ---
 
-## Pipeline stages
+## How the judge works (`video_judge.py`)
 
 ```
 cli.main()
-  └─ eval.evaluate_clip()
-       ├─ transcribe.transcribe_clip()        ← Stage 1: Whisper ASR on the clip's audio
-       ├─ match_dialogue.match_dialogue()     ← Stage 2: fuzzy match, clip-level, loose threshold
-       │    └─ FAIL → early stop, Stage 3 skipped, clip marked failed
-       └─ judge_speaker.judge_speakers()      ← Stage 3: only runs if Stage 2 passed
-            └─ per-Whisper-segment frame sampling + Gemini vision judge
+  └─ video_judge.evaluate_clip()
+       └─ video_judge.judge_video()
+            ├─ upload the clip to Gemini Files API, poll until processing finishes
+            └─ one generate_content call: video + audio + prompt → structured JSON verdict
 ```
 
-### Stage 1 — Transcription (`transcribe.py`)
+1. **Upload**: the clip is uploaded via `client.files.upload()` and polled until it leaves `PROCESSING` (Gemini processes video asynchronously).
+2. **Single judged call**: the uploaded video (native video+audio, not sampled frames) plus a prompt describing the scene's characters, expected setting/actions, and expected dialogue (in order) are sent to Gemini in one `generate_content` call, with a Pydantic response schema (`_VideoJudgment`) enforcing structured output.
+3. **Three checks, in order of importance**, each returning `<x>_issues_found: bool` + a one-sentence `<x>_notes`:
+   - **Visual consistency** — flags only physically-impossible or logically-incoherent motion (objects clipping/floating, anatomically impossible movement, a character teleporting between frames). Deviating from the expected setting/actions in a plausible way is *not* flagged.
+   - **Dialogue consistency** — for each expected line, is the right character's mouth moving (and no one else's)? Minor audio/lip-sync drift is not flagged; only a wrong-speaker or multiple-speakers-at-once case is.
+   - **Script alignment** — does the spoken dialogue achieve what the script intends, allowing for paraphrasing? Least important of the three — only a clear mismatch counts.
+4. **Pass/fail gate**: the clip **fails** only if the judge reports `confidence: "high"` *and* either a visual or dialogue issue. A script-alignment mismatch alone never fails a clip, and any `confidence: "low"` verdict passes regardless of what else was flagged.
+5. **Cost estimate**: `estimate_video_judge_cost(duration_seconds)` — Gemini's documented ~263 combined video+audio tokens/sec at default resolution, plus a fixed ~300-token prompt overhead, priced at `gemini-3.6-flash` input rates.
 
-Extracts audio from the clip with `moviepy`, runs it through local Whisper, and returns timestamped segments relative to the clip's own timeline:
+### Report shape
 
-```json
-[{ "start": 0.0, "end": 7.0, "text": "I noticed you crossed your arms..." }]
-```
-
-This is the transcript — generated purely from what the video actually contains, with no knowledge of the intended script.
-
-### Stage 2 — Deterministic dialogue match (`match_dialogue.py`)
-
-Veo doesn't respect line boundaries — a script line can come out split across two Whisper segments, or two lines can blend into one. So this stage compares the **whole clip as one block** rather than line-by-line:
-
-1. Concatenate the clip's expected `dialogue[]` lines from `scenario.json`.
-2. Concatenate all of the clip's Whisper segments (Stage 1 output).
-3. Score similarity with `rapidfuzz.fuzz.token_sort_ratio` against a **loose threshold** (`SIMILARITY_THRESHOLD = 75`) — loose on purpose, since this stage exists to catch obviously wrong/garbled/missing dialogue, not to penalize paraphrasing.
-
-If it fails, the clip is marked failed and **Stage 3 is skipped** — no vision-judge API cost is spent verifying speaker attribution for dialogue that's already wrong.
-
-### Stage 3 — Speaker attribution judge (`judge_speaker.py`)
-
-Only runs if Stage 2 passed. Uses Stage 1's original per-segment timestamps directly (not the Stage 2 concatenation):
-
-1. For each Whisper segment, sample 4 evenly-spaced frames across `[start, end]`.
-2. Send the frames + the scene's character list (name, appearance) to Gemini (`gemini-2.5-flash`), asking which character(s) appear to be speaking based on lip movement, gesture, and body orientation.
-3. Collapse consecutive same-speaker judgments (so a line split across multiple segments doesn't artificially break the sequence), and compare the resulting speaker sequence to the expected order from the clip's `dialogue[]`.
-
-**Both-speaking / ambiguous frames**: the judge is asked for a *list* of speaking characters per segment, not a single forced answer, precisely because a reaction shot (or genuinely overlapping dialogue) can show both characters' mouths moving at once. A segment is only used as a clean signal in the sequence comparison when exactly one character is reported:
-
-| `speaking_characters` result | `judged_speaker` | Counted as |
-|---|---|---|
-| exactly one character | that character | a normal data point in the sequence |
-| two or more characters | `null` | `ambiguous` — excluded from the sequence, tallied in `ambiguous_segments` |
-| none / unparseable | `null` | `inconclusive` — excluded from the sequence, tallied in `inconclusive_segments` |
-
-Excluded segments never get silently guessed into the sequence — if a clip has too many ambiguous/inconclusive segments to draw a reliable conclusion from, that's visible directly in the report (`ambiguous_segments` / `inconclusive_segments` counts) rather than the clip quietly passing or failing on a coin-flip guess.
-
-Tracks estimated cost via `estimate_judge_cost()` (Gemini 2.5 Flash input-token pricing: ~258 tokens/image × 4 frames + prompt overhead, per segment judged).
-
-### Aggregation (`eval.py`)
-
-Combines both stages into one report and writes it to `output/eval_reports/<clip_video_stem>_eval.json`:
+`evaluate_clip()` writes `output/eval_reports/<clip_video_stem>_eval.json`:
 
 ```json
 {
-  "timestamp": "2026-07-08T10:15:00.000000",
+  "timestamp": "2026-08-05T10:15:00.000000",
   "scene_id": 3,
   "clip_id": 1,
   "video_path": "path/to/scene3_clip1.mp4",
-  "transcript_path": "output/transcripts/scene3_clip1.json",
-  "dialogue_match": {
-    "expected_text": "Carl, I noticed you crossed your arms...",
-    "transcribed_text": "I noticed you crossed your arms...",
-    "similarity": 73.7,
-    "passed": true
+  "video_judge": {
+    "visual_issues_found": false,
+    "visual_notes": "...",
+    "dialogue_issues_found": false,
+    "dialogue_notes": "...",
+    "script_alignment_issues_found": false,
+    "script_alignment_notes": "...",
+    "confidence": "high",
+    "status": "pass",
+    "estimated_cost_usd": 0.0006
   },
-  "speaker_attribution": {
-    "segments": [
-      {
-        "start": 0.0,
-        "end": 7.0,
-        "candidates": ["nurse_maya"],
-        "judged_speaker": "nurse_maya",
-        "ambiguous": false,
-        "rationale": "..."
-      }
-    ],
-    "expected_speaker_order": ["nurse_maya"],
-    "ambiguous_segments": 0,
-    "inconclusive_segments": 0,
-    "attribution_passed": true,
-    "estimated_cost_usd": 0.0004
-  },
-  "speaker_attribution_skipped_reason": null,
-  "estimated_cost_usd": 0.0004,
+  "estimated_cost_usd": 0.0006,
   "passed": true
 }
 ```
 
-If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skipped_reason` explains why.
+If the model response can't be parsed into the expected schema, `judge_video()` returns a low-confidence pass rather than erroring the clip out.
 
 ---
 
@@ -174,7 +118,7 @@ If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skip
 | `--scenario` *(required)* | Path to `scenario.json` |
 | `--scene-id` *(required)* | `scene_id` in `scenario.json` |
 | `--clip-id` *(required)* | `clip_id` within that scene |
-| `--api-key` | Gemini API key for the Stage 3 judge (default: `$GEMINI_API_KEY`) |
+| `--api-key` | Gemini API key for the video judge (default: `$GEMINI_API_KEY`) |
 
 ---
 
@@ -186,38 +130,22 @@ If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skip
 |----------|--------------|
 | `load_scenario(json_path)` | Load and return the scenario dict; raises `ValueError` on missing required keys |
 | `validate_scenario(scenario)` | Check that `scenes` and `characters` are present |
-| `get_clip(scenario, scene_id, clip_id)` | Return `{dialogue, characters}` for one clip |
+| `get_clip(scenario, scene_id, clip_id)` | Return `{dialogue, characters, setting, character_actions}` for one clip (clip-level `character_actions` falls back to scene-level when absent) |
 
-### `transcribe`
-
-| Function | Description |
-|----------|--------------|
-| `extract_audio(video_path, audio_path)` | Extract the clip's audio track to a `.wav` file via moviepy |
-| `transcribe_clip(video_path)` | Run local Whisper ASR; returns `[{start, end, text}, ...]` |
-| `save_transcript(video_path, segments, output_dir)` | Write the segment list to `output/transcripts/<stem>.json` |
-
-### `match_dialogue`
+### `video_judge`
 
 | Function | Description |
 |----------|--------------|
-| `match_dialogue(dialogue, segments)` | Concatenate + fuzzy-compare expected vs. transcribed text; returns `{expected_text, transcribed_text, similarity, passed}` |
+| `estimate_video_judge_cost(duration_seconds)` | Estimated USD cost for judging a clip of the given duration |
+| `judge_video(client, video_path, dialogue, characters, setting, character_actions)` | Upload the clip and run the single judged Gemini call; returns the `video_judge` dict shown above |
+| `evaluate_clip(client, video_path, scene_id, clip_id, dialogue, characters, setting, character_actions)` | Run `judge_video()`, wrap it in the full report shape, save it via `report_utils.save_eval_report`, and return it |
 
-### `judge_speaker`
-
-| Function | Description |
-|----------|--------------|
-| `sample_frames(video_path, start, end, count)` | Return `count` evenly-spaced JPEG frame bytes from `[start, end]` |
-| `judge_segment_speaker(client, video_path, start, end, characters)` | Ask Gemini vision who is speaking in one segment; returns `candidates`/`judged_speaker`/`ambiguous` (see [both-speaking handling](#stage-3--speaker-attribution-judge-judge_speakerpy)) |
-| `judge_speakers(client, video_path, segments, dialogue, characters)` | Judge every segment, compare the collapsed speaker sequence to the expected order, tally `ambiguous_segments`/`inconclusive_segments` |
-| `estimate_judge_cost(num_calls)` | Estimated USD cost for a given number of Stage 3 judge calls |
-
-### `eval`
+### `report_utils`
 
 | Function | Description |
 |----------|--------------|
-| `evaluate_clip(client, video_path, scene_id, clip_id, dialogue, characters)` | Run all three stages and return the aggregated report dict |
 | `save_eval_report(video_path, report)` | Write the report to `output/eval_reports/<stem>_eval.json` |
-| `TRANSCRIPT_DIR`, `EVAL_REPORT_DIR` | Default output dirs, anchored to this package's location regardless of caller's CWD |
+| `EVAL_REPORT_DIR` | Default output dir, anchored to this package's location regardless of caller's CWD |
 
 ### `cli`
 
@@ -233,7 +161,7 @@ If Stage 2 failed, `speaker_attribution` is `null` and `speaker_attribution_skip
 
 This package is usable two ways:
 - **Standalone**, via `transcript_eval.cli` (above) — point it at any clip video + `scenario.json` + scene/clip IDs.
-- **Integrated**, via `Video_Generation_Pipeline`'s `--verify-clips` flag, which calls `eval.evaluate_clip()` directly (through `video_generator/clip_verification.py`) after isolating each newly generated clip from Veo's cumulative video — see [its README](../Video_Generation_Pipeline/README.md#clip-verification) for the full mechanism, including the retry-on-failure behavior.
+- **Integrated**, via `Video_Generation_Pipeline`'s `--verify-clips` flag, which calls `video_judge.evaluate_clip()` directly (through `video_generator/clip_verification.py`) after isolating each newly generated clip from Veo's cumulative video — see [its README](../Video_Generation_Pipeline/README.md#clip-verification) for the full mechanism, including the retry-on-failure behavior.
 
 **Not** implemented here:
 - Any UI surface for eval reports — today's output is JSON files under `output/eval_reports/`.

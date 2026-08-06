@@ -227,7 +227,7 @@ def run_scene_pipeline_solo_clip(
             reference_images = [character_image_file_mapping[speaker_id], background_image_path]
 
         video_path = raw_dir / f"{i:02d}_{speaker_id}.mp4"
-        video_obj, _attempts = generate_first_clip(
+        video_obj, _attempts, _recovered_error = generate_first_clip(
             client,
             prompt,
             clip_index=i,

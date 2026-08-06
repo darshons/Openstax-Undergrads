@@ -3,6 +3,7 @@ import type { AssetImages, ScenarioBackend, Script, Scene, Choice } from '../../
 import {
   generateManimVideos, getManimStatus,
   generateScenarioVideos, getScenarioStatus,
+  publishScenario,
   videoUrl as toVideoUrl,
 } from '../../lib/api';
 
@@ -67,19 +68,77 @@ function VideoClipCard({ scene, selected, onClick, branch, choice, videoUrl }: {
   );
 }
 
+function PublishControl({ onPublish }: { onPublish: (name: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [status, setStatus] = useState<'idle' | 'publishing' | 'done' | 'error'>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setStatus('publishing');
+    setError(null);
+    try {
+      await onPublish(trimmed);
+      setStatus('done');
+    } catch (err) {
+      setStatus('error');
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    }
+  };
+
+  if (!open) {
+    return (
+      <button className="assets-back" onClick={() => setOpen(true)} style={{ gap: 6 }}>
+        Upload ↑
+      </button>
+    );
+  }
+
+  return (
+    <div className="video-publish-bar">
+      {status === 'done' ? (
+        <span className="video-publish-done">Published as "{name.trim()}"</span>
+      ) : (
+        <>
+          <input
+            className="video-publish-input"
+            value={name}
+            disabled={status === 'publishing'}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+            placeholder="Project name"
+            autoFocus
+          />
+          <button className="assets-back" disabled={status === 'publishing' || !name.trim()} onClick={submit}>
+            {status === 'publishing' ? 'Uploading…' : 'Publish'}
+          </button>
+          <button className="assets-back" disabled={status === 'publishing'} onClick={() => setOpen(false)}>
+            Cancel
+          </button>
+          {error && <span className="video-publish-error">{error}</span>}
+        </>
+      )}
+    </div>
+  );
+}
+
 interface VideoPageProps {
   script: Script;
   requestId: string | null;
   scenarioBackend: ScenarioBackend;
   assetImages: AssetImages;
   onBack: () => void;
+  onStudentPreview?: () => void;
 }
 
 type GenState = 'idle' | 'running' | 'done' | 'partial' | 'error';
 
-export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack }: VideoPageProps) {
+export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack, onStudentPreview }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
+  const [sceneVideoPaths, setSceneVideoPaths] = useState<Record<number, string>>({});
   const [genState, setGenState] = useState<GenState>('idle');
   const [genStatus, setGenStatus] = useState<string>('');
   const [genError, setGenError] = useState<string | null>(null);
@@ -115,6 +174,15 @@ export default function VideoPage({ script, requestId, scenarioBackend, assetIma
           for (const st of active) {
             for (const [id, path] of Object.entries(st.completed_scenes || {})) {
               next[Number(id)] = toVideoUrl(path);
+            }
+          }
+          return next;
+        });
+        setSceneVideoPaths(prev => {
+          const next = { ...prev };
+          for (const st of active) {
+            for (const [id, path] of Object.entries(st.completed_scenes || {})) {
+              next[Number(id)] = path;
             }
           }
           return next;
@@ -210,18 +278,26 @@ export default function VideoPage({ script, requestId, scenarioBackend, assetIma
           <h2>Video Review</h2>
           <p>{script.title || 'Untitled scenario'}</p>
         </div>
-        <button
-          className="assets-back"
-          onClick={handleGenerate}
-          disabled={genState === 'running'}
-          title={requestId ? 'Generate Manim videos for every scene' : 'Generate a script first'}
-        >
-          {genState === 'running'
-            ? `Generating… ${genStatus}`
-            : genState === 'done' || genState === 'partial'
-              ? 'Regenerate videos'
-              : 'Generate videos'}
-        </button>
+        <div className="video-topbar-actions">
+          <button
+            className="assets-back"
+            onClick={handleGenerate}
+            disabled={genState === 'running'}
+            title={requestId ? 'Generate Manim videos for every scene' : 'Generate a script first'}
+          >
+            {genState === 'running'
+              ? `Generating… ${genStatus}`
+              : genState === 'done' || genState === 'partial'
+                ? 'Regenerate videos'
+                : 'Generate videos'}
+          </button>
+          {onStudentPreview && (
+            <button className="assets-back" onClick={onStudentPreview} style={{ gap: 6 }}>
+              Student Preview →
+            </button>
+          )}
+          <PublishControl onPublish={name => publishScenario(name, script, sceneVideoPaths)} />
+        </div>
       </div>
 
       {genState === 'error' && genError && (

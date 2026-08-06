@@ -48,13 +48,18 @@ from .stitching import stitch
 from .veo_api import download_video, generate_first_clip
 
 FIRST_CLIP_SECONDS = 8
-SHORT_LINE_WORD_LIMIT = 5
+# Scene 10's instructor line ("What did you find with Elena?", 6 words) is
+# the shortest line in the whole scenario and sat one word above the old
+# limit of 5 - Veo filled the leftover time in the 8s clip by repeating the
+# line a second time instead of reacting silently. Raised to 7 so every line
+# that short gets the no-invent guard below.
+SHORT_LINE_WORD_LIMIT = 7
 SEED_FRAME_TIMESTAMP_FRACTION = 0.2  # early in the clip - more likely a neutral, not mid-word, moment
 
 NO_INVENT_INSTRUCTION = (
     "Do not invent, add, or extend any spoken dialogue beyond the single line "
-    "specified above. After delivering this line, {name} says nothing further - "
-    "no additional speech - and simply reacts naturally (a small gesture, "
+    "specified above, and do not repeat that line a second time. After "
+    "delivering it once, {name} simply reacts naturally (a small gesture, "
     "posture shift, or expression change) for the rest of the clip."
 )
 

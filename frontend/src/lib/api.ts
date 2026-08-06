@@ -1,4 +1,4 @@
-import type { GenerateRequest, ScenarioBackend, Script } from '../types/script';
+import type { AssetImages, GenerateRequest, ScenarioBackend, Script } from '../types/script';
 
 /**
  * Backend base URL.
@@ -238,4 +238,60 @@ export async function getManimStatus(requestId: string): Promise<ManimStatus> {
   const res = await fetch(apiUrl(`/instructor_api/manim_video_status/${requestId}`));
   if (!res.ok) throw new Error(`Status check failed (${res.status})`);
   return (await res.json()) as ManimStatus;
+}
+
+/**
+ * Publish a script + its rendered scene videos to Supabase storage under
+ * projectName, so students can fetch it via fetchScenario. There's no
+ * scene-video generation step wired into the Student flow yet, so callers
+ * pass {} for videoPaths for now.
+ */
+export async function publishScenario(
+  projectName: string,
+  script: Script,
+  videoPaths: Record<number, string> = {},
+): Promise<void> {
+  const res = await fetch(apiUrl('/instructor_api/upload_project_info'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project_name: projectName, script, video_paths: videoPaths }),
+  });
+  if (res.status === 409) throw new Error(`A project named "${projectName}" already exists`);
+  if (!res.ok) throw new Error(`Publish failed (${res.status})`);
+}
+
+interface ScenarioAssets {
+  script: Script;
+  assetImages: AssetImages;
+  videoLinks: Record<string, string>;
+}
+
+async function resolveAssetsResponse(
+  res: Response,
+  label: string,
+): Promise<ScenarioAssets> {
+  if (!res.ok) throw new Error(`Scenario "${label}" not found (${res.status})`);
+  const data = await res.json();
+
+  const scriptRes = await fetch(data.script_link as string);
+  if (!scriptRes.ok) throw new Error(`Failed to load script for "${label}"`);
+  const script = (await scriptRes.json()) as Script;
+
+  return {
+    script,
+    assetImages: { bgPath: null, charPaths: {}, framePaths: {} },
+    videoLinks: data.video_links as Record<string, string>,
+  };
+}
+
+/** Fetch a published scenario's script + video links by project name. */
+export async function fetchScenario(projectName: string): Promise<ScenarioAssets> {
+  const res = await fetch(apiUrl(`/student_api/assets/${encodeURIComponent(projectName)}`));
+  return resolveAssetsResponse(res, projectName);
+}
+
+/** Loads a hardcoded test fixture for testing student playback without a real publish. */
+export async function fetchDummyScenario(): Promise<ScenarioAssets> {
+  const res = await fetch(apiUrl('/student_api/dummy_assets'));
+  return resolveAssetsResponse(res, 'dummy');
 }

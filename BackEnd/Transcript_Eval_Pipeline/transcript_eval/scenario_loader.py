@@ -16,8 +16,10 @@ def load_scenario(json_path: str) -> dict:
 
 
 def get_clip(scenario: dict, scene_id: int, clip_id: int) -> dict:
-    """Return {dialogue, characters} for one clip: its dialogue lines from
-    scenario.json plus the full character list of its parent scene."""
+    """Return {dialogue, characters, setting, character_actions} for one clip:
+    its dialogue lines from scenario.json, the full character list of its
+    parent scene, and the setting/character_actions used by the physical-
+    consistency check (clip-level falls back to scene-level when absent)."""
     scene = next((s for s in scenario["scenes"] if s["scene_id"] == scene_id), None)
     if scene is None:
         raise ValueError(f"No scene found with scene_id={scene_id}")
@@ -29,4 +31,8 @@ def get_clip(scenario: dict, scene_id: int, clip_id: int) -> dict:
     return {
         "dialogue": clip.get("dialogue", []),
         "characters": scenario["characters"],
+        "setting": scene.get("setting", ""),
+        "character_actions": clip.get(
+            "character_actions", scene.get("character_actions", "")
+        ),
     }

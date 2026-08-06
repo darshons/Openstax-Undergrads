@@ -67,6 +67,8 @@ def _generate_and_verify(
     prompt,
     clip_duration_hint,
     clip_log_entries,
+    setting="",
+    character_actions="",
 ):
     """Run generate_fn() — a thunk returning (video_obj, attempts, recovered_error)
     — and, if verify_clips, check the result against transcript_eval before
@@ -82,10 +84,11 @@ def _generate_and_verify(
     in-memory list for this scene-attempt, rolled up into one
     generation_log.json entry once the scene-attempt finishes) — including a
     generate_fn() failure itself (e.g. Veo exhausts retries) before eval ever
-    runs, so no attempt's cost/outcome is silently dropped. A failed eval's
-    isolated clip video is kept on disk (moved out of the temp dir) so the
-    entry's eval_report_path points at something reviewable, not just a line
-    of text.
+    runs, so no attempt's cost/outcome is silently dropped. On a failed eval,
+    verify_clip keeps the cumulative scene-so-far video (not just the isolated
+    failing clip) on disk, moved out of the temp dir here — since a failed eval
+    discards and regenerates the whole scene attempt from clip 1, the full
+    scene-so-far is what's actually reviewable, not the isolated segment alone.
 
     Returns (video_obj, attempts, new_duration). new_duration == prev_duration
     when verify_clips is False (duration tracking only matters for eval).
@@ -135,12 +138,16 @@ def _generate_and_verify(
         dialogue,
         characters,
         OUTPUT_DIR / "_clip_eval_tmp",
+        setting=setting,
+        character_actions=character_actions,
     )
 
-    # Relocate (not rename) a failed attempt's video: evaluate_clip already
-    # saved its eval report keyed on this exact filename's stem, so the
-    # stem must survive the move for eval_report_path_for() to resolve —
-    # only the directory changes, into a dedicated failed_clips/ folder.
+    # Relocate (not rename) a failed attempt's cumulative video out of the
+    # temp dir into a dedicated failed_clips/ folder so it survives past this
+    # scene attempt. eval_report_path (below, via report["video_path"]) still
+    # resolves off the isolated clip's own filename stem, independent of this
+    # move — the two paths intentionally diverge now (report describes the
+    # isolated clip, kept video is the full scene-so-far for context).
     kept_path = None
     if failed_clip_path:
         failed_dir = OUTPUT_DIR / "failed_clips"
@@ -207,9 +214,16 @@ def run_scene_pipeline(
     est_seconds = effective_first + (num_clips - 1) * EXTENSION_SECONDS
 
     def _clip_dialogue(idx):
-        """0-based clip index -> (dialogue, clip_id) from the raw scene dict."""
+        """0-based clip index -> (dialogue, clip_id, setting, character_actions)
+        from the raw scene dict — setting/character_actions feed the physical-
+        consistency check, clip-level falling back to scene-level."""
         clip = scene["clips"][idx]
-        return clip.get("dialogue", []), clip.get("clip_id", idx + 1)
+        return (
+            clip.get("dialogue", []),
+            clip.get("clip_id", idx + 1),
+            scene.get("setting", ""),
+            clip.get("character_actions", scene.get("character_actions", "")),
+        )
 
     for scene_attempt in range(eval_retries + 1):
         print(f"\n{'─'*60}")
@@ -227,7 +241,9 @@ def run_scene_pipeline(
             # just propagate rather than attempt a checkpoint download. An
             # eval failure (ClipEvalFailedError) is caught further down to
             # trigger a whole-scene regeneration.
-            dialogue, clip_id = _clip_dialogue(0) if verify_clips else (None, 1)
+            dialogue, clip_id, setting, character_actions = (
+                _clip_dialogue(0) if verify_clips else (None, 1, "", "")
+            )
             video_obj, attempts, cum_duration = _generate_and_verify(
                 lambda: generate_first_clip(
                     client,
@@ -247,6 +263,8 @@ def run_scene_pipeline(
                 clip_prompts[0],
                 effective_first,
                 clip_log_entries,
+                setting=setting,
+                character_actions=character_actions,
             )
             total_retries += attempts - 1
 
@@ -260,8 +278,8 @@ def run_scene_pipeline(
             i = 1
             try:
                 for i, prompt in enumerate(clip_prompts[1:], start=2):
-                    dialogue, clip_id = (
-                        _clip_dialogue(i - 1) if verify_clips else (None, i)
+                    dialogue, clip_id, setting, character_actions = (
+                        _clip_dialogue(i - 1) if verify_clips else (None, i, "", "")
                     )
                     video_obj, attempts, cum_duration = _generate_and_verify(
                         lambda: generate_extension_clip(
@@ -278,6 +296,8 @@ def run_scene_pipeline(
                         prompt,
                         EXTENSION_SECONDS,
                         clip_log_entries,
+                        setting=setting,
+                        character_actions=character_actions,
                     )
                     total_retries += attempts - 1
                     if i < num_clips:

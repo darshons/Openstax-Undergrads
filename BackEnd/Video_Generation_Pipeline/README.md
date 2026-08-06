@@ -153,7 +153,7 @@ Reference images pin character appearance on the first clip only. Extension clip
 | `--seed` | *(local)* Sampler noise seed (default `30003`) |
 | `--preview-prompt` | Print the per-clip prompts; skip generation entirely |
 | `--add-captions` | Burn dialogue captions onto the generated video (requires `moviepy`) |
-| `--verify-clips` | *(veo, deprecated)* Transcribe and evaluate each clip against the script as it's generated, regenerating on failure (see [Clip verification](#clip-verification)) |
+| `--verify-clips` | *(veo, deprecated)* Judge each clip against the script as it's generated, regenerating on failure (see [Clip verification](#clip-verification)) |
 | `--eval-retries` | *(veo, deprecated)* Max regeneration attempts for a clip that fails `--verify-clips` eval (default: `1`) |
 | `--api-key` | *(veo, deprecated)* Gemini API key (default: `$GEMINI_API_KEY`) |
 
@@ -284,7 +284,7 @@ If an extension fails mid-scene, the last successful combined video is saved as 
 
 ## Clip verification
 
-`--verify-clips` wires in [`Transcript_Eval_Pipeline`](../Transcript_Eval_Pipeline/README.md) to check each clip's actual dialogue and on-screen speaker against `scenario.json` *as it's generated*, not after the fact — so a bad clip gets caught (and optionally regenerated) before the pipeline spends further Veo extension calls building on top of it.
+`--verify-clips` wires in [`Transcript_Eval_Pipeline`](../Transcript_Eval_Pipeline/README.md) to judge each clip against `scenario.json` — visual consistency, on-screen speaker attribution, and script alignment — *as it's generated*, not after the fact — so a bad clip gets caught (and optionally regenerated) before the pipeline spends further Veo extension calls building on top of it.
 
 **Why this needs an extra step (cumulative vs. incremental video):** Veo's extension API is cumulative — `generate_extension_clip()` returns the *entire video so far* (all previous clips + the new one), never an isolated new segment (see `download_video`'s docstring: "never on intermediate extension handles"). `Transcript_Eval_Pipeline`, however, evaluates one isolated clip at a time. So `clip_verification.py` bridges the two:
 
@@ -295,7 +295,7 @@ pipeline._generate_and_verify()
   │    ├─ veo_api.download_video()            ← download the cumulative video to a temp file
   │    ├─ veo_api.get_video_duration()         ← measure it
   │    ├─ clip_verification.extract_new_segment()   ← trim [prev_duration, new_duration) — just the new clip
-  │    ├─ transcript_eval.eval.evaluate_clip()  ← transcribe + evaluate the isolated clip
+  │    ├─ transcript_eval.video_judge.evaluate_clip()  ← Gemini video+audio judge on the isolated clip
   │    ├─ delete the temp cumulative download (always redundant once isolated)
   │    └─ delete the isolated clip video too, but only if eval passed
   ├─ log_generation() — one generation_log.json entry for THIS attempt, pass or fail
@@ -312,7 +312,7 @@ On exhausted retries, `ClipEvalFailedError` flows through the same checkpoint/lo
 - A **passed** attempt's isolated clip video is deleted (its content already lives on in the ongoing cumulative video, no need to duplicate storage) — the log entry's `output_file` is `null`, but `eval_report_path` still points to the full `transcript_eval` report.
 - A **failed** attempt's isolated clip video is kept — relocated (not renamed, so its filename stem still matches its `transcript_eval` report) from the temp dir into `output/failed_clips/`, so the log entry's `output_file` points to something you can actually watch.
 
-**Cost/latency**: `--verify-clips` is opt-in because it changes the pipeline's cost profile — it downloads the cumulative video after *every* clip (not just once at the end) and adds a Gemini vision judge call per clip via `transcript_eval`'s speaker-attribution stage. Whisper transcription itself stays free/local. A clip that needs retries multiplies this cost by the number of attempts, and failed attempts now also accumulate disk usage under `output/failed_clips/` (not automatically cleaned up).
+**Cost/latency**: `--verify-clips` is opt-in because it changes the pipeline's cost profile — it downloads the cumulative video after *every* clip (not just once at the end) and adds a Gemini video+audio judge call per clip via `transcript_eval`. A clip that needs retries multiplies this cost by the number of attempts, and failed attempts now also accumulate disk usage under `output/failed_clips/` (not automatically cleaned up).
 
 ---
 
@@ -380,7 +380,7 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 }
 ```
 
-`output_file` is `null` for a **passed** attempt (nothing kept — its content already lives on in the ongoing cumulative video); it points into `output/failed_clips/` for a **failed** one. `eval_report_path` always points to the full `transcript_eval` report for that attempt (dialogue-match + speaker-attribution detail), regardless of pass/fail.
+`output_file` is `null` for a **passed** attempt (nothing kept — its content already lives on in the ongoing cumulative video); it points into `output/failed_clips/` for a **failed** one. `eval_report_path` always points to the full `transcript_eval` report for that attempt (visual/dialogue/script-alignment judge detail), regardless of pass/fail.
 
 `error_type` values: `transient`, `content_policy`, `quota`, `content_eval_failed` (a `--verify-clips` clip exhausted its retries), or `unknown`.
 
@@ -449,7 +449,7 @@ Every generation attempt for a clip — pass or fail, first try or a retry — g
 | Function | Description |
 |----------|-------------|
 | `extract_new_segment(cumulative_video_path, prev_duration, new_duration, out_path)` | Trim `[prev_duration, new_duration)` out of a cumulative Veo download to isolate the newest clip |
-| `verify_clip(client, video_obj, prev_duration, scene_id, clip_id, dialogue, characters, tmp_dir)` | Download → isolate → `transcript_eval.evaluate_clip()`; always deletes the cumulative download, deletes the isolated clip too only if eval passed; returns `(report, new_cumulative_duration, kept_clip_path_or_None)` — the path is only non-`None` on failure |
+| `verify_clip(client, video_obj, prev_duration, scene_id, clip_id, dialogue, characters, tmp_dir)` | Download → isolate → `transcript_eval.video_judge.evaluate_clip()`; always deletes the cumulative download, deletes the isolated clip too only if eval passed; returns `(report, new_cumulative_duration, kept_clip_path_or_None)` — the path is only non-`None` on failure |
 | `eval_report_path_for(video_path)` | Derive the `transcript_eval` eval-report path for a given clip video path (same stem, `Transcript_Eval_Pipeline/output/eval_reports/` dir) — used to link a `generation_log.json` entry to its full eval report |
 | `eval_failure_reason(report)` | One-line human-readable reason an eval report failed, for log/print messages |
 

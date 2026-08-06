@@ -239,7 +239,7 @@
             "character_position": "Right side of frame, seated on the exam table"
           }
         ],
-        "sound_effects": "Soft scrape of the chair moving",
+        "sound_effects": "None",
         "ambience": "Quiet clinic room, faint low hum of building ventilation"
       },
       "routes_to": {
@@ -626,7 +626,7 @@
             "character_position": "Left center of frame, hands near the knee, gaze attentive"
           }
         ],
-        "sound_effects": "A faint soft crackling sound as Elena flexes her knee",
+        "sound_effects": "None",
         "ambience": "Quiet clinic room, faint low hum of building ventilation"
       },
       "routes_to": {
@@ -825,7 +825,7 @@
             "character_position": "Left center of frame, turning slightly from the counter as the clip ends"
           }
         ],
-        "sound_effects": "Soft pen-on-paper sound",
+        "sound_effects": "None",
         "ambience": "Quiet clinic room, faint low hum of building ventilation"
       },
       "routes_to": {
@@ -1079,7 +1079,7 @@
             "character_position": "Right side of frame, seated on exam table, shoulders slightly lowered"
           }
         ],
-        "sound_effects": "Soft scrape of chair settling",
+        "sound_effects": "None",
         "ambience": "Quiet clinic room, faint low hum of building ventilation"
       },
       "routes_to": {

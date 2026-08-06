@@ -422,7 +422,7 @@ def concat_clips(clip_paths: list, out_path: str) -> str:
     list_file.write_text("".join(f"file '{p}'\n" for p in clip_paths))
     subprocess.run(
         ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(list_file),
-         "-c", "copy", out_path],
+         "-c", "copy", "-movflags", "+faststart", out_path],
         check=True, capture_output=True,
     )
     list_file.unlink(missing_ok=True)

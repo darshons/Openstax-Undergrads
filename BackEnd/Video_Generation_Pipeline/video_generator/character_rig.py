@@ -176,12 +176,16 @@ def generate_character_rig(client, scenario: dict) -> dict:
             f"{name} in this scene. Directly behind {name}: {backdrop_core}. "
             f"Nothing associated with other characters is visible in {name}'s "
             f"shots - it is out of frame behind the camera. "
-            f"{name}'s head and eyes are turned away from the camera at roughly "
-            f"a 45-degree angle toward {gaze_side}, as though looking at someone "
-            f"they are talking to just out of frame - {name} does not make direct "
-            f"eye contact with the camera lens and never faces the camera "
-            f"head-on. This exact head angle and gaze direction is identical in "
-            f"every shot of {name} in this scene."
+            f"Three-quarter portrait angle: {name}'s body and head are rotated "
+            f"roughly 45 degrees from center toward {gaze_side}, so the camera "
+            f"sees {name} from a slight side angle rather than straight-on, and "
+            f"{name}'s eyes are focused forward along that same turned "
+            f"direction rather than into the camera lens - a natural "
+            f"three-quarter portrait framing, not a head-on ID-photo angle. "
+            f"This is purely a camera/framing choice about a single isolated "
+            f"person; nothing else about the shot changes and no one else "
+            f"appears anywhere in frame. This exact body rotation, head angle, "
+            f"and eye-line is identical in every shot of {name} in this scene."
         )
         rig[cid] = {
             "pose": pose,

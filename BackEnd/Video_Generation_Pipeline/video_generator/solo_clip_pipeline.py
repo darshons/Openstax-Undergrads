@@ -237,6 +237,12 @@ def run_scene_pipeline_solo_clip(
             model=model,
         )
         download_video(client, video_obj, str(video_path))
+        # Sidecar recording the exact spoken text this clip was generated
+        # for, so stitching can tell a stray unscripted interjection Veo
+        # sometimes tacks on (e.g. a filler "Oh." before/after the real
+        # line) apart from the actual line, instead of blindly trimming to
+        # the full first-detected-speech-to-last-detected-speech span.
+        video_path.with_suffix(".txt").write_text(_spoken_text(line["line"]), encoding="utf-8")
 
         if seed_bytes is None:
             seed_bytes_by_character[speaker_id] = _extract_seed_frame(video_path)

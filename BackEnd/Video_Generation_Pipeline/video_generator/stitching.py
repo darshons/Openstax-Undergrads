@@ -42,15 +42,56 @@ if str(_TRANSCRIPT_EVAL_ROOT) not in sys.path:
     sys.path.insert(0, str(_TRANSCRIPT_EVAL_ROOT))
 
 
+def _words(text: str) -> set:
+    import re
+
+    return set(re.findall(r"[a-z']+", text.lower()))
+
+
+def _expected_text_for(clip_path: Path) -> str | None:
+    """A sidecar <clip_stem>.txt next to the clip, written by
+    solo_clip_pipeline.py at generation time, records the exact line this
+    clip was generated for. Older clips generated before this existed have
+    no sidecar - callers fall back to the pre-existing behavior for those."""
+    sidecar = clip_path.with_suffix(".txt")
+    if not sidecar.exists():
+        return None
+    return sidecar.read_text(encoding="utf-8").strip()
+
+
 def _speaking_span(clip_path: Path) -> tuple[float, float] | None:
     """Returns (start, end) of the spoken dialogue within the clip, by
     transcribing it directly. None if no speech is detected (silent gesture
-    clips, or a transcription miss - falls back to using the full clip)."""
+    clips, or a transcription miss - falls back to using the full clip).
+
+    Veo occasionally tacks on a stray unscripted interjection (e.g. a filler
+    "Oh." before or after the actual line) that Whisper picks up as its own
+    segment. Blindly spanning first-detected-speech to last-detected-speech
+    then includes that interjection in the final cut. When a sidecar records
+    the expected line, segments that share no words with it are dropped
+    before computing the span - a stray "Oh." has zero overlap with a real
+    scripted line, while a legitimately short line (e.g. "Hi.") still
+    matches itself. Falls back to the full span if nothing matches (or if
+    there's no sidecar to compare against), so this only ever narrows the
+    span, never breaks on a transcription miss."""
+    from moviepy import VideoFileClip
+
+    if VideoFileClip(str(clip_path)).audio is None:
+        return None
+
     from transcript_eval.transcribe import transcribe_clip
 
     segments = transcribe_clip(str(clip_path))
     if not segments:
         return None
+
+    expected = _expected_text_for(clip_path)
+    if expected:
+        expected_words = _words(expected)
+        matched = [s for s in segments if _words(s["text"]) & expected_words]
+        if matched:
+            segments = matched
+
     return segments[0]["start"], segments[-1]["end"]
 
 

@@ -70,42 +70,24 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   const sceneOrder = scenes.findIndex(s => s.scene_id === displaySceneId) + 1;
   const videoSrc = videoLinks?.[`scene_${sceneOrder}.mp4`];
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [needsUnmute, setNeedsUnmute] = useState(false);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // Autoplay each scene's clip as it becomes current. Browsers block
-  // autoplay-with-sound without prior user interaction (e.g. the very first
-  // clip, before the student has clicked anything on this page) - fall back
-  // to muted autoplay so playback still starts, and surface an unmute prompt
-  // instead of leaving a silently-paused first frame that looks broken.
+  // Each scene's clip loads paused - the student clicks to start it (the play
+  // overlay / transport bar) rather than it starting on its own. `playing`
+  // wouldn't otherwise reset here since a freshly mounted <video> never fires
+  // a 'pause' event to correct it.
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !videoSrc) return;
-    video.currentTime = 0;
-    video.muted = false;
-    setNeedsUnmute(false);
-    video.play().catch(() => {
-      video.muted = true;
-      setNeedsUnmute(true);
-      video.play().catch(() => {});
-    });
+    if (!videoSrc) return;
+    setPlaying(false);
+    setCurrentTime(0);
   }, [videoSrc]);
-
-  function unmute() {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = false;
-    setNeedsUnmute(false);
-  }
 
   function rewatchVideo() {
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = 0;
-    video.muted = false;
-    setNeedsUnmute(false);
     video.play().catch(() => {});
   }
 
@@ -240,9 +222,9 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
       }
       <div className="sp-vignette" />
       {dimmed && <div className="sp-dim" />}
-      {videoSrc && needsUnmute && (
-        <button className="sp-unmute" onClick={unmute}>
-          🔇 Tap to unmute
+      {videoSrc && state.phase === 'watching' && !playing && (
+        <button className="sp-play-overlay" onClick={togglePlay} aria-label="Play video">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3" /></svg>
         </button>
       )}
 

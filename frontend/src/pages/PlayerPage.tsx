@@ -4,6 +4,7 @@ import type { Script, AssetImages } from '../types/script';
 import StudentPlayer from '../components/student/StudentPlayer';
 import { loadScenario } from '../lib/savedScenario';
 import { fetchScenario, fetchDummyScenario } from '../lib/api';
+import { ANTHONY_SCRIPT, ANTHONY_ASSET_IMAGES, ANTHONY_VIDEO_LINKS } from '../data/anthonyScenario';
 
 interface PreviewState {
   script: Script;
@@ -31,7 +32,11 @@ export default function PlayerPage() {
     let cancelled = false;
     setLoading(true);
     setNotFound(false);
-    const request = scenarioId === '__dummy__' ? fetchDummyScenario() : fetchScenario(scenarioId);
+    const request = scenarioId === '__dummy__'
+      ? fetchDummyScenario()
+      : scenarioId.toLowerCase() === 'anthony'
+      ? Promise.resolve({ script: ANTHONY_SCRIPT, assetImages: ANTHONY_ASSET_IMAGES, videoLinks: ANTHONY_VIDEO_LINKS })
+      : fetchScenario(scenarioId);
     request
       .then(data => { if (!cancelled) setRemote(data); })
       .catch(() => { if (!cancelled) setNotFound(true); })

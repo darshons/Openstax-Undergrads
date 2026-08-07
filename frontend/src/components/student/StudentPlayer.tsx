@@ -78,12 +78,40 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   const sceneOrder = scenes.findIndex(s => s.scene_id === displaySceneId) + 1;
   const videoSrc = videoLinks?.[`scene_${sceneOrder}.mp4`];
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [needsUnmute, setNeedsUnmute] = useState(false);
+
+  // Autoplay each scene's clip as it becomes current. Browsers block
+  // autoplay-with-sound without prior user interaction (e.g. the very first
+  // clip, before the student has clicked anything on this page) - fall back
+  // to muted autoplay so playback still starts, and surface an unmute prompt
+  // instead of leaving a silently-paused first frame that looks broken.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoSrc) return;
+    video.currentTime = 0;
+    video.muted = false;
+    setNeedsUnmute(false);
+    video.play().catch(() => {
+      video.muted = true;
+      setNeedsUnmute(true);
+      video.play().catch(() => {});
+    });
+  }, [videoSrc]);
+
+  function unmute() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setNeedsUnmute(false);
+  }
 
   function rewatchVideo() {
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = 0;
-    video.play();
+    video.muted = false;
+    setNeedsUnmute(false);
+    video.play().catch(() => {});
   }
 
   const currentTrunkIdx = trunkScenes.findIndex(s => s.scene_id === state.sceneId);
@@ -172,13 +200,18 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   return (
     <div className="sp-root">
       {videoSrc
-        ? <video ref={videoRef} key={videoSrc} src={videoSrc} className="sp-bg-img" controls />
+        ? <video ref={videoRef} key={videoSrc} src={videoSrc} className="sp-bg-img sp-bg-video" playsInline />
         : frameSrc
         ? <img key={frameSrc} src={frameSrc} alt="" className="sp-bg-img" />
         : <div className="sp-bg-fallback" />
       }
       <div className="sp-vignette" />
       {dimmed && <div className="sp-dim" />}
+      {videoSrc && needsUnmute && (
+        <button className="sp-unmute" onClick={unmute}>
+          🔇 Tap to unmute
+        </button>
+      )}
 
       {/* Progress */}
       <div className="sp-progress">

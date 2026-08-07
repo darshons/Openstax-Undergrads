@@ -323,7 +323,7 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
       {(state.phase === 'deciding' || state.phase === 'feedback') && currentDP && (
         <div className="sp-panel">
           {videoSrc && (
-            <button className="sp-rewatch" style={{ marginBottom: 10 }} onClick={rewatchVideo}>
+            <button className="sp-rewatch" onClick={rewatchVideo}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>

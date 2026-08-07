@@ -22,6 +22,7 @@ import {
   retryOpeningFrame,
 } from './lib/api';
 import { saveScenario } from './lib/savedScenario';
+import { sceneVideoLinks } from './lib/utils';
 import { buildGenerateRequest } from './data/catalog';
 import Sidebar from './components/layout/Sidebar';
 import GeneratePanel from './components/layout/GeneratePanel';
@@ -35,6 +36,7 @@ import StudentPlayer from './components/student/StudentPlayer';
 export default function Studio() {
   const navigate = useNavigate();
   const [previewing, setPreviewing] = useState(false);
+  const [previewVideoLinks, setPreviewVideoLinks] = useState<Record<string, string> | undefined>(undefined);
   const [script, setScript] = useState<Script | null>(null);
   const [deleteUndoStack, setDeleteUndoStack] = useState<Script[]>([]);
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -410,7 +412,8 @@ export default function Studio() {
               scenarioBackend={scenarioBackend}
               assetImages={assetImages}
               onBack={() => setCurrentPage('assets')}
-              onStudentPreview={() => {
+              onStudentPreview={(sceneVideos) => {
+                setPreviewVideoLinks(sceneVideoLinks(script.scenes, sceneVideos));
                 saveScenario(script, assetImages);
                 setPreviewing(true);
               }}
@@ -533,6 +536,7 @@ export default function Studio() {
           <StudentPlayer
             script={script}
             assetImages={assetImages}
+            videoLinks={previewVideoLinks}
             onExit={() => setPreviewing(false)}
           />
         </div>

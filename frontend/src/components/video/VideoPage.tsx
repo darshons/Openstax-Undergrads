@@ -130,16 +130,18 @@ interface VideoPageProps {
   scenarioBackend: ScenarioBackend;
   assetImages: AssetImages;
   onBack: () => void;
-  onStudentPreview?: () => void;
+  onStudentPreview?: (sceneVideos: Record<number, string>) => void;
+  /** Pre-resolved scene_id -> video URL, for presets loaded without a live generation run. */
+  initialSceneVideos?: Record<number, string>;
 }
 
 type GenState = 'idle' | 'running' | 'done' | 'partial' | 'error';
 
-export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack, onStudentPreview }: VideoPageProps) {
+export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack, onStudentPreview, initialSceneVideos }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
+  const [sceneVideos, setSceneVideos] = useState<Record<number, string>>(initialSceneVideos ?? {});
   const [sceneVideoPaths, setSceneVideoPaths] = useState<Record<number, string>>({});
-  const [genState, setGenState] = useState<GenState>('idle');
+  const [genState, setGenState] = useState<GenState>(initialSceneVideos ? 'done' : 'idle');
   const [genStatus, setGenStatus] = useState<string>('');
   const [genError, setGenError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
@@ -292,7 +294,7 @@ export default function VideoPage({ script, requestId, scenarioBackend, assetIma
                 : 'Generate videos'}
           </button>
           {onStudentPreview && (
-            <button className="assets-back" onClick={onStudentPreview} style={{ gap: 6 }}>
+            <button className="assets-back" onClick={() => onStudentPreview(sceneVideos)} style={{ gap: 6 }}>
               Student Preview →
             </button>
           )}

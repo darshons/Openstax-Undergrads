@@ -77,9 +77,11 @@ def build_manifest(
                         "is_correct": c.is_correct,
                         "misconception": c.misconception,
                         "routes_to_scene": c.routes_to_scene,
-                        "clip_file": scene_files.get(c.routes_to_scene)
-                        if c.routes_to_scene is not None
-                        else None,
+                        "clip_file": (
+                            scene_files.get(c.routes_to_scene)
+                            if c.routes_to_scene is not None
+                            else None
+                        ),
                     }
                     for c in dp.choices
                 ],
@@ -107,7 +109,9 @@ def validate_manifest_against_script(manifest: dict, script: dict) -> list[str]:
         if script_scenes[sid].get("routes_to") != manifest_scenes[sid]["routes_to"]:
             problems.append(f"Scene {sid}: routes_to differs from script")
 
-    script_dps = {d["decision_point_id"]: d for d in script.get("decision_points") or []}
+    script_dps = {
+        d["decision_point_id"]: d for d in script.get("decision_points") or []
+    }
     manifest_dps = {d["decision_point_id"]: d for d in manifest["decision_points"]}
     if set(script_dps) != set(manifest_dps):
         problems.append(

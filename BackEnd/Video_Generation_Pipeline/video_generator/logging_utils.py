@@ -2,7 +2,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = OUTPUT_DIR / "generation_log.json"
 
 

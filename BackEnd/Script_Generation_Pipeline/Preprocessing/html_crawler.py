@@ -291,6 +291,19 @@ def find_unit_node(toc: dict, unit_num=None, unit_name=None) -> dict:
     tree = toc.get("tree", toc)
     units = [n for n in (tree.get("contents") or []) if n.get("toc_type") == "unit"]
 
+    if not units:
+        # Many OpenStax books (Chemistry 2e, Psychology 2e, Calculus, …) have no
+        # unit level at all: chapters hang directly off the ToC root. Treat the
+        # root as the single unit so those books are crawlable.
+        if unit_name is None and str(unit_num) in ("None", "1"):
+            print("  Unit   : (book has no units; using the book root as unit 1)")
+            return tree
+        raise ValueError(
+            f"This book has no units — its chapters are top-level. "
+            f"Pass unit_num=1 (got "
+            f"{f'unit_num={unit_num}' if unit_num is not None else f'unit_name={unit_name!r}'})."
+        )
+
     for unit in units:
         hit = (
             _matches_by_number(unit, unit_num)

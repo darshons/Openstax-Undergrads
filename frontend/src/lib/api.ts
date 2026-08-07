@@ -1,9 +1,26 @@
-import type { GenerateRequest, Script } from '../types/script';
+import type { AssetImages, GenerateRequest, ScenarioBackend, Script } from '../types/script';
+
+/**
+ * Backend base URL.
+ *  - Override with VITE_API_BASE (e.g. VITE_API_BASE=http://myhost:8000).
+ *  - Dev default: http://localhost:8000 (FastAPI dev server; CORS is open).
+ *  - Prod default: same-origin '/openstax-api' — the reverse proxy is expected
+ *    to strip that prefix and forward to the backend root, e.g. nginx:
+ *      location /openstax-api/ { proxy_pass http://127.0.0.1:8000/; }
+ * All routes below use '/instructor_api/...' (FastAPI mounts the instructor router there).
+ */
+export const API_BASE: string =
+  (import.meta.env.VITE_API_BASE as string | undefined) ??
+  (import.meta.env.DEV ? 'http://localhost:8000' : '/openstax-api');
+
+function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
 
 export async function fetchInitialScript(
   req: GenerateRequest,
 ): Promise<{ script: Script; requestId: string }> {
-  const res = await fetch('/api/initial_script', {
+  const res = await fetch(apiUrl('/instructor_api/initial_script'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
@@ -17,7 +34,7 @@ export async function generateBackgroundImage(
   script: Script,
   requestId: string,
 ): Promise<string> {
-  const res = await fetch('/api/generate_background_image', {
+  const res = await fetch(apiUrl('/instructor_api/generate_background_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -31,7 +48,7 @@ export async function generateCharacterImages(
   script: Script,
   requestId: string,
 ): Promise<Record<string, string>> {
-  const res = await fetch('/api/generate_character_images', {
+  const res = await fetch(apiUrl('/instructor_api/generate_character_images'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -47,7 +64,7 @@ export async function generateOpeningFrames(
   backgroundImagePath: string,
   characterImageFileMapping: Record<string, string>,
 ): Promise<Record<string, string>> {
-  const res = await fetch('/api/generate_opening_frames', {
+  const res = await fetch(apiUrl('/instructor_api/generate_opening_frames'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -75,7 +92,7 @@ export async function retryBackgroundImage(
   requestId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_background_image', {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_background_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -95,7 +112,7 @@ export async function retryCharacterImage(
   characterId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_character_image', {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_character_image'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -119,7 +136,7 @@ export async function retryOpeningFrame(
   sceneId: string,
   feedback?: string,
 ): Promise<string> {
-  const res = await fetch('/api/retry_generate_opening_frames', {
+  const res = await fetch(apiUrl('/instructor_api/retry_generate_opening_frames'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -145,12 +162,12 @@ export function imageUrl(serverPath: string): string {
   const qIdx = serverPath.indexOf('?');
   const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
   const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);
-  return `/api/image/${path.replace(/^\//, '')}${qs}`;
+  return apiUrl(`/instructor_api/image/${path.replace(/^\//, '')}${qs}`);
 }
 
 /** Convert an absolute server-side video path into a URL served by the backend. */
 export function videoUrl(serverPath: string): string {
-  return `/api/video/${serverPath}`;
+  return apiUrl(`/instructor_api/video/${serverPath}`);
 }
 
 /** Kick off Manim branching-video generation for the current edited script. */
@@ -158,7 +175,7 @@ export async function generateManimVideos(
   script: Script,
   requestId: string,
 ): Promise<{ status: string; requestId: string }> {
-  const res = await fetch('/api/generate_manim_videos', {
+  const res = await fetch(apiUrl('/instructor_api/generate_manim_videos'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ script, request_id: requestId }),
@@ -169,16 +186,112 @@ export async function generateManimVideos(
 }
 
 export interface ManimStatus {
-  state: string; // queued | assets | scene_k_of_n | stitching | done | error
+  state: string; // queued | assets | scene_k_of_n | stitching | done | partial | error
   completed_scenes: Record<string, string>; // scene_id -> server video path
   failed_scenes: Record<string, string>;
   manifest?: unknown;
   error?: string | null;
 }
 
-/** Poll the status of a Manim video-generation run. */
-export async function getManimStatus(requestId: string): Promise<ManimStatus> {
-  const res = await fetch(`/api/manim_video_status/${requestId}`);
+/** Kick off character-scene video generation on the chosen backend. */
+export async function generateScenarioVideos(
+  script: Script,
+  requestId: string,
+  backend: ScenarioBackend,
+  opts: {
+    backgroundImagePath?: string | null;
+    characterImageFileMapping?: Record<string, string> | null;
+    characterLora?: string | null;
+  } = {},
+): Promise<{ status: string; backend: string }> {
+  const res = await fetch(apiUrl('/instructor_api/generate_videos'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      script,
+      request_id: requestId,
+      backend,
+      background_image_path: opts.backgroundImagePath ?? null,
+      character_image_file_mapping: opts.characterImageFileMapping ?? null,
+      character_lora: opts.characterLora ?? null,
+    }),
+  });
+  if (!res.ok) {
+    // The backend returns a usable message for the common cases (missing
+    // GEMINI_API_KEY, missing reference images) -- surface it rather than a code.
+    const detail = await res.json().then(d => d?.detail).catch(() => null);
+    throw new Error(detail || `Scenario video generation failed (${res.status})`);
+  }
+  const data = await res.json();
+  return { status: data.status as string, backend: data.backend as string };
+}
+
+/** Poll the status of a character-scene generation run. */
+export async function getScenarioStatus(requestId: string): Promise<ManimStatus> {
+  const res = await fetch(apiUrl(`/instructor_api/video_status/${requestId}`));
   if (!res.ok) throw new Error(`Status check failed (${res.status})`);
   return (await res.json()) as ManimStatus;
+}
+
+/** Poll the status of a Manim video-generation run. */
+export async function getManimStatus(requestId: string): Promise<ManimStatus> {
+  const res = await fetch(apiUrl(`/instructor_api/manim_video_status/${requestId}`));
+  if (!res.ok) throw new Error(`Status check failed (${res.status})`);
+  return (await res.json()) as ManimStatus;
+}
+
+/**
+ * Publish a script + its rendered scene videos to Supabase storage under
+ * projectName, so students can fetch it via fetchScenario. There's no
+ * scene-video generation step wired into the Student flow yet, so callers
+ * pass {} for videoPaths for now.
+ */
+export async function publishScenario(
+  projectName: string,
+  script: Script,
+  videoPaths: Record<number, string> = {},
+): Promise<void> {
+  const res = await fetch(apiUrl('/instructor_api/upload_project_info'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project_name: projectName, script, video_paths: videoPaths }),
+  });
+  if (res.status === 409) throw new Error(`A project named "${projectName}" already exists`);
+  if (!res.ok) throw new Error(`Publish failed (${res.status})`);
+}
+
+interface ScenarioAssets {
+  script: Script;
+  assetImages: AssetImages;
+  videoLinks: Record<string, string>;
+}
+
+async function resolveAssetsResponse(
+  res: Response,
+  label: string,
+): Promise<ScenarioAssets> {
+  if (!res.ok) throw new Error(`Scenario "${label}" not found (${res.status})`);
+  const data = await res.json();
+
+  const scriptRes = await fetch(data.script_link as string);
+  if (!scriptRes.ok) throw new Error(`Failed to load script for "${label}"`);
+  const script = (await scriptRes.json()) as Script;
+
+  return {
+    script,
+    assetImages: { bgPath: null, charPaths: {}, framePaths: {} },
+    videoLinks: data.video_links as Record<string, string>,
+  };
+}
+
+/** Fetch a published scenario's script + video links by project name. */
+export async function fetchScenario(projectName: string): Promise<ScenarioAssets> {
+  const res = await fetch(apiUrl(`/student_api/assets/${encodeURIComponent(projectName)}`));
+  return resolveAssetsResponse(res, projectName);
+}
+
+/** Loads a hardcoded test fixture for testing student playback without a real publish. */
+export async function fetchDummyScenario(): Promise<ScenarioAssets> {
+  const res = await fetch(apiUrl('/student_api/dummy_assets'));
+  return resolveAssetsResponse(res, 'dummy');
 }

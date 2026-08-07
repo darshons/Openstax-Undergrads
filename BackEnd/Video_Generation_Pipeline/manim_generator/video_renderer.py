@@ -28,12 +28,13 @@ ERROR_LOG_TAIL_LINES = 12
 # "path/to/file.py:LINE in func" inside box-drawing borders, NOT the standard
 # `File "...", line N`. Match both so line extraction + truncation work.
 _STD_FRAME = re.compile(r'File "([^"]+)", line (\d+)')
-_RICH_FRAME = re.compile(r'([\w./\-]+\.py):(\d+)')
+_RICH_FRAME = re.compile(r"([\w./\-]+\.py):(\d+)")
 _FINAL_EXCEPTION = re.compile(r"^\s*[│]?\s*(\w+(?:Error|Exception|Warning)\b.*)$")
 
 
-def truncate_error_log(stderr: str, code_filename: str | None = None,
-                       max_lines: int = ERROR_LOG_TAIL_LINES) -> str:
+def truncate_error_log(
+    stderr: str, code_filename: str | None = None, max_lines: int = ERROR_LOG_TAIL_LINES
+) -> str:
     """Keep the informative part of a manim error dump. Manim's Rich traceback
     is verbose and box-drawn; the final exception line is at the very end, but
     the frame pointing into the scene file (with its source snippet) can be far
@@ -83,7 +84,9 @@ class VideoRenderer:
             raise ValueError(f"quality must be one of {sorted(QUALITY_DIRS)}")
         self.quality = quality
 
-    def render(self, code_path: str, media_dir: str, scene_name: str | None = None) -> tuple[bool, str]:
+    def render(
+        self, code_path: str, media_dir: str, scene_name: str | None = None
+    ) -> tuple[bool, str]:
         """Render one scene file. Returns (success, stderr). Runs with
         cwd=the code file's directory so `from assets import *`,
         `from kokoro_voiceover import KokoroService` and the local manim.cfg
@@ -91,7 +94,9 @@ class VideoRenderer:
         than one Scene class (manim would prompt interactively otherwise)."""
         code_dir = os.path.dirname(os.path.abspath(code_path))
         cmd = [
-            sys.executable, "-m", "manim",
+            sys.executable,
+            "-m",
+            "manim",
             f"-q{self.quality}",
             os.path.basename(code_path),
         ]
@@ -112,7 +117,9 @@ class VideoRenderer:
             return None
         return os.path.join(video_dir, mp4s[0])
 
-    def snapshot(self, video_path: str, output_path: str, sample_every_s: float = 2.0) -> Image.Image:
+    def snapshot(
+        self, video_path: str, output_path: str, sample_every_s: float = 2.0
+    ) -> Image.Image:
         """Save + return the sampled frame with the most non-background pixels
         (the 'busiest' frame) — the most informative single frame for the
         layout critic."""
@@ -160,7 +167,9 @@ class VideoRenderer:
             else:
                 duration = float(probe["format"]["duration"])
                 silent = ffmpeg.input(
-                    "anullsrc=channel_layout=stereo:sample_rate=44100", f="lavfi", t=duration
+                    "anullsrc=channel_layout=stereo:sample_rate=44100",
+                    f="lavfi",
+                    t=duration,
                 )["a"]
                 streams.extend([input_vid["v"], silent])
 
@@ -168,8 +177,13 @@ class VideoRenderer:
             ffmpeg.concat(*streams, v=1, a=1, unsafe=True)
             .output(
                 output_path,
-                **{"c:v": "libx264", "c:a": "aac", "preset": "veryfast", "crf": "26",
-                   "movflags": "+faststart"},
+                **{
+                    "c:v": "libx264",
+                    "c:a": "aac",
+                    "preset": "veryfast",
+                    "crf": "26",
+                    "movflags": "+faststart",
+                },
             )
             .overwrite_output()
             .run(quiet=True)

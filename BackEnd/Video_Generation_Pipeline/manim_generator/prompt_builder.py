@@ -45,7 +45,9 @@ def build_setting_block(spec: ScenarioSpec, scene: Scene | None = None) -> str:
         return "(no setting specified — use a neutral interior backdrop)"
     parts = []
     for key, value in spec.setting.items():
-        if key in ("background_furniture", "background_equipment") and isinstance(value, list):
+        if key in ("background_furniture", "background_equipment") and isinstance(
+            value, list
+        ):
             items = ", ".join(
                 f"{item.get('count', 1)}x {item.get('name', '')} ({item.get('description', '')})"
                 for item in value
@@ -58,7 +60,9 @@ def build_setting_block(spec: ScenarioSpec, scene: Scene | None = None) -> str:
     return "\n".join(parts)
 
 
-def build_dialogue_block(spec: ScenarioSpec, scene: Scene, with_estimates: bool = False) -> str:
+def build_dialogue_block(
+    spec: ScenarioSpec, scene: Scene, with_estimates: bool = False
+) -> str:
     chars = spec.characters_by_id
     lines = []
     for idx, d in enumerate(scene.dialogue, start=1):
@@ -100,7 +104,8 @@ def build_asset_kit_prompt(spec: ScenarioSpec) -> str:
     suggested = ", ".join(f"{c.character_id} -> {c.voice}" for c in spec.characters)
     return fill_prompt(
         load_prompt("prompt_asset_kit"),
-        visual_style=spec.visual_style or "clean 2D semi-flat educational motion graphics",
+        visual_style=spec.visual_style
+        or "clean 2D semi-flat educational motion graphics",
         character_block=build_character_block(spec),
         setting_block=build_setting_block(spec),
         known_voices=", ".join(KNOWN_VOICES),
@@ -109,10 +114,16 @@ def build_asset_kit_prompt(spec: ScenarioSpec) -> str:
 
 
 def build_scene_plan_prompt(spec: ScenarioSpec, scene: Scene, asset_api: str) -> str:
-    positions = "; ".join(
-        f"{p.get('character_id', '?')}: {p.get('position', '')}" for p in scene.initial_positions
-    ) or "(not specified)"
-    sound_notes = "; ".join(x for x in (scene.sound_effects, scene.ambience) if x) or "(none)"
+    positions = (
+        "; ".join(
+            f"{p.get('character_id', '?')}: {p.get('position', '')}"
+            for p in scene.initial_positions
+        )
+        or "(not specified)"
+    )
+    sound_notes = (
+        "; ".join(x for x in (scene.sound_effects, scene.ambience) if x) or "(none)"
+    )
     return fill_prompt(
         load_prompt("prompt_scene_plan"),
         title=spec.title,
@@ -132,7 +143,9 @@ def build_scene_plan_prompt(spec: ScenarioSpec, scene: Scene, asset_api: str) ->
     )
 
 
-def build_code_prompt(spec: ScenarioSpec, scene: Scene, scene_plan: str, asset_api: str) -> str:
+def build_code_prompt(
+    spec: ScenarioSpec, scene: Scene, scene_plan: str, asset_api: str
+) -> str:
     return fill_prompt(
         load_prompt("prompt_code_generation"),
         title=spec.title,

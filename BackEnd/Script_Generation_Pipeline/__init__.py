@@ -8,3 +8,7 @@ from .Script_With_Dpoints import (
     delete_uploaded_files_gemini,
     setup_gemini_client,
 )
+from .Script_With_Dpoints import (
+    generate_script_with_decision_points_local,
+    delete_uploaded_files_local,
+)

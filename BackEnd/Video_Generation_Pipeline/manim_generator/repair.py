@@ -17,7 +17,7 @@ from . import api_kb
 from .code_generator import CodeGenerator, fill_prompt, load_prompt
 from .video_renderer import VideoRenderer, extract_failing_line, truncate_error_log
 
-LINE_CONTEXT = 3           # lines of context on each side of the failing line
+LINE_CONTEXT = 3  # lines of context on each side of the failing line
 LINE_ATTEMPTS = 2
 BLOCK_ATTEMPTS = 2
 # A surgical fix should not balloon the region. If the model returns a
@@ -67,7 +67,10 @@ def _block_bounds(lines: list[str], failing_line: int) -> tuple[int, int]:
     header_indent = len(lines[header]) - len(lines[header].lstrip())
     end = header
     for j in range(header + 1, len(lines)):
-        if lines[j].strip() and (len(lines[j]) - len(lines[j].lstrip())) <= header_indent:
+        if (
+            lines[j].strip()
+            and (len(lines[j]) - len(lines[j].lstrip())) <= header_indent
+        ):
             break
         end = j
     return header + 1, end + 1  # back to 1-indexed inclusive
@@ -95,7 +98,11 @@ def _apply_replacement(lines: list[str], start: int, end: int, replacement: str)
     elif delta < 0:
         strip_n = -delta
         repl_lines = [
-            (l[strip_n:] if len(l) - len(l.lstrip()) >= strip_n else l.lstrip()) if l.strip() else l
+            (
+                (l[strip_n:] if len(l) - len(l.lstrip()) >= strip_n else l.lstrip())
+                if l.strip()
+                else l
+            )
             for l in repl_lines
         ]
     return "\n".join(lines[: start - 1] + repl_lines + lines[end:]) + "\n"
@@ -130,18 +137,24 @@ def scope_refine_repair(
         scopes.append(("prompt_fix_error_block", bs, be, BLOCK_ATTEMPTS))
 
     for template_name, start, end, attempts in scopes:
-        api_docs = api_kb.lookup("\n".join(lines[start - 1:end])) or \
-            "(no API reference matched — rely on core Manim v0.18 knowledge)"
+        api_docs = (
+            api_kb.lookup("\n".join(lines[start - 1 : end]))
+            or "(no API reference matched — rely on core Manim v0.18 knowledge)"
+        )
         for _ in range(attempts):
             prompt = fill_prompt(
                 load_prompt(template_name),
                 error=error,
                 start_line=start,
                 end_line=end,
-                region=_region(lines, start - LINE_CONTEXT, end + LINE_CONTEXT, mark=True),
+                region=_region(
+                    lines, start - LINE_CONTEXT, end + LINE_CONTEXT, mark=True
+                ),
                 api_docs=api_docs,
             )
-            response = codegen.client.generate(prompt, label=f"repair_{template_name}_{scene_id}")
+            response = codegen.client.generate(
+                prompt, label=f"repair_{template_name}_{scene_id}"
+            )
             match = _FIXED_LINES.search(response)
             if not match:
                 continue
@@ -150,15 +163,21 @@ def scope_refine_repair(
             # a replacement that balloons the region or breaks the parse, and
             # move on WITHOUT poisoning the working copy.
             if not _replacement_is_sane(match.group(1), end - start + 1):
-                log(f"[repair] scene {scene_id} {scope}-scope fix rejected (too large), escalating")
+                log(
+                    f"[repair] scene {scene_id} {scope}-scope fix rejected (too large), escalating"
+                )
                 break
             candidate = _apply_replacement(lines, start, end, match.group(1))
             if not _parses(candidate):
-                log(f"[repair] scene {scene_id} {scope}-scope fix rejected (won't parse), retrying")
+                log(
+                    f"[repair] scene {scene_id} {scope}-scope fix rejected (won't parse), retrying"
+                )
                 continue
             with open(code_path, "w", encoding="utf-8") as f:
                 f.write(candidate)
-            ok, new_stderr = renderer.render(code_path, media_dir, scene_name=scene_name)
+            ok, new_stderr = renderer.render(
+                code_path, media_dir, scene_name=scene_name
+            )
             if ok:
                 log(f"[repair] scene {scene_id} fixed at {scope} scope")
                 return candidate, True, ""
@@ -179,7 +198,9 @@ def scope_refine_repair(
     # into the file. Don't let it become the working copy — keep the previous
     # parseable code so the next round starts clean.
     if not _parses(fixed):
-        log(f"[repair] scene {scene_id} full-regen output won't parse — keeping previous code")
+        log(
+            f"[repair] scene {scene_id} full-regen output won't parse — keeping previous code"
+        )
         fixed = working
     with open(code_path, "w", encoding="utf-8") as f:
         f.write(fixed)

@@ -52,13 +52,6 @@ def build_veo_prompt(
     character_block = build_character_block(characters)
     dialogue_block = build_dialogue_block(scene, char_lookup)
 
-    cam = scene.get("camera", {})
-    camera_block = (
-        f"{cam.get('angle', '')}. "
-        f"{cam.get('movement', '')}. "
-        f"{cam.get('lens_effect', '')}."
-    )
-
     audio = scene.get("audio", {})
     sound_block = (
         f"Sound effects: {audio.get('sound_effects', 'none')}. "
@@ -76,11 +69,12 @@ def build_veo_prompt(
 
 Characters: {character_block}
 
-Setting: {scene.get('setting', '')}
+Setting: {scene.get('setting', '')}"""
 
-Character actions: {scene.get('character_actions', '')}
+        if scene.get("character_actions"):
+            prompt += f"\n\nCharacter actions: {scene['character_actions']}"
 
-Camera: {camera_block}
+        prompt += f"""
 
 Dialogue: {dialogue_block}
 
@@ -114,11 +108,14 @@ Audio: {sound_block}"""
     else:
         prompt = f"""This clip is a direct continuation of the previous video. Do not reset the scene.
 
-Use the established character appearances from the previous video. Preserve the same clothing, hair, skin tone, facial features, lighting, room layout, environment, and overall visual style. Do not reintroduce or redesign any character or object.
+Characters: {character_block}
 
-Current character actions: {scene.get('character_actions', '')}
+Use the established character appearances from the previous video. Preserve the same clothing, hair, skin tone, facial features, lighting, room layout, environment, and overall visual style. Do not reintroduce or redesign any character or object."""
 
-Camera: {camera_block}
+        if scene.get("character_actions"):
+            prompt += f"\n\nCurrent character actions: {scene['character_actions']}"
+
+        prompt += f"""
 
 Dialogue: {dialogue_block}
 
@@ -130,6 +127,12 @@ Do not introduce any additional characters into frame."""
             prompt += (
                 f"\n\nOn-screen text overlay at end: \"{scene['on_screen_text']}\""
             )
+
+    prompt += (
+        "\n\nOnly the speaker's mouth should be moving while speaking. "
+        "All other characters should have their mouth closed and not have any lip movement, "
+        "remaining silent. Keep the background still and minimal."
+    )
 
     # ------------------------------------------------------------------
     # Text overlay control
@@ -152,7 +155,7 @@ def build_clip_prompts(scene: dict, characters: list, visual_style: str) -> list
     """
     Turn one scene into an ordered list of per-clip prompts (list[str]), one per
     clip. Each prompt carries the shared stage directions (setting, actions,
-    camera, sound bed) plus only that clip's dialogue chunk.
+    sound bed) plus only that clip's dialogue chunk.
     """
     clips = scene.get("clips")
     if not clips:
@@ -163,20 +166,15 @@ def build_clip_prompts(scene: dict, characters: list, visual_style: str) -> list
     shared_audio = scene.get("audio", {})
     prompts = []
     for i, clip in enumerate(clips):
-        clip_camera = clip.get("camera")
-        if clip_camera is None:
-            print(
-                f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera."
-            )
-            clip_camera = scene.get("camera", {})
-
         clip_scene = {
             "scene_id": scene.get("scene_id"),
             "setting": clip.get("setting", scene.get("setting", "")),
+            # Only clip 1 inherits the scene-level staging description; later
+            # clips must define their own or go without, so the same actions
+            # text isn't repeated verbatim across every clip in a scene.
             "character_actions": clip.get(
-                "character_actions", scene.get("character_actions", "")
+                "character_actions", scene.get("character_actions", "") if i == 0 else ""
             ),
-            "camera": clip_camera,
             "audio": {
                 "dialogue": clip.get("dialogue", []),
                 "sound_effects": clip.get(

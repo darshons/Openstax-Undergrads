@@ -144,7 +144,9 @@ export default function StageBar({
             <span className="assets-next-step-desc">
               {videoType === 'manim'
                 ? 'Script is ready — preview the generated Manim animations'
-                : 'Script is ready — review and customize the video assets'}
+                : videoType === 'auto'
+                  ? 'Script is ready — set up assets for the character scenes, then render'
+                  : 'Script is ready — review and customize the video assets'}
             </span>
           </div>
           <button className="btn-assets" onClick={() => setCurrentPage(videoType === 'manim' ? 'videos' : 'assets')}>

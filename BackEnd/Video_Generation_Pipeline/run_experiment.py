@@ -1,10 +1,10 @@
 # run_experiment.py - run the same scenario through the pipeline multiple
 # times in a row, with every knob that varies between experiments collected
 # here in one place. Each experiment group gets its own timestamped folder
-# under output/experiments/ — videos, failed_clips, eval_reports,
-# transcripts, and generation_log.json for every repeat all live together
-# directly in that one folder (filenames/log entries are already timestamped
-# per-repeat, so nothing collides).
+# under output/experiments/ — videos, failed_clips, eval_reports, and
+# generation_log.json for every repeat all live together directly in that
+# one folder (filenames/log entries are already timestamped per-repeat, so
+# nothing collides).
 from datetime import datetime
 from pathlib import Path
 
@@ -12,17 +12,17 @@ from video_generator.cli import load_env
 from video_generator.scenario_loader import load_scenario
 from video_generator import pipeline, veo_api, logging_utils, clip_verification
 
-import transcript_eval.eval as transcript_eval_module
+import transcript_eval.report_utils as report_utils_module
 
 # ── EXPERIMENT CONFIG ────────────────────────────────────────────────────
 EXPERIMENT_NAME = "my_experiment"
 SCENARIO_PATH = "scenario.json"
-SCENE_ID = 3  # None = all scenes, or an int to run just one scene
+SCENE_ID = 1  # None = all scenes, or an int to run just one scene
 MODEL_KEY = "veo-3.1-fast"  # must be a key in veo_api.VEO_MODELS
 REFERENCE_IMAGES = veo_api.REFERENCE_IMAGES  # list of image paths, or []
-VERIFY_CLIPS = False
+VERIFY_CLIPS = True
 EVAL_RETRIES = 1
-NUM_EXPERIMENTS = 3  # how many times to repeat the whole run
+NUM_EXPERIMENTS = 5  # how many times to repeat the whole run
 # ──────────────────────────────────────────────────────────────────────────
 
 EXPERIMENTS_ROOT = Path("output/experiments")
@@ -36,9 +36,8 @@ def configure_paths(experiment_dir):
     veo_api.MODEL = veo_api.VEO_MODELS[MODEL_KEY]
     veo_api.MODEL_KEY = MODEL_KEY
     pipeline.MODEL_KEY = MODEL_KEY
-    transcript_eval_module.EVAL_REPORT_DIR = str(experiment_dir / "eval_reports")
-    transcript_eval_module.TRANSCRIPT_DIR = str(experiment_dir / "transcripts")
-    clip_verification.EVAL_REPORT_DIR = transcript_eval_module.EVAL_REPORT_DIR
+    report_utils_module.EVAL_REPORT_DIR = str(experiment_dir / "eval_reports")
+    clip_verification.EVAL_REPORT_DIR = report_utils_module.EVAL_REPORT_DIR
 
 
 def run_one(client, scenario, scenes):

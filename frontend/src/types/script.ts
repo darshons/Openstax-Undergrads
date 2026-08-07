@@ -12,7 +12,11 @@ export type RouteType =
 
 export type ViewMode = 'full' | 'dialogue' | 'action' | 'camera';
 export type ModelChoice = 'anthropic' | 'gemini';
-export type VideoType = 'scenario' | 'manim';
+export type VideoType = 'scenario' | 'manim' | 'auto';
+/** Renderer chosen for a single scene. 'auto' is a request-level option only. */
+export type RenderMode = 'scenario' | 'manim';
+/** Where character scenes render. A cost choice, not a content one. */
+export type ScenarioBackend = 'local' | 'veo';
 export type Page = 'script' | 'assets' | 'videos';
 
 // ── Routing ────────────────────────────────────────────────────────────────
@@ -117,6 +121,8 @@ export interface Scene {
   type?: SceneType;
   /** Alternate type field some backend responses use. */
   scene_type?: string;
+  /** Which renderer produces this scene. The backend guarantees it is set. */
+  render_mode?: RenderMode;
   scene_summary: string;
   duration_seconds: number;
   /** Per-scene setting string (SAMPLE_SCRIPT format only; template uses root-level setting). */

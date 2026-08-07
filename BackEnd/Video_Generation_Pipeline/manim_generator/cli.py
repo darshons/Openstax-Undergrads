@@ -33,15 +33,28 @@ def load_env():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate branching Manim scenario videos")
-    parser.add_argument("--script", required=True, help="Path to the scenario Script JSON")
+    parser = argparse.ArgumentParser(
+        description="Generate branching Manim scenario videos"
+    )
+    parser.add_argument(
+        "--script", required=True, help="Path to the scenario Script JSON"
+    )
     parser.add_argument("--out", default="output", help="Output root directory")
-    parser.add_argument("--request-id", default=None, help="Run id (default: timestamped)")
-    parser.add_argument("--quality", default="m", choices=["l", "m", "h"],
-                        help="Manim render quality (l=480p for iteration, h=1080p final)")
+    parser.add_argument(
+        "--request-id", default=None, help="Run id (default: timestamped)"
+    )
+    parser.add_argument(
+        "--quality",
+        default="m",
+        choices=["l", "m", "h"],
+        help="Manim render quality (l=480p for iteration, h=1080p final)",
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--no-golden", action="store_true",
-                        help="Skip stitching the correct-path preview video")
+    parser.add_argument(
+        "--no-golden",
+        action="store_true",
+        help="Skip stitching the correct-path preview video",
+    )
     args = parser.parse_args()
 
     load_env()
@@ -62,7 +75,9 @@ def main():
     for s in manifest["scenes"]:
         print(f"  scene {s['scene_id']} ({s['type']}): {s['file'] or 'FAILED'}")
     if manifest["golden_path_video"]:
-        print(f"golden path ({'-'.join(map(str, manifest['golden_path']))}): {manifest['golden_path_video']}")
+        print(
+            f"golden path ({'-'.join(map(str, manifest['golden_path']))}): {manifest['golden_path_video']}"
+        )
     print(f"manifest: {os.path.join(args.out, request_id, 'manifest.json')}")
     raise SystemExit(0 if len(rendered) == len(manifest["scenes"]) else 1)
 

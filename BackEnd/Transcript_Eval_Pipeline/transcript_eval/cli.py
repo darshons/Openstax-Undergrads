@@ -2,11 +2,14 @@ import argparse
 import os
 from pathlib import Path
 
-from .eval import evaluate_clip
 from .scenario_loader import load_scenario, get_clip
+from .video_judge import evaluate_clip
 
 
 def load_env():
+    """Load .env into os.environ, without clobbering vars already exported in
+    the shell — a terminal `export GEMINI_API_KEY=...` should win over a
+    stale/blank value sitting in a .env file."""
     env_path = Path(".env")
     if env_path.exists():
         with open(env_path) as f:
@@ -14,21 +17,25 @@ def load_env():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
-                    os.environ[key.strip()] = value.strip()
+                    os.environ.setdefault(key.strip(), value.strip())
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Transcribe a single generated clip and evaluate it against its scenario.json script."
+        description="Judge a single generated clip against its scenario.json script using Gemini."
     )
     parser.add_argument("--video", required=True, help="Path to the clip's video file.")
     parser.add_argument("--scenario", required=True, help="Path to scenario.json.")
-    parser.add_argument("--scene-id", type=int, required=True, help="scene_id in scenario.json.")
-    parser.add_argument("--clip-id", type=int, required=True, help="clip_id within that scene.")
+    parser.add_argument(
+        "--scene-id", type=int, required=True, help="scene_id in scenario.json."
+    )
+    parser.add_argument(
+        "--clip-id", type=int, required=True, help="clip_id within that scene."
+    )
     parser.add_argument(
         "--api-key",
         default=os.environ.get("GEMINI_API_KEY"),
-        help="Gemini API key for the speaker-attribution judge (or set GEMINI_API_KEY env var).",
+        help="Gemini API key for the video judge (or set GEMINI_API_KEY env var).",
     )
     return parser.parse_args()
 
@@ -55,25 +62,21 @@ def main():
         clip_id=args.clip_id,
         dialogue=clip["dialogue"],
         characters=clip["characters"],
+        setting=clip["setting"],
+        character_actions=clip["character_actions"],
     )
+    result = report["video_judge"]
 
     print(f"\n{'─'*60}")
-    print(f"EVAL SUMMARY — scene {args.scene_id}, clip {args.clip_id}")
+    print(f"VIDEO JUDGE — scene {args.scene_id}, clip {args.clip_id}")
     print(f"{'─'*60}")
-    print(f"Dialogue match : {'PASS' if report['dialogue_match']['passed'] else 'FAIL'} "
-          f"(similarity={report['dialogue_match']['similarity']})")
-    if report["speaker_attribution"] is None:
-        print("Speaker attrib.: SKIPPED (early stop — dialogue match failed)")
-    else:
-        sa = report["speaker_attribution"]
-        print(f"Speaker attrib.: {'PASS' if sa['attribution_passed'] else 'FAIL'}")
-        if sa["ambiguous_segments"] or sa["inconclusive_segments"]:
-            print(f"  ⚠ {sa['ambiguous_segments']} ambiguous (multiple speakers detected), "
-                  f"{sa['inconclusive_segments']} inconclusive segment(s) excluded from judgment")
+    print(f"Status         : {result['status'].upper()} (confidence={result['confidence']})")
+    print(f"Visual         : {'ISSUE — ' + result['visual_notes'] if result['visual_issues_found'] else 'ok'}")
+    print(f"Dialogue       : {'ISSUE — ' + result['dialogue_notes'] if result['dialogue_issues_found'] else 'ok'}")
+    print(f"Script align.  : {'ISSUE — ' + result['script_alignment_notes'] if result['script_alignment_issues_found'] else 'ok'}")
     print(f"Estimated cost : ${report['estimated_cost_usd']}")
-    print(f"Overall        : {'PASS' if report['passed'] else 'FAIL'}")
-    print(f"\nTranscript: {report['transcript_path']}")
-    print(f"Eval report: output/eval_reports/{Path(args.video).stem}_eval.json")
+    print(f"\nEval report: {report['video_path']}")
+    print(f"Report saved under output/eval_reports/{Path(args.video).stem}_eval.json")
 
 
 if __name__ == "__main__":

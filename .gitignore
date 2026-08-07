@@ -12,6 +12,7 @@ build/
 *.py[cod]
 *$py.class
 upload_cleanup.py
+list_gemini_models.py
 
 # macOS
 .DS_Store
@@ -31,6 +32,7 @@ node_modules/
 .env
 .env.*
 *.env
+!.env.example
 
 # logs
 npm-debug.log*
@@ -42,3 +44,6 @@ pnpm-debug.log*
 
 #Pyrefly
 pyrefly.toml
+
+#JSON
+*.json

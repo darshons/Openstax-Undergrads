@@ -41,24 +41,41 @@ def generate_asset_kit(
     try:
         prompt = build_asset_kit_prompt(spec)
         code, _ = codegen.generate_scene_code(prompt, label="asset_kit")
-        contract = "The asset-kit module contract from the generation prompt:\n" + prompt
+        contract = (
+            "The asset-kit module contract from the generation prompt:\n" + prompt
+        )
 
         for attempt in range(ASSET_KIT_MAX_REPAIRS + 1):
             with open(assets_path, "w", encoding="utf-8") as f:
                 f.write(code)
-            ok, stderr = renderer.render(assets_path, media_dir, scene_name="AssetLineup")
+            ok, stderr = renderer.render(
+                assets_path, media_dir, scene_name="AssetLineup"
+            )
             if ok:
                 log(f"[asset_kit] lineup rendered on attempt {attempt + 1}")
-                _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log)
+                _critique_lineup(
+                    spec,
+                    code,
+                    assets_path,
+                    media_dir,
+                    codegen,
+                    renderer,
+                    build_dir,
+                    log,
+                )
                 return assets_path
             error = truncate_error_log(stderr)
-            log(f"[asset_kit] render failed (attempt {attempt + 1}): {error.splitlines()[-1] if error else 'unknown'}")
+            log(
+                f"[asset_kit] render failed (attempt {attempt + 1}): {error.splitlines()[-1] if error else 'unknown'}"
+            )
             if attempt == ASSET_KIT_MAX_REPAIRS:
                 break
             code, _ = codegen.fix_code_errors(contract, code, error)
         log("[asset_kit] LLM kit never rendered — using the parameterized fallback kit")
     except Exception as e:
-        log(f"[asset_kit] LLM generation errored ({type(e).__name__}: {e}) — using the fallback kit")
+        log(
+            f"[asset_kit] LLM generation errored ({type(e).__name__}: {e}) — using the fallback kit"
+        )
 
     fallback = build_fallback_kit(spec)
     with open(assets_path, "w", encoding="utf-8") as f:
@@ -72,7 +89,9 @@ def generate_asset_kit(
     return assets_path
 
 
-def _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, build_dir, log):
+def _critique_lineup(
+    spec, code, assets_path, media_dir, codegen, renderer, build_dir, log
+):
     """One grid-critic pass over the lineup frame; apply the fix only if it
     still renders (never let a critique regress a working kit)."""
     try:
@@ -80,8 +99,12 @@ def _critique_lineup(spec, code, assets_path, media_dir, codegen, renderer, buil
         if not video:
             return
         snap = renderer.snapshot(video, os.path.join(build_dir, "lineup_snapshot.png"))
-        grid_img = overlay_grid(snap, os.path.join(build_dir, "lineup_grid.png"), return_type="image")
-        fixed, _ = codegen.critique_asset_lineup(code, grid_img, build_character_block(spec))
+        grid_img = overlay_grid(
+            snap, os.path.join(build_dir, "lineup_grid.png"), return_type="image"
+        )
+        fixed, _ = codegen.critique_asset_lineup(
+            code, grid_img, build_character_block(spec)
+        )
         if "<LGTM>" in fixed:
             log("[asset_kit] lineup critique: clean")
             return
@@ -107,13 +130,14 @@ def extract_asset_api(assets_path: str) -> str:
     lines = []
     for node in tree.body:
         if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
-            args = ", ".join(
-                a.arg for a in node.args.args
-            )
+            args = ", ".join(a.arg for a in node.args.args)
             lines.append(f"- {node.name}({args})")
         elif isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name) and target.id in ("PALETTE", "VOICE_MAP"):
+                if isinstance(target, ast.Name) and target.id in (
+                    "PALETTE",
+                    "VOICE_MAP",
+                ):
                     try:
                         value = ast.literal_eval(node.value)
                         lines.append(f"- {target.id} = {value}")
@@ -168,7 +192,7 @@ def build_fallback_kit(spec: ScenarioSpec) -> str:
         f'    "{c.character_id}": "{c.voice}"' for c in spec.characters
     )
 
-    return f'''from manim import *
+    return f"""from manim import *
 
 PALETTE = {{
     "background": "{FALLBACK_BACKGROUND}",
@@ -248,4 +272,4 @@ class AssetLineup(Scene):
         self.add(label("a label", color=PALETTE["secondary"]).move_to(grid_to_point("C4-D4")))
         self.add(caption("caption text").move_to(grid_to_point("F2-F5")))
         self.wait(0.5)
-'''
+"""

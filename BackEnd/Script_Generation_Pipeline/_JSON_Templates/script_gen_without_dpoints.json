@@ -23,6 +23,7 @@
     {
       "scene_id": 1,
       "type": "narrative",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
@@ -46,6 +47,7 @@
     {
       "scene_id": 2,
       "type": "outcome",
+      "render_mode": "",
       "scene_summary": "",
       "duration_seconds": 0,
       "setting": "",
@@ -65,7 +67,6 @@
         "sound_effects": "",
         "ambience": ""
       }
-   }
+    }
   ]
 }
-

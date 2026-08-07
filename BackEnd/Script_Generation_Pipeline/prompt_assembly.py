@@ -6,12 +6,18 @@ You are an expert instructional designer and screenplay writer creating an inter
 
 You will be given one file in Markdown format containing the textbook content. Your task is to identify a single core concept, principle, skill, procedure, or decision-making challenge from the material that is well-suited to being taught through a realistic scenario.
 
-Generate a single, branching scenario with at most 3 decision points. The decision points should occur at different stages of the same scenario. For each decision point, provide a few answer options, but continue the script only along the correct option. Do not generate separate branches or alternate storylines for incorrect options.
+Generate a single, branching scenario with exactly {num_decision_points} decision point(s). The decision points should occur at different stages of the same scenario. For each decision point, provide a few answer options, but continue the script only along the correct option. Do not generate separate branches or alternate storylines for incorrect options.
+
+For each decision point, generate the following scenes:
+• 1 narrative scene that introduces the situation and leads into the decision
+• 1 consequence scene per incorrect choice (showing the result of each wrong answer)
+• 1 resolution scene for the correct choice
+
+This means each decision point with 3 choices produces 4 scenes (1 narrative + 2 consequence + 1 resolution). Scale the total number of scenes accordingly based on the number of decision points requested.
 
 The scenario should depict a realistic situation in which a learner must observe information, interpret context, and make a decision. You are free to invent character names, dialogue, settings, and narrative details, but every decision point, answer choice, consequence, and learning outcome must be grounded in the concepts, procedures, guidelines, or principles presented in the provided chapters. Do not introduce substantive content that is not supported by the source material or would require outside knowledge.
 
 Scenario Constraints:
-• Total scenario duration must be under 300 seconds
 • Narrative scene (setup): 20-30 seconds
 • Consequence scene (incorrect answer branches): 15-20 seconds
 • Resolution scene (correct answers): 15-20 seconds
@@ -38,13 +44,19 @@ Dialogue should sound natural and conversational rather than textbook-like.
 The narrative scene should establish the situation clearly and end at a natural moment of uncertainty requiring a decision. The consequence scene should feel like a realistic continuation of events rather than a punishment. The resolution scene should provide a satisfying outcome that reinforces the underlying concept without becoming overly didactic."""
 
 OUTPUT_FORMAT_INSTRUCTION = (
-    "Output your response strictly as a JSON object following the exact "
-    "structure in the provided JSON file, with no additional text before or after"
+    "Output your response strictly as a JSON object following the same "
+    "structure and field names shown in the provided JSON template. The "
+    "template illustrates the pattern for 2 decision points; repeat or "
+    "reduce that pattern to produce exactly {num_decision_points} decision "
+    "point(s) with the corresponding scenes. Do not add any text before "
+    "or after the JSON."
 )
 
 _RULES_PATH = Path(__file__).resolve().parent / "Prompt_Rules" / "script-generation-rules-llm.md"
 
 
-def build_system_prompt() -> str:
+def build_system_prompt(num_decision_points: int = 2) -> str:
     rules = _RULES_PATH.read_text(encoding="utf-8")
-    return f"{BASE_TASK_PROMPT}\n\n{rules}\n\n{OUTPUT_FORMAT_INSTRUCTION}"
+    task = BASE_TASK_PROMPT.format(num_decision_points=num_decision_points)
+    fmt = OUTPUT_FORMAT_INSTRUCTION.format(num_decision_points=num_decision_points)
+    return f"{task}\n\n{rules}\n\n{fmt}"

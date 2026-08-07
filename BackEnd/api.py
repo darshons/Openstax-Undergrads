@@ -34,6 +34,7 @@ class SceneInformation(BaseModel):
     user_query: str
     model_choice: str
     video_type: str
+    num_decision_points: int = 2
 
 
 # This Class defines the structure of the request body for generating images
@@ -116,14 +117,14 @@ def generate_initial_script(
 
     if scene_information.model_choice == "anthropic":
         initial_script, file_ids = generate_script_with_decision_points_anthropic(
-            str(md_path), scene_information.user_query
+            str(md_path), scene_information.user_query, scene_information.num_decision_points
         )
 
         background_tasks.add_task(delete_uploaded_files_anthropic, file_ids)
 
     elif scene_information.model_choice == "gemini":
         initial_script, file_ids = generate_script_with_decision_points_gemini(
-            str(md_path), scene_information.user_query
+            str(md_path), scene_information.user_query, scene_information.num_decision_points
         )
 
         background_tasks.add_task(delete_uploaded_files_gemini, file_ids)
@@ -519,11 +520,15 @@ def get_video(video_path: str):
 import json
 from concurrent.futures import ThreadPoolExecutor
 
-from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
-from Video_Generation_Pipeline.manim_generator.script_adapter import (
-    ScriptValidationError,
-    adapt,
-)
+try:
+    from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
+    from Video_Generation_Pipeline.manim_generator.script_adapter import (
+        ScriptValidationError,
+        adapt,
+    )
+    _MANIM_AVAILABLE = True
+except ImportError:
+    _MANIM_AVAILABLE = False
 
 # Anchor the output root at the repo root so it is the same directory whether
 # the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
@@ -545,6 +550,8 @@ class ManimVideoRequest(BaseModel):
 def generate_manim_videos(request: ManimVideoRequest):
     """Kick off Manim branching-video generation for an edited scenario script.
     Returns immediately; poll /manim_video_status/{request_id} for progress."""
+    if not _MANIM_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Manim dependencies not installed")
     try:
         adapt(request.script)  # fail fast on an inconsistent branch graph
     except ScriptValidationError as e:

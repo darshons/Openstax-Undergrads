@@ -19,12 +19,12 @@ def setup_async_anthropic_client():
 
 
 def generate_script_with_decision_points_anthropic(
-    markdown_file_path, user_query
+    markdown_file_path, user_query, num_decision_points: int = 2
 ) -> tuple[dict | None, list[str | None]]:
 
     client = setup_anthropic_client()
 
-    system_prompt = build_system_prompt()
+    system_prompt = build_system_prompt(num_decision_points)
 
     MODEL = "claude-sonnet-4-6"
 

@@ -16,11 +16,11 @@ def setup_gemini_client():
 
 # This function generates a script with decision points based on the provided Markdown file and user query. It returns the generated JSON script and a list of uploaded file names.
 def generate_script_with_decision_points_gemini(
-    markdown_file_path, user_query
+    markdown_file_path, user_query, num_decision_points: int = 2
 ) -> tuple[dict | None, list[str | None]]:
     client = setup_gemini_client()
 
-    system_prompt = build_system_prompt()
+    system_prompt = build_system_prompt(num_decision_points)
 
     MODEL = "gemini-3.1-pro-preview"
 

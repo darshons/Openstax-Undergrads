@@ -185,4 +185,5 @@ export interface GenerateRequest {
   user_query: string;
   model_choice: ModelChoice;
   video_type: VideoType;
+  num_decision_points?: number;
 }

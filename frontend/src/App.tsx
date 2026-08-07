@@ -65,6 +65,7 @@ export default function App() {
   const [model, setModel] = useState<ModelChoice>('anthropic');
   const [videoType, setVideoType] = useState<VideoType>('scenario');
   const [userQuery, setUserQuery] = useState('');
+  const [numDecisionPoints, setNumDecisionPoints] = useState(2);
 
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +100,7 @@ export default function App() {
 
         setScript(json as Script);
         setDeleteUndoStack([]);
-        setRequestId(null);
+        setRequestId(crypto.randomUUID());
         setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
         setAssetsStep('idle');
         setAssetsError(null);
@@ -318,7 +319,7 @@ export default function App() {
   // ── Generation ──────────────────────────────────────────────────────────
 
   const runGenerate = useCallback(async () => {
-    const req = buildGenerateRequest({ selected, model, videoType, userQuery: userQuery.trim() });
+    const req = buildGenerateRequest({ selected, model, videoType, userQuery: userQuery.trim(), numDecisionPoints });
     if (!req) {
       setGenError('Pick at least one section from a known textbook.');
       return;
@@ -351,7 +352,7 @@ export default function App() {
     } finally {
       setBusy(false);
     }
-  }, [selected, model, videoType, userQuery]);
+  }, [selected, model, videoType, userQuery, numDecisionPoints]);
 
   // ── Asset image generation ─────────────────────────────────────────────
 
@@ -509,6 +510,8 @@ export default function App() {
               setModel={setModel}
               videoType={videoType}
               setVideoType={setVideoType}
+              numDecisionPoints={numDecisionPoints}
+              setNumDecisionPoints={setNumDecisionPoints}
               userQuery={userQuery}
               setUserQuery={setUserQuery}
               genError={genError}

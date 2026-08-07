@@ -14,6 +14,8 @@ interface GeneratePanelProps {
   setVideoType: (v: VideoType) => void;
   userQuery: string;
   setUserQuery: (q: string) => void;
+  numDecisionPoints: number;
+  setNumDecisionPoints: (n: number) => void;
   genError: string | null;
   height?: number;
 }
@@ -21,7 +23,7 @@ interface GeneratePanelProps {
 export default function GeneratePanel({
   selected, removeSec, onGenerate, busy, hasScript,
   model, setModel, videoType, setVideoType,
-  userQuery, setUserQuery, genError,
+  userQuery, setUserQuery, numDecisionPoints, setNumDecisionPoints, genError,
   height,
 }: GeneratePanelProps) {
   const pillsArr = Array.from(selected);
@@ -86,6 +88,20 @@ export default function GeneratePanel({
       <div className="gp-models">
         <button type="button" className={`gp-model ${model === 'anthropic' ? 'on' : ''}`} onClick={() => setModel('anthropic')}>Anthropic</button>
         <button type="button" className={`gp-model ${model === 'gemini' ? 'on' : ''}`} onClick={() => setModel('gemini')}>Gemini</button>
+      </div>
+
+      <label className="gp-label">Decision points</label>
+      <div className="gp-models">
+        {[1, 2, 3, 4].map(n => (
+          <button
+            key={n}
+            type="button"
+            className={`gp-model ${numDecisionPoints === n ? 'on' : ''}`}
+            onClick={() => setNumDecisionPoints(n)}
+          >
+            {n}
+          </button>
+        ))}
       </div>
 
       <button className="btn btn-primary btn-full" disabled={!canRun} onClick={onGenerate} style={{ marginTop: 12 }}>

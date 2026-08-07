@@ -193,10 +193,16 @@ def poll_until_done(client, operation):
     if not getattr(operation, "response", None) or not getattr(
         operation.response, "generated_videos", None
     ):
-        print(" failed (empty response).")
-        raise RuntimeError(
-            "Veo returned no videos — operation completed but response is empty. "
-            "Possible causes: content policy rejection, API quota, or transient generation failure."
+        reasons = getattr(operation.response, "rai_media_filtered_reasons", None) or []
+        reason_text = " ".join(reasons) or "no reason given by Veo"
+        # Empirically these RAI-filtered empty responses fire on entirely benign
+        # lines and clear on a plain retry (Veo's own message says as much: "you
+        # have not been charged for this attempt, please try again") - treat as
+        # transient rather than a hard content-policy stop, same retry budget as
+        # code-13 overload failures.
+        print(" failed (empty response, retrying).")
+        raise _VeoRetryableError(
+            f"Veo returned no videos — operation completed but response is empty. {reason_text}"
         )
     print(" done!")
     return operation

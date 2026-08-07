@@ -48,13 +48,18 @@ from .interaction_guard import close_up_camera, interaction_isolation_instructio
 from .stitching import stitch
 
 FIRST_CLIP_SECONDS = 8
-SHORT_LINE_WORD_LIMIT = 5
+# Scene 10's instructor line ("What did you find with Elena?", 6 words) is
+# the shortest line in the whole scenario and sat one word above the old
+# limit of 5 - Veo filled the leftover time in the 8s clip by repeating the
+# line a second time instead of reacting silently. Raised to 7 so every line
+# that short gets the no-invent guard below.
+SHORT_LINE_WORD_LIMIT = 7
 SEED_FRAME_TIMESTAMP_FRACTION = 0.2  # early in the clip - more likely a neutral, not mid-word, moment
 
 NO_INVENT_INSTRUCTION = (
     "Do not invent, add, or extend any spoken dialogue beyond the single line "
-    "specified above. After delivering this line, {name} says nothing further - "
-    "no additional speech - and simply reacts naturally (a small gesture, "
+    "specified above, and do not repeat that line a second time. After "
+    "delivering it once, {name} simply reacts naturally (a small gesture, "
     "posture shift, or expression change) for the rest of the clip."
 )
 
@@ -237,6 +242,12 @@ def run_scene_pipeline_solo_clip(
             model=model,
         )
         download_video(client, video_obj, str(video_path))
+        # Sidecar recording the exact spoken text this clip was generated
+        # for, so stitching can tell a stray unscripted interjection Veo
+        # sometimes tacks on (e.g. a filler "Oh." before/after the real
+        # line) apart from the actual line, instead of blindly trimming to
+        # the full first-detected-speech-to-last-detected-speech span.
+        video_path.with_suffix(".txt").write_text(_spoken_text(line["line"]), encoding="utf-8")
 
         if seed_bytes is None:
             seed_bytes_by_character[speaker_id] = _extract_seed_frame(video_path)
@@ -276,6 +287,14 @@ def run_scenario_pipeline_solo_clip(
 
     cache_path = rig_cache_path(output_dir)
     rig = load_cached_rig(cache_path)
+    # A cached rig from a different scenario sharing the same output_dir
+    # (e.g. output/solo_clip/ reused across runs) silently passes the
+    # existence check above but is missing this scenario's character_ids -
+    # rig[speaker_id] then raises a bare KeyError deep in _build_line_prompt.
+    # Regenerate whenever the cache doesn't cover every character actually
+    # in this scenario, rather than trusting staleness-blind presence alone.
+    if rig is not None and not set(c["character_id"] for c in characters) <= rig.keys():
+        rig = None
     if rig is None:
         rig = generate_character_rig(client, scenario)
         save_rig_cache(cache_path, rig)

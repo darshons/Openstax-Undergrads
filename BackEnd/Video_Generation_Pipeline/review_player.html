@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Anthony Scenario - Review Reel</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #111;
+    color: #eee;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    height: 100%;
+  }
+  #wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  #sceneLabel {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  video {
+    width: 100%;
+    background: #000;
+    display: block;
+  }
+  #controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  button {
+    background: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { background: #444; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  #status {
+    font-size: 13px;
+    color: #999;
+  }
+  #missing {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #e6a23c;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>Anthony Scenario - Review Reel</h1>
+  <div id="sceneLabel">Loading...</div>
+  <video id="player" controls autoplay></video>
+  <div id="controls">
+    <button id="prevBtn">Previous</button>
+    <button id="nextBtn">Next</button>
+    <span id="status"></span>
+  </div>
+  <div id="missing"></div>
+</div>
+
+<script>
+  const TOTAL_SCENES = 16;
+  const player = document.getElementById('player');
+  const sceneLabel = document.getElementById('sceneLabel');
+  const status = document.getElementById('status');
+  const missingEl = document.getElementById('missing');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  let current = 1;
+
+  function sceneFile(n) {
+    return 'output/solo_clip/scene' + n + '_final.mp4';
+  }
+
+  function loadScene(n) {
+    if (n < 1 || n > TOTAL_SCENES) return;
+    current = n;
+    player.src = sceneFile(n);
+    player.play().catch(() => {});
+    sceneLabel.textContent = 'Scene ' + n + ' of ' + TOTAL_SCENES;
+    status.textContent = '';
+    prevBtn.disabled = n <= 1;
+    nextBtn.disabled = n >= TOTAL_SCENES;
+  }
+
+  player.addEventListener('ended', () => {
+    if (current < TOTAL_SCENES) {
+      loadScene(current + 1);
+    } else {
+      status.textContent = 'Reel complete.';
+    }
+  });
+
+  player.addEventListener('error', () => {
+    status.textContent = 'Scene ' + current + ' failed to load (missing file?).';
+  });
+
+  prevBtn.addEventListener('click', () => loadScene(current - 1));
+  nextBtn.addEventListener('click', () => loadScene(current + 1));
+
+  // Report which scene files are actually present so a partial set is obvious at a glance.
+  // Uses probe <video> elements rather than fetch() so this also works when the page
+  // is opened directly as a file:// URL, where fetch() is blocked by CORS.
+  function probeScene(n) {
+    return new Promise((resolve) => {
+      const probe = document.createElement('video');
+      probe.preload = 'metadata';
+      probe.onloadedmetadata = () => resolve(true);
+      probe.onerror = () => resolve(false);
+      probe.src = sceneFile(n);
+    });
+  }
+
+  async function checkAvailability() {
+    const results = await Promise.all(
+      Array.from({ length: TOTAL_SCENES }, (_, i) => probeScene(i + 1))
+    );
+    const missing = results
+      .map((ok, i) => (ok ? null : i + 1))
+      .filter((n) => n !== null);
+    if (missing.length > 0) {
+      missingEl.textContent = 'Missing scene files: ' + missing.join(', ');
+    } else {
+      missingEl.textContent = 'All 16 scene files present.';
+    }
+  }
+
+  loadScene(1);
+  checkAvailability();
+</script>
+</body>
+</html>

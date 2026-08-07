@@ -3,11 +3,15 @@ def build_character_block(characters: list) -> str:
     char_lines = []
     for cid, char in char_lookup.items():
         a = char["appearance"]
-        char_lines.append(
+        distinguishing = a.get("distinguishing_features")
+        line = (
             f"{char['name']} ({char['role']}): "
-            f"{a['skin_tone']} skin, {a['hair']}, {a['uniform']}. "
-            f"Emotional tone: {char['emotional_baseline']}."
+            f"{a['skin_tone']} skin, {a['hair']}, {a['uniform']}"
         )
+        if distinguishing:
+            line += f", {distinguishing}"
+        line += f". Emotional tone: {char['emotional_baseline']}."
+        char_lines.append(line)
     return " | ".join(char_lines)
 
 
@@ -52,11 +56,31 @@ def build_veo_prompt(
     character_block = build_character_block(characters)
     dialogue_block = build_dialogue_block(scene, char_lookup)
 
+    cam = scene.get("camera", {})
+    camera_block = (
+        f"{cam.get('angle', '')}. "
+        f"{cam.get('movement', '')}. "
+        f"{cam.get('lens_effect', '')}."
+    )
+
     audio = scene.get("audio", {})
     sound_block = (
         f"Sound effects: {audio.get('sound_effects', 'none')}. "
         f"Ambience: {audio.get('ambience', 'none')}."
     )
+    # Only applies when there's actual dialogue - instructing Veo how to
+    # "record the dialogue voice" on a clip with no dialogue at all is a
+    # contradictory ask that may be what's tripping Veo's audio safety
+    # filter on silent multi-character clips (empty-response failures,
+    # "issue with the audio for your prompt", seen repeatedly on scene 8's
+    # silent two-shot attempts).
+    if scene.get("audio", {}).get("dialogue"):
+        sound_block += (
+            " Dialogue voice recording: clean and dry, as if captured by a "
+            "boom microphone close to the speaker - minimal room reverb, "
+            "echo, or hollow/hall-like resonance on the voice, even though "
+            "the room itself has hard surfaces."
+        )
 
     # Reference images are only passed for the first clip.
     has_reference_images = not is_continuation
@@ -69,12 +93,11 @@ def build_veo_prompt(
 
 Characters: {character_block}
 
-Setting: {scene.get('setting', '')}"""
+Setting: {scene.get('setting', '')}
 
-        if scene.get("character_actions"):
-            prompt += f"\n\nCharacter actions: {scene['character_actions']}"
+Character actions: {scene.get('character_actions', '')}
 
-        prompt += f"""
+Camera: {camera_block}
 
 Dialogue: {dialogue_block}
 
@@ -88,11 +111,19 @@ Audio: {sound_block}"""
         consistency_lines = []
         for char in characters:
             a = char["appearance"]
-            consistency_lines.append(
+            distinguishing = a.get("distinguishing_features")
+            line = (
                 f"{char['name']} always wears {a['uniform']}; "
-                f"{a['skin_tone']} skin, {a['hair']}. "
-                f"Do not change {char['name']}'s clothing, hair, skin tone, or facial features at any point."
+                f"{a['skin_tone']} skin, {a['hair']}"
             )
+            if distinguishing:
+                line += f"; always has {distinguishing}"
+            line += (
+                f". Do not change {char['name']}'s clothing, hair, skin tone, "
+                "facial features, or distinguishing features at any point - "
+                "these must be identical in every single shot."
+            )
+            consistency_lines.append(line)
 
         if has_reference_images:
             prompt += "\n\nCharacter reference images are provided. "
@@ -100,6 +131,10 @@ Audio: {sound_block}"""
         prompt += (
             " ".join(consistency_lines)
             + " Do not introduce any additional characters into frame."
+            + " Characters only hold or interact with props explicitly described in"
+            " the character actions above. Do not add, invent, or carry over any"
+            " other object (e.g. a clipboard, tablet, or pen) from the reference"
+            " images unless that prop is named in the current scene's actions."
         )
 
     # ------------------------------------------------------------------
@@ -108,14 +143,11 @@ Audio: {sound_block}"""
     else:
         prompt = f"""This clip is a direct continuation of the previous video. Do not reset the scene.
 
-Characters: {character_block}
+Use the established character appearances from the previous video. Preserve the same clothing, hair, skin tone, facial features, lighting, room layout, environment, and overall visual style. Do not reintroduce or redesign any character or object.
 
-Use the established character appearances from the previous video. Preserve the same clothing, hair, skin tone, facial features, lighting, room layout, environment, and overall visual style. Do not reintroduce or redesign any character or object."""
+Current character actions: {scene.get('character_actions', '')}
 
-        if scene.get("character_actions"):
-            prompt += f"\n\nCurrent character actions: {scene['character_actions']}"
-
-        prompt += f"""
+Camera: {camera_block}
 
 Dialogue: {dialogue_block}
 
@@ -148,6 +180,41 @@ Do not introduce any additional characters into frame."""
             "or on-screen text in the video."
         )
 
+    if has_reference_images:
+        prompt += (
+            " The character reference images each have a name label "
+            "printed in the corner for identification purposes only - "
+            "that label is not part of the scene. Do not render, copy, "
+            "or reproduce that text, or any other text from the "
+            "reference images, anywhere in the video."
+        )
+
+    # ------------------------------------------------------------------
+    # Default-to-nothing: only render what is explicitly described above.
+    # ------------------------------------------------------------------
+    prompt += (
+        "\n\nDo not add anything that is not explicitly described above. "
+        "Camera lock: the camera does not zoom, pan, tilt, dolly, shake, or "
+        "move in any way during this clip beyond what the Camera line above "
+        "specifies - if it says static, the framing is pixel-identical from "
+        "the first frame to the last, with no gradual zoom or drift. "
+        "No unrequested sound, no exceptions: the only audio in this clip is "
+        "the dialogue explicitly quoted above (if any) and the sound "
+        "effects/ambience explicitly named in the Audio line above - nothing "
+        "else. Specifically, do not add any of the following unless it is "
+        "explicitly named in the Audio line: clicks, pops, beeps, dings, "
+        "chimes, whooshes, static, hums, drones, musical stings, background "
+        "music, notification sounds, mechanical/electronic noises, or any "
+        "other sound effect - including after the dialogue ends, in the "
+        "silence before it starts, or layered underneath it. If the Audio "
+        "line says 'none' for sound effects, the clip contains zero sound "
+        "effects of any kind, at any point, full stop. "
+        "No unrequested visual effects: do not add vignettes, lens "
+        "flares, flashes, film grain changes, color grading shifts, "
+        "transitions, or any other screen effect that is not explicitly "
+        "described above."
+    )
+
     return prompt.strip()
 
 
@@ -155,7 +222,7 @@ def build_clip_prompts(scene: dict, characters: list, visual_style: str) -> list
     """
     Turn one scene into an ordered list of per-clip prompts (list[str]), one per
     clip. Each prompt carries the shared stage directions (setting, actions,
-    sound bed) plus only that clip's dialogue chunk.
+    camera, sound bed) plus only that clip's dialogue chunk.
     """
     clips = scene.get("clips")
     if not clips:
@@ -166,15 +233,20 @@ def build_clip_prompts(scene: dict, characters: list, visual_style: str) -> list
     shared_audio = scene.get("audio", {})
     prompts = []
     for i, clip in enumerate(clips):
+        clip_camera = clip.get("camera")
+        if clip_camera is None:
+            print(
+                f"  [scene {scene.get('scene_id')} clip {clip.get('clip_id', i+1)}] No per-clip camera — using scene-level camera."
+            )
+            clip_camera = scene.get("camera", {})
+
         clip_scene = {
             "scene_id": scene.get("scene_id"),
             "setting": clip.get("setting", scene.get("setting", "")),
-            # Only clip 1 inherits the scene-level staging description; later
-            # clips must define their own or go without, so the same actions
-            # text isn't repeated verbatim across every clip in a scene.
             "character_actions": clip.get(
-                "character_actions", scene.get("character_actions", "") if i == 0 else ""
+                "character_actions", scene.get("character_actions", "")
             ),
+            "camera": clip_camera,
             "audio": {
                 "dialogue": clip.get("dialogue", []),
                 "sound_effects": clip.get(

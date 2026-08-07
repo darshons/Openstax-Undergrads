@@ -10,11 +10,13 @@ lxml==6.1.1
 rapidfuzz==3.14.5
 pillow==10.4.0
 moviepy
+imageio-ffmpeg
+openai-whisper
 
-# Transcript_Eval_Pipeline extra (NOT needed to boot the API).
-# openai-whisper pulls in torch (multi-GB download) — install manually only if
-# you need transcript evaluation:
-#   pip install openai-whisper
+# openai-whisper pulls in torch (multi-GB download). Required by
+# solo_clip/transcribe.py to trim each raw clip to its actual speaking span
+# before stitching - not just an optional Transcript_Eval_Pipeline extra
+# anymore.
 
 # Manim video generation has its own pinned requirements:
 #   pip install -r Video_Generation_Pipeline/manim_generator/requirements.txt

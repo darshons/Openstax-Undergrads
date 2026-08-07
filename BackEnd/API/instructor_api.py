@@ -22,8 +22,19 @@ from API.instructor_api_helpers import (
     generate_opening_frame_images_impl,
     setup_supabase_client,
     video_status_path,
+    write_video_status,
+    make_on_scene_complete_callback,
     run_video_generation,
     SCENARIO_BACKENDS,
+)
+from Script_Generation_Pipeline import setup_gemini_client
+
+from Video_Generation_Pipeline.video_generator.clip_planner import (
+    plan_scenario_clips,
+    ClipPlanningError,
+)
+from Video_Generation_Pipeline.solo_clip.pipeline import (
+    run_scenario_pipeline_solo_clip,
 )
 
 from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
@@ -41,6 +52,7 @@ import tempfile
 import json
 import os
 import json
+import traceback
 from storage3.exceptions import StorageApiError
 
 logger = logging.getLogger("uvicorn.error")
@@ -752,3 +764,93 @@ def manim_video_status(request_id: str):
         return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
     with open(status_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# v2: solo-clip generation technique - one isolated clip per speaking
+# character per line (never two characters in the same shot), instead of
+# the v1 pipeline's per-scene extension-chaining. Added as a fully separate
+# endpoint/background job rather than replacing /generate_videos, so v1
+# behavior is completely unaffected - see solo_clip/pipeline.py for the
+# technique itself and its known v1-parity gaps. Currently Veo-only
+# (no local/Wan backend counterpart), unlike v1's backend="local"|"veo" choice.
+SOLO_CLIP_OUTPUT_ROOT = os.environ.get(
+    "SOLO_CLIP_OUTPUT_ROOT",
+    os.path.join(_REPO_ROOT, "Video_Generation_Pipeline", "output", "video_runs"),
+)
+
+
+def _run_video_generation_v2(
+    script: dict, request_id: str, background_image_path: str, character_image_file_mapping: dict
+) -> None:
+    """Background job, v2. Mirrors run_video_generation's status.json
+    contract exactly (same states, same completed_scenes/failed_scenes
+    shape) so /video_status works unchanged for either pipeline - only the
+    render step (run_scenario_pipeline_solo_clip instead of
+    run_scenario_pipeline) differs."""
+    status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
+    write_video_status(request_id, status)
+
+    try:
+        client = setup_gemini_client()
+
+        try:
+            planned_scenario = plan_scenario_clips(script, client=client)
+        except ClipPlanningError as e:
+            status["state"] = "failed"
+            status["error"] = f"clip planning failed: {e}"
+            write_video_status(request_id, status)
+            return
+
+        status["state"] = "rendering"
+        write_video_status(request_id, status)
+
+        on_scene_complete = make_on_scene_complete_callback(status, request_id)
+
+        run_scenario_pipeline_solo_clip(
+            client=client,
+            scenario=planned_scenario,
+            character_image_file_mapping=character_image_file_mapping,
+            background_image_path=background_image_path,
+            output_dir=os.path.join(SOLO_CLIP_OUTPUT_ROOT, request_id),
+            model="veo-3.1-fast-generate-preview",
+            on_scene_complete=on_scene_complete,
+        )
+
+        status["state"] = (
+            "done" if not status["failed_scenes"] else "completed_with_errors"
+        )
+        write_video_status(request_id, status)
+    except Exception as e:
+        status["state"] = "failed"
+        status["error"] = str(e)
+        write_video_status(request_id, status)
+        print(
+            f"[generate_videos_v2] request {request_id} failed:\n{traceback.format_exc()}"
+        )
+
+
+# This endpoint is the solo-clip-technique counterpart to /generate_videos - same request shape, same status contract, different rendering pipeline.
+@instructor_router.post("/generate_videos_v2")
+def generate_videos_v2(
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
+    """Kick off solo-clip-technique video generation for an approved scenario
+    script. Returns immediately; poll /video_status/{request_id} for progress
+    (same endpoint /generate_videos uses)."""
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Video generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    background_tasks.add_task(
+        _run_video_generation_v2,
+        request.script,
+        request.request_id,
+        request.background_image_path,
+        request.character_image_file_mapping,
+    )
+    return {"status": "started", "request_id": request.request_id}

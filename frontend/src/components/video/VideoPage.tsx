@@ -131,15 +131,17 @@ interface VideoPageProps {
   assetImages: AssetImages;
   onBack: () => void;
   onStudentPreview?: () => void;
+  /** Pre-resolved scene_id -> video URL, for presets loaded without a live generation run (e.g. a demo fixture). */
+  initialSceneVideos?: Record<number, string>;
 }
 
 type GenState = 'idle' | 'running' | 'done' | 'partial' | 'error';
 
-export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack, onStudentPreview }: VideoPageProps) {
+export default function VideoPage({ script, requestId, scenarioBackend, assetImages, onBack, onStudentPreview, initialSceneVideos }: VideoPageProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [sceneVideos, setSceneVideos] = useState<Record<number, string>>({});
+  const [sceneVideos, setSceneVideos] = useState<Record<number, string>>(initialSceneVideos ?? {});
   const [sceneVideoPaths, setSceneVideoPaths] = useState<Record<number, string>>({});
-  const [genState, setGenState] = useState<GenState>('idle');
+  const [genState, setGenState] = useState<GenState>(initialSceneVideos ? 'done' : 'idle');
   const [genStatus, setGenStatus] = useState<string>('');
   const [genError, setGenError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);

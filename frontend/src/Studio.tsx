@@ -23,6 +23,7 @@ import {
 } from './lib/api';
 import { saveScenario } from './lib/savedScenario';
 import { buildGenerateRequest } from './data/catalog';
+import { ANTHONY_FULL_SCRIPT, ANTHONY_FULL_ASSET_IMAGES, ANTHONY_FULL_SCENE_VIDEOS } from './data/anthonyScenario';
 import Sidebar from './components/layout/Sidebar';
 import GeneratePanel from './components/layout/GeneratePanel';
 import StageBar from './components/canvas/StageBar';
@@ -41,6 +42,7 @@ export default function Studio() {
   const [assetImages, setAssetImages] = useState<AssetImages>({ bgPath: null, charPaths: {}, framePaths: {} });
   const [assetsStep, setAssetsStep] = useState<AssetsStep>('idle');
   const [assetsError, setAssetsError] = useState<string | null>(null);
+  const [presetSceneVideos, setPresetSceneVideos] = useState<Record<number, string> | undefined>(undefined);
 
   const [busy, setBusy] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -261,6 +263,7 @@ export default function Studio() {
     setAssetImages({ bgPath: null, charPaths: {}, framePaths: {} });
     setAssetsStep('idle');
     setAssetsError(null);
+    setPresetSceneVideos(undefined);
     setDeleteUndoStack([]);
     setEditingSceneIdx(null);
     setEditingCharacterIdx(null);
@@ -282,6 +285,19 @@ export default function Studio() {
       setBusy(false);
     }
   }, [selected, model, videoType, userQuery]);
+
+  const loadAnthonyDemo = useCallback(() => {
+    setScript(ANTHONY_FULL_SCRIPT);
+    setRequestId(null);
+    setAssetImages(ANTHONY_FULL_ASSET_IMAGES);
+    setAssetsStep('done');
+    setAssetsError(null);
+    setPresetSceneVideos(ANTHONY_FULL_SCENE_VIDEOS);
+    setDeleteUndoStack([]);
+    setEditingSceneIdx(null);
+    setEditingCharacterIdx(null);
+    setCurrentPage('script');
+  }, []);
 
   // ── Asset image generation ─────────────────────────────────────────────
 
@@ -409,6 +425,7 @@ export default function Studio() {
               requestId={requestId}
               scenarioBackend={scenarioBackend}
               assetImages={assetImages}
+              initialSceneVideos={presetSceneVideos}
               onBack={() => setCurrentPage('assets')}
               onStudentPreview={() => {
                 saveScenario(script, assetImages);
@@ -491,6 +508,9 @@ export default function Studio() {
                     <div className="empty-illust"><div /><div /><div /></div>
                     <h2>Your script will appear here as a storyboard</h2>
                     <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{ color: 'var(--os-orange)' }}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
+                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={loadAnthonyDemo}>
+                      Load Anthony Demo (final demo fixture)
+                    </button>
                   </div>
                 </div>
               )}

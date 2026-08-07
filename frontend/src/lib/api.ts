@@ -159,6 +159,10 @@ export async function retryOpeningFrame(
 
 /** Convert an absolute server-side file path into a URL served by the backend. */
 export function imageUrl(serverPath: string): string {
+  // Bundled demo fixtures (e.g. the Anthony scenario preset) point directly at
+  // frontend-hosted static assets rather than backend-generated output - pass
+  // those through unchanged instead of routing them through the backend.
+  if (serverPath.startsWith(`${import.meta.env.BASE_URL}anthony-scenario/`)) return serverPath;
   const qIdx = serverPath.indexOf('?');
   const path = qIdx === -1 ? serverPath : serverPath.slice(0, qIdx);
   const qs = qIdx === -1 ? '' : serverPath.slice(qIdx);

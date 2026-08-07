@@ -67,8 +67,8 @@ export default function Studio() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
-  const [model, setModel] = useState<ModelChoice>('anthropic');
-  const [videoType, setVideoType] = useState<VideoType>('auto');
+  const model: ModelChoice = 'anthropic';
+  const [videoType, setVideoType] = useState<VideoType>('scenario');
   const [scenarioBackend, setScenarioBackend] = useState<ScenarioBackend>('local');
   const [userQuery, setUserQuery] = useState('');
 
@@ -469,8 +469,6 @@ export default function Studio() {
               onGenerate={runGenerate}
               busy={busy}
               hasScript={!!script}
-              model={model}
-              setModel={setModel}
               videoType={videoType}
               setVideoType={setVideoType}
               scenarioBackend={scenarioBackend}
@@ -511,8 +509,19 @@ export default function Studio() {
                     <div className="empty-illust"><div /><div /><div /></div>
                     <h2>Your script will appear here as a storyboard</h2>
                     <p>Pick a section in the library on the left, describe the scenario, then hit <b style={{ color: 'var(--os-orange)' }}>Generate script</b>. The AI grounds the script in the chosen OpenStax content.</p>
-                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={loadAnthonyDemo}>
-                      Load Anthony Demo (final demo fixture)
+                    <button
+                      onClick={loadAnthonyDemo}
+                      style={{
+                        marginTop: 14,
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: 11,
+                        color: 'rgba(0,0,0,.22)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Load
                     </button>
                   </div>
                 </div>

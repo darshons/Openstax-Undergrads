@@ -57,14 +57,6 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
     wasCorrect: null,
   });
 
-  // Auto-advance from feedback after 2.5s
-  useEffect(() => {
-    if (state.phase !== 'feedback') return;
-    const timer = setTimeout(advanceAfterFeedback, 2500);
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.wasCorrect, state.sceneId, state.dpId, state.branchSceneId]);
-
   const displaySceneId = state.branchSceneId ?? state.sceneId;
   const currentScene: Scene | undefined = sceneMap.get(displaySceneId);
   const currentDP: DecisionPoint | undefined = state.dpId ? dpMap.get(state.dpId) : undefined;
@@ -79,6 +71,9 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   const videoSrc = videoLinks?.[`scene_${sceneOrder}.mp4`];
   const videoRef = useRef<HTMLVideoElement>(null);
   const [needsUnmute, setNeedsUnmute] = useState(false);
+  const [playing, setPlaying] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   // Autoplay each scene's clip as it becomes current. Browsers block
   // autoplay-with-sound without prior user interaction (e.g. the very first
@@ -112,6 +107,32 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
     video.muted = false;
     setNeedsUnmute(false);
     video.play().catch(() => {});
+  }
+
+  function togglePlay() {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
+  }
+
+  function skip(seconds: number) {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = Math.min(Math.max(video.currentTime + seconds, 0), video.duration || Infinity);
+  }
+
+  function seekTo(time: number) {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = time;
+  }
+
+  function fmtTime(s: number) {
+    if (!Number.isFinite(s) || s < 0) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
   }
 
   const currentTrunkIdx = trunkScenes.findIndex(s => s.scene_id === state.sceneId);
@@ -200,7 +221,19 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   return (
     <div className="sp-root">
       {videoSrc
-        ? <video ref={videoRef} key={videoSrc} src={videoSrc} className="sp-bg-img sp-bg-video" playsInline />
+        ? (
+          <video
+            ref={videoRef}
+            key={videoSrc}
+            src={videoSrc}
+            className="sp-bg-img sp-bg-video"
+            playsInline
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onLoadedMetadata={e => setDuration(e.currentTarget.duration)}
+            onTimeUpdate={e => setCurrentTime(e.currentTarget.currentTime)}
+          />
+        )
         : frameSrc
         ? <img key={frameSrc} src={frameSrc} alt="" className="sp-bg-img" />
         : <div className="sp-bg-fallback" />
@@ -211,6 +244,33 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
         <button className="sp-unmute" onClick={unmute}>
           🔇 Tap to unmute
         </button>
+      )}
+
+      {/* Video transport controls */}
+      {videoSrc && state.phase === 'watching' && (
+        <div className="sp-transport">
+          <button className="sp-transport-btn" onClick={() => skip(-10)} aria-label="Back 10 seconds">−10s</button>
+          <button className="sp-transport-btn sp-transport-play" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
+            {playing ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+            )}
+          </button>
+          <button className="sp-transport-btn" onClick={() => skip(10)} aria-label="Forward 10 seconds">+10s</button>
+          <span className="sp-transport-time">{fmtTime(currentTime)}</span>
+          <input
+            type="range"
+            className="sp-transport-seek"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={currentTime}
+            onChange={e => seekTo(Number(e.target.value))}
+            aria-label="Seek"
+          />
+          <span className="sp-transport-time">{fmtTime(duration)}</span>
+        </div>
       )}
 
       {/* Progress */}
@@ -322,7 +382,15 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
             <p className="sp-misconception">{selectedChoice.misconception}</p>
           )}
           {state.phase === 'feedback' && state.wasCorrect && (
-            <p className="sp-correct-msg">Correct - continuing</p>
+            <p className="sp-correct-msg">Correct!</p>
+          )}
+          {state.phase === 'feedback' && (
+            <button className="sp-ack-btn" onClick={advanceAfterFeedback}>
+              {state.wasCorrect ? 'Continue' : 'I understand'}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
           )}
         </div>
       )}

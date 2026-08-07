@@ -148,6 +148,7 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   }
 
   function handleContinue() {
+    videoRef.current?.pause();
     if (state.branchSceneId) {
       // Finished watching a branch scene
       if (state.wasCorrect) {

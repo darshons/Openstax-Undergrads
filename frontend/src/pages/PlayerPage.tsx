@@ -100,7 +100,7 @@ export default function PlayerPage() {
         script={state.script}
         assetImages={state.assetImages ?? { bgPath: null, charPaths: {}, framePaths: {} }}
         videoLinks={state.videoLinks}
-        onExit={() => navigate(-1 as never)}
+        onExit={() => navigate('/')}
       />
     </>
   );

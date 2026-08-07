@@ -22,6 +22,7 @@ import {
   retryOpeningFrame,
 } from './lib/api';
 import { saveScenario } from './lib/savedScenario';
+import { sceneVideoLinks } from './lib/utils';
 import { buildGenerateRequest } from './data/catalog';
 import { ANTHONY_FULL_SCRIPT, ANTHONY_FULL_ASSET_IMAGES, ANTHONY_FULL_SCENE_VIDEOS } from './data/anthonyScenario';
 import Sidebar from './components/layout/Sidebar';
@@ -36,6 +37,7 @@ import StudentPlayer from './components/student/StudentPlayer';
 export default function Studio() {
   const navigate = useNavigate();
   const [previewing, setPreviewing] = useState(false);
+  const [previewVideoLinks, setPreviewVideoLinks] = useState<Record<string, string> | undefined>(undefined);
   const [script, setScript] = useState<Script | null>(null);
   const [deleteUndoStack, setDeleteUndoStack] = useState<Script[]>([]);
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -427,7 +429,8 @@ export default function Studio() {
               assetImages={assetImages}
               initialSceneVideos={presetSceneVideos}
               onBack={() => setCurrentPage('assets')}
-              onStudentPreview={() => {
+              onStudentPreview={(sceneVideos) => {
+                setPreviewVideoLinks(sceneVideoLinks(script.scenes, sceneVideos));
                 saveScenario(script, assetImages);
                 setPreviewing(true);
               }}
@@ -553,6 +556,7 @@ export default function Studio() {
           <StudentPlayer
             script={script}
             assetImages={assetImages}
+            videoLinks={previewVideoLinks}
             onExit={() => setPreviewing(false)}
           />
         </div>

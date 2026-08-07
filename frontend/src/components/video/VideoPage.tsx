@@ -130,7 +130,7 @@ interface VideoPageProps {
   scenarioBackend: ScenarioBackend;
   assetImages: AssetImages;
   onBack: () => void;
-  onStudentPreview?: () => void;
+  onStudentPreview?: (sceneVideos: Record<number, string>) => void;
   /** Pre-resolved scene_id -> video URL, for presets loaded without a live generation run (e.g. a demo fixture). */
   initialSceneVideos?: Record<number, string>;
 }
@@ -294,7 +294,7 @@ export default function VideoPage({ script, requestId, scenarioBackend, assetIma
                 : 'Generate videos'}
           </button>
           {onStudentPreview && (
-            <button className="assets-back" onClick={onStudentPreview} style={{ gap: 6 }}>
+            <button className="assets-back" onClick={() => onStudentPreview(sceneVideos)} style={{ gap: 6 }}>
               Student Preview →
             </button>
           )}

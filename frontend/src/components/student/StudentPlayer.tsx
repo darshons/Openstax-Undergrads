@@ -85,6 +85,11 @@ export default function StudentPlayer({ script, assetImages, videoLinks, onExit 
   }, [videoSrc]);
 
   function rewatchVideo() {
+    // The decision/feedback panel is a full-screen overlay - switch back to
+    // 'watching' so it hides and the video underneath is actually visible.
+    // Continuing afterward re-enters the same decision point (see
+    // handleContinue), so nothing about the branching state needs to change.
+    setState(s => ({ ...s, phase: 'watching' }));
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = 0;

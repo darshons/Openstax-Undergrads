@@ -65,8 +65,8 @@ export default function Studio() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
-  const [model, setModel] = useState<ModelChoice>('anthropic');
-  const [videoType, setVideoType] = useState<VideoType>('auto');
+  const model: ModelChoice = 'anthropic';
+  const [videoType, setVideoType] = useState<VideoType>('scenario');
   const [scenarioBackend, setScenarioBackend] = useState<ScenarioBackend>('local');
   const [userQuery, setUserQuery] = useState('');
 
@@ -452,8 +452,6 @@ export default function Studio() {
               onGenerate={runGenerate}
               busy={busy}
               hasScript={!!script}
-              model={model}
-              setModel={setModel}
               videoType={videoType}
               setVideoType={setVideoType}
               scenarioBackend={scenarioBackend}

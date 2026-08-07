@@ -357,7 +357,6 @@ input, textarea { font-family: inherit; color: inherit; }
 
 /* ─── Generate panel additions ───────────────────────────────────────────── */
 .gp-label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--os-ink-3);margin:10px 0 5px}
-.gp-hint{margin:6px 0 0;font-size:11.5px;line-height:1.45;color:var(--os-ink-3)}
 .gp-models{display:flex;gap:6px}
 .gp-model{flex:1;padding:7px 8px;border:1px solid var(--os-line);border-radius:7px;background:#fff;font-size:12px;font-weight:600;color:var(--os-ink-2);transition:.12s}
 .gp-model:hover{border-color:var(--os-line-strong);color:var(--os-ink)}

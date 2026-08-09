@@ -33,15 +33,22 @@
 # pipeline:
 #   - Clips with zero dialogue lines (pure action/reaction beats) are
 #     skipped - there is no single "speaker" for a solo clip to isolate.
-#   - No retry/escalation policy yet - a clip that raises is treated as a
-#     scene failure like the extension-chain pipeline; no automated visual
-#     QA or auto-retry-on-defect exists yet (still caught by human review
-#     only).
+#   - Automated visual/dialogue QA is opt-in via verify_clips (transcript_eval's
+#     video judge, same as the extension-chain pipeline), regenerating a
+#     failing clip in place up to eval_retries times; a clip that still fails
+#     after that is treated as a scene failure, same as any other raise.
 import io
+import os
+import time
 from pathlib import Path
 
+from video_generator.clip_verification import eval_failure_reason
 from video_generator.prompt_builder import build_veo_prompt
-from video_generator.veo_api import download_video, generate_first_clip
+from video_generator.veo_api import ClipEvalFailedError, download_video, generate_first_clip
+
+# clip_verification (imported above) already inserts Transcript_Eval_Pipeline
+# onto sys.path, making transcript_eval importable here too.
+from transcript_eval.video_judge import evaluate_clip
 
 from .character_rig import generate_character_rig, load_cached_rig, rig_cache_path, save_rig_cache, setting_summary
 from .interaction_guard import close_up_camera, interaction_isolation_instruction, references_interaction
@@ -199,6 +206,78 @@ def _find_latest_existing_clip(output_dir: Path, character_id: str) -> Path | No
     return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
+def _generate_and_verify_solo_clip(
+    client,
+    prompt,
+    reference_images,
+    seed_bytes,
+    model,
+    video_path: Path,
+    failed_dir: Path,
+    verify_clips: bool,
+    eval_retries: int,
+    scene_id: int,
+    clip_id: int,
+    speaker: dict,
+    line: dict,
+    setting_text: str,
+    character_actions: str,
+):
+    """Generates one solo clip, downloads it to video_path, and — if
+    verify_clips — judges it with transcript_eval, regenerating in place
+    (same prompt/seed) up to eval_retries more times on failure. Unlike the
+    extension-chain pipeline, a solo clip isn't chained to the ones after
+    it, so a bad clip is retried on its own instead of restarting the whole
+    scene. Only characters=[speaker] is passed to the judge since every
+    other character is instructed to be entirely absent from a solo shot.
+
+    A clip that fails eval is moved into failed_dir (same "keep discarded
+    attempts for review" convention as the extension-chain pipeline's
+    failed_clips/) rather than silently overwritten by the next attempt's
+    download to video_path.
+    """
+    attempts = eval_retries + 1 if verify_clips else 1
+    for attempt in range(attempts):
+        video_obj, _attempts, _recovered_error = generate_first_clip(
+            client,
+            prompt,
+            clip_index=clip_id,
+            reference_images=reference_images,
+            seed_image_bytes=seed_bytes,
+            duration_seconds=FIRST_CLIP_SECONDS,
+            model=model,
+        )
+        download_video(client, video_obj, str(video_path))
+
+        if not verify_clips:
+            return video_obj
+
+        report = evaluate_clip(
+            client,
+            video_path=str(video_path),
+            scene_id=scene_id,
+            clip_id=clip_id,
+            dialogue=[line],
+            characters=[speaker],
+            setting=setting_text,
+            character_actions=character_actions,
+        )
+        if report["passed"]:
+            return video_obj
+
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        failed_dir.mkdir(parents=True, exist_ok=True)
+        kept_path = failed_dir / f"{video_path.stem}_attempt{attempt + 1}_{ts}{video_path.suffix}"
+        os.replace(video_path, kept_path)
+
+        print(f"  Clip {clip_id} failed eval: {eval_failure_reason(report)}")
+        print(f"  Failed attempt saved: {kept_path}")
+        if attempt < attempts - 1:
+            print(f"  Regenerating clip {clip_id} (attempt {attempt + 2}/{attempts})...")
+
+    raise ClipEvalFailedError(f"clip {clip_id}: {eval_failure_reason(report)}")
+
+
 def run_scene_pipeline_solo_clip(
     client,
     scene: dict,
@@ -211,6 +290,8 @@ def run_scene_pipeline_solo_clip(
     output_dir: Path,
     setting_text: str,
     model: str = None,
+    verify_clips: bool = False,
+    eval_retries: int = 1,
 ) -> str:
     """Generates every solo clip for one scene and stitches them together.
     seed_bytes_by_character is mutated in place (shared across scenes in a
@@ -219,9 +300,11 @@ def run_scene_pipeline_solo_clip(
     Returns the path to the final stitched scene video."""
     scene_id = scene["scene_id"]
     lines = _flatten_scene_lines(scene)
+    char_lookup = {c["character_id"]: c for c in characters}
 
     raw_dir = output_dir / f"scene{scene_id}_raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
+    failed_dir = output_dir / "failed_clips"
 
     for i, line in enumerate(lines, start=1):
         prompt, speaker_id, _ = _build_line_prompt(scene, characters, visual_style, rig, line, setting_text)
@@ -232,16 +315,23 @@ def run_scene_pipeline_solo_clip(
             reference_images = [character_image_file_mapping[speaker_id], background_image_path]
 
         video_path = raw_dir / f"{i:02d}_{speaker_id}.mp4"
-        video_obj, _attempts, _recovered_error = generate_first_clip(
+        _generate_and_verify_solo_clip(
             client,
             prompt,
-            clip_index=i,
-            reference_images=reference_images,
-            seed_image_bytes=seed_bytes,
-            duration_seconds=FIRST_CLIP_SECONDS,
-            model=model,
+            reference_images,
+            seed_bytes,
+            model,
+            video_path,
+            failed_dir,
+            verify_clips,
+            eval_retries,
+            scene_id,
+            i,
+            char_lookup[speaker_id],
+            line,
+            setting_text,
+            rig[speaker_id]["pose"],
         )
-        download_video(client, video_obj, str(video_path))
         # Sidecar recording the exact spoken text this clip was generated
         # for, so stitching can tell a stray unscripted interjection Veo
         # sometimes tacks on (e.g. a filler "Oh." before/after the real
@@ -265,6 +355,8 @@ def run_scenario_pipeline_solo_clip(
     output_dir: Path,
     model: str = None,
     on_scene_complete=None,
+    verify_clips: bool = False,
+    eval_retries: int = 1,
 ) -> list:
     """Solo-clip counterpart to pipeline.py's run_scenario_pipeline. Derives
     the character rig once (one cheap LLM call, not per scene), then renders
@@ -322,6 +414,8 @@ def run_scenario_pipeline_solo_clip(
                 output_dir=output_dir,
                 setting_text=setting_text,
                 model=model,
+                verify_clips=verify_clips,
+                eval_retries=eval_retries,
             )
             result = {"scene_id": scene_id, "success": True, "output_file": output_file, "error": None}
         except Exception as e:

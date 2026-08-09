@@ -5,6 +5,8 @@ Generates MP4 videos from a scenario JSON file. The **default backend is local**
 - **Local (default)**: each clip is rendered as its own ComfyUI job (Wan2.2-A14B GGUF + lightx2v 4-step distill LoRAs), then the scene's clips are concatenated with ffmpeg into one mp4.
 - **Veo (deprecated)**: every scene is a chain of extension clips — each clip continues from the last frame of the previous one — producing a single seamless video per scene.
 
+**See also `solo_clip/`**, a sibling technique (in `Video_Generation_Pipeline/solo_clip/`) that generates one isolated Veo clip per speaking character per dialogue line instead of a shared extension chain — it structurally eliminates the wrong-speaker-in-frame artifact the chain above is prone to, and is currently the most reliable of the two Veo-based techniques. See [its README](solo_clip/README.md).
+
 ---
 
 ## Module structure
@@ -21,6 +23,7 @@ video_generator/
   logging_utils.py     — generation log, prompt saving, checkpoints
   cli.py               — argument parsing, entry point, caption burning
 
+solo_clip/             — sibling one-clip-per-speaker technique, see its own README
 tests/                 — offline unit tests (scenario load, prompt build, payload build)
 reference_images/      — place character reference PNGs here
 output/                — generated videos and generation_log.json (created on first run)

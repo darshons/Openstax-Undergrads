@@ -34,6 +34,19 @@ def parse_args():
         default=os.environ.get("GEMINI_API_KEY"),
         help="Gemini API key (or set GEMINI_API_KEY env var).",
     )
+    parser.add_argument(
+        "--verify-clips",
+        action="store_true",
+        help="Judge each solo clip against the script as it's generated (via "
+        "Transcript_Eval_Pipeline), regenerating the clip in place on failure. "
+        "Adds a Gemini vision judge call per clip - real extra cost/latency.",
+    )
+    parser.add_argument(
+        "--eval-retries",
+        type=int,
+        default=1,
+        help="Max regeneration attempts for a clip that fails --verify-clips eval (default: 1).",
+    )
     return parser.parse_args()
 
 
@@ -72,6 +85,8 @@ def main():
         background_image_path=background_image_path,
         output_dir=OUTPUT_DIR,
         model=args.model,
+        verify_clips=args.verify_clips,
+        eval_retries=args.eval_retries,
     )
 
     print(f"\n{'─'*60}")

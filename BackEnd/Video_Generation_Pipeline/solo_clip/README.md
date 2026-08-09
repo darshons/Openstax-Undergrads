@@ -16,11 +16,12 @@ and Veo-call machinery from `video_generator` (`prompt_builder.build_veo_prompt`
 
 - Clips with zero dialogue lines (pure action/reaction beats) are skipped — there
   is no single "speaker" for a solo clip to isolate.
-- No retry/escalation policy yet — a clip that raises is treated as a scene
-  failure, same as the main pipeline; no automated visual QA or auto-retry-on-
-  defect exists yet (still caught by human review only).
-- Not wired into `--verify-clips`/`generation_log.json` — a run's only record is
-  its console output and the files it writes to disk.
+- Automated visual/dialogue QA is opt-in via `--verify-clips` (same
+  `transcript_eval` video judge the main pipeline uses, see [Clip
+  verification](#clip-verification) below) — a failing clip is regenerated in
+  place up to `--eval-retries` times; a clip still failing after that is
+  treated as a scene failure, same as any other raise. Without the flag, a
+  run's only record is its console output and the files it writes to disk.
 - Loses the main pipeline's shared two-shot camera coverage — every character
   gets one fixed pose/camera/backdrop for the whole scenario, reused identically
   across all their clips (see `character_rig.py`).
@@ -49,9 +50,13 @@ generate.main()
        ├─ character_rig.generate_character_rig()  ← once per scenario: fixed pose/camera/backdrop per character
        └─ pipeline.run_scene_pipeline_solo_clip()  ← one scene → one stitched video
             ├─ interaction_guard.references_interaction()  ← tighter framing on gesture/interaction lines
-            ├─ video_generator.veo_api.generate_first_clip()  ← one call per dialogue line (reference images
-            │                                                    on a character's first appearance, first-frame
-            │                                                    seeding from their own prior clip after that)
+            ├─ pipeline._generate_and_verify_solo_clip()  ← one call per dialogue line
+            │    ├─ video_generator.veo_api.generate_first_clip()  ← reference images on a character's first
+            │    │                                                    appearance, first-frame seeding from
+            │    │                                                    their own prior clip after that
+            │    ├─ video_generator.veo_api.download_video()
+            │    └─ transcript_eval.video_judge.evaluate_clip()  ← only if --verify-clips; regenerates this
+            │                                                       clip in place on failure, see below
             └─ stitching.stitch()                 ← trim each clip to its speaking span, hard-cut concatenate
 ```
 
@@ -82,6 +87,12 @@ python -m solo_clip.generate --scenario scenario.json
 
 # Override the default Veo model
 python -m solo_clip.generate --scenario scenario.json --scene-id 1 --model veo-3.1-fast-generate-preview
+
+# Judge each clip against the script as it's generated, regenerating on failure
+python -m solo_clip.generate --scenario scenario.json --scene-id 1 --verify-clips
+
+# Allow up to 3 regeneration attempts per clip before giving up (default: 1)
+python -m solo_clip.generate --scenario scenario.json --scene-id 1 --verify-clips --eval-retries 3
 ```
 
 Requires `GEMINI_API_KEY` (env var or `--api-key`), same as the main pipeline's
@@ -95,6 +106,10 @@ Writes to `output/solo_clip/`:
   each with a sidecar `{n}_{character_id}.txt` recording the exact line it was
   generated for (used by `stitching.py`, see below)
 - `scene{id}_final.mp4` — the stitched scene video
+- `failed_clips/` — *(only with `--verify-clips`)* clip attempts that failed
+  eval, moved here (not overwritten) before the clip is regenerated — same
+  "keep discarded attempts for review" convention as the main pipeline's
+  `output/failed_clips/`
 
 ### Reviewing output
 
@@ -110,6 +125,26 @@ python3 serve_review.py       # defaults to port 8934
 # open http://localhost:8934/review_player.html
 ```
 
+## Clip verification
+
+`--verify-clips` wires in [`Transcript_Eval_Pipeline`](../../Transcript_Eval_Pipeline/README.md) to judge each solo clip against its expected line — visual consistency, on-screen speaker attribution, and script alignment — right after it's downloaded, before it's used as the seed for that character's next clip.
+
+Unlike the main pipeline (whose Veo extension chain requires isolating a new clip's segment out of a cumulative download, see [its README](../README.md#clip-verification)), a solo clip is already a standalone Veo call — `pipeline._generate_and_verify_solo_clip()` calls `transcript_eval.video_judge.evaluate_clip()` directly on the downloaded clip file, with `characters=[speaker]` only (every other character is instructed to be entirely absent from a solo shot, so there's nothing else for the judge to check appearance against):
+
+```
+pipeline._generate_and_verify_solo_clip()
+  ├─ veo_api.generate_first_clip() + download_video()   ← the clip currently at video_path
+  ├─ transcript_eval.video_judge.evaluate_clip()         ← judges that one file directly, no extraction step
+  ├─ on pass: return, keep the file at video_path (used for stitching + as the next seed frame)
+  └─ on fail: move the file into failed_clips/, then loop back and regenerate the same clip
+              (same prompt/seed) — up to --eval-retries times before raising ClipEvalFailedError,
+              which the caller treats as a scene failure like any other raise
+```
+
+A clip that fails every retry never gets its seed frame extracted for later clips, since `run_scene_pipeline_solo_clip` only calls `_extract_seed_frame()` after a passing clip lands at `video_path`.
+
+**Cost/latency**: same tradeoff as the main pipeline's `--verify-clips` — one extra Gemini video+audio judge call per clip, multiplied by however many retries a failing clip needs.
+
 ## Module reference
 
 | Module | Description |
@@ -119,7 +154,7 @@ python3 serve_review.py       # defaults to port 8934
 | `reference_images.py` | Generates/caches character + background reference images via `Image_Generation_Pipeline` |
 | `stitching.py` | Trims each clip to its speaking span (via Whisper), using each clip's sidecar `.txt` to drop stray unscripted interjections (e.g. a filler "Oh.") that share no words with the expected line before computing the span; hard-cuts clips together with a declick fade; writes the final file with `-movflags +faststart` so it plays progressively over HTTP |
 | `clip_planner.py` | Breaks an authored scene into the `clips` breakdown this pipeline (and the main one) needs |
-| `pipeline.py` | Orchestration: `run_scenario_pipeline_solo_clip` / `run_scene_pipeline_solo_clip`. Lines of 7 words or fewer get an explicit no-invent/no-repeat instruction — Veo has been observed filling leftover clip time by repeating a short line a second time otherwise |
+| `pipeline.py` | Orchestration: `run_scenario_pipeline_solo_clip` / `run_scene_pipeline_solo_clip` / `_generate_and_verify_solo_clip` (see [Clip verification](#clip-verification) above). Lines of 7 words or fewer get an explicit no-invent/no-repeat instruction — Veo has been observed filling leftover clip time by repeating a short line a second time otherwise |
 | `generate.py` | CLI entry point |
 
 ## API

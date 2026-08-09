@@ -2,7 +2,7 @@
 
 Judges a rendered Veo clip against its ground-truth `scenario.json` script using a single Gemini call over the clip's native video + audio — no separate transcription step, no per-segment frame sampling. Catches visual inconsistency (physically implausible motion), dialogue misattribution (wrong character's mouth moving), and script misalignment (spoken content diverging from the intended line), in one pass.
 
-Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]`/`setting`/`character_actions` (all read out of `scenario.json`) in, one eval report out. This package can be run standalone via its own CLI (below), and is also wired into `Video_Generation_Pipeline` via `--verify-clips` — see [`video_generator`'s README](../Video_Generation_Pipeline/README.md#clip-verification) for how generation calls into this package to verify (and regenerate) clips as they're produced.
+Operates **per clip**, not per stitched scene video: one clip video in, plus that clip's `dialogue[]` + the scene's `characters[]`/`setting`/`character_actions` (all read out of `scenario.json`) in, one eval report out. This package can be run standalone via its own CLI (below), and is also wired into `Video_Generation_Pipeline` via `--verify-clips` — both the extension-chain pipeline (`video_generator`) and the solo-clip pipeline (`solo_clip`) support the flag; see [`video_generator`'s README](../Video_Generation_Pipeline/README.md#clip-verification) and [`solo_clip`'s README](../Video_Generation_Pipeline/solo_clip/README.md#clip-verification) for how each calls into this package to verify (and regenerate) clips as they're produced.
 
 ---
 
@@ -159,9 +159,10 @@ If the model response can't be parsed into the expected schema, `judge_video()` 
 
 ## Scope
 
-This package is usable two ways:
+This package is usable three ways:
 - **Standalone**, via `transcript_eval.cli` (above) — point it at any clip video + `scenario.json` + scene/clip IDs.
-- **Integrated**, via `Video_Generation_Pipeline`'s `--verify-clips` flag, which calls `video_judge.evaluate_clip()` directly (through `video_generator/clip_verification.py`) after isolating each newly generated clip from Veo's cumulative video — see [its README](../Video_Generation_Pipeline/README.md#clip-verification) for the full mechanism, including the retry-on-failure behavior.
+- **Integrated with the extension-chain pipeline**, via `video_generator`'s `--verify-clips` flag, which calls `video_judge.evaluate_clip()` after isolating each newly generated clip out of Veo's cumulative video (through `video_generator/clip_verification.py`) — see [its README](../Video_Generation_Pipeline/README.md#clip-verification) for the full mechanism, including the retry-on-failure behavior.
+- **Integrated with the solo-clip pipeline**, via `solo_clip`'s own `--verify-clips` flag, which calls `video_judge.evaluate_clip()` directly on each already-isolated solo clip (no extraction step needed) with `characters=[speaker]` only — see [its README](../Video_Generation_Pipeline/solo_clip/README.md#clip-verification).
 
 **Not** implemented here:
 - Any UI surface for eval reports — today's output is JSON files under `output/eval_reports/`.

@@ -45,7 +45,8 @@ Built by Team DJ YAM.
 │   │   └── Feedback_Retry/          # Regenerate an image from user feedback
 │   ├── Video_Generation_Pipeline/
 │   │   ├── manim_generator/         # ★ Manim branching-video pipeline — see its README
-│   │   ├── video_generator/         # Veo-based live-action pipeline (being replaced, see below)
+│   │   ├── video_generator/         # Veo/local extension-chain live-action pipeline (being replaced, see below)
+│   │   ├── solo_clip/               # One-isolated-clip-per-speaker live-action technique — see its README
 │   │   └── scenario.json            # Example scenario
 │   └── Transcript_Eval_Pipeline/
 │       └── transcript_eval/         # Transcript + consistency eval — see its README
@@ -206,6 +207,15 @@ python -m video_generator.cli --scenario scenario.json --scene-id 3 --verify-cli
 See `BackEnd/Video_Generation_Pipeline/README.md` for the full flag reference.
 
 > **Note — local generation:** the Veo backend is being replaced by **local Wan2.2 video generation via ComfyUI**, which runs on our own GPU with no cloud API key or per-clip cost. The Manim path above is fully local already (apart from the LLM planner calls) and is what the hosted demo showcases.
+
+`BackEnd/Video_Generation_Pipeline/solo_clip` is a sibling technique and currently the most reliable of the two Veo-based approaches: instead of chaining every character into one shared, continuously-extended shot, it renders each dialogue line as its own isolated clip (one character in frame, speaking, alone) and stitches them together afterward, eliminating the wrong-speaker-in-frame artifact the chain above is structurally prone to.
+
+```bash
+cd BackEnd/Video_Generation_Pipeline
+python -m solo_clip.generate --scenario scenario.json --scene-id 3 --verify-clips
+```
+
+See `BackEnd/Video_Generation_Pipeline/solo_clip/README.md` for the full flag reference.
 
 ---
 

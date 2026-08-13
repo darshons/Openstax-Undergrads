@@ -1,49 +1,45 @@
-# Python
+# ── Python ──────────────────────────────────────────────────────────────
 .venv/
 venv/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
 *.py[cod]
 *$py.class
-upload_cleanup.py
-list_gemini_models.py
+*.egg-info/
+.pytest_cache/
+.Python
 
-# macOS
-.DS_Store
-
-# IDE
-.vscode/
-.idea/
-
-# Next.js
-.next/
-out/
-
-# dependencies
+# ── Node / frontend ─────────────────────────────────────────────────────
 node_modules/
+dist/
+build/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# env files
+# ── Secrets ─────────────────────────────────────────────────────────────
+# backend.env holds ANTHROPIC_API_KEY / GEMINI_API_KEY — never commit it.
 .env
 .env.*
 *.env
 !.env.example
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# ── Generated media & run artifacts ─────────────────────────────────────
+# Manim writes render intermediates to media/; every file is reproducible
+# from the scene source, so none of it belongs in git.
+media/
+output/
 **/output/
 **/test_clips/
+BackEnd/Video_Generation_Pipeline/manim_generator/manim_api_kb.json
 
-#Pyrefly
+# ── Editor / OS ─────────────────────────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/
+
+# ── Local scratch ───────────────────────────────────────────────────────
+upload_cleanup.py
+list_gemini_models.py
 pyrefly.toml
-
-#JSON
-*.json

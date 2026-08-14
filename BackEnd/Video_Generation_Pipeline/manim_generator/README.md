@@ -9,10 +9,33 @@ The other half of the video system is the local Wan 2.2 character video pipeline
 documented in [`../README.md`](../README.md). The two are independent and consume
 the same script JSON.
 
-<!-- VIDEO: drop a rendered scene or golden_path mp4 here.
-     On GitHub, edit this file in the browser and drag the file into the editor.
+## What the output looks like
+
+A knee anatomy explainer, 1080p60, 89 seconds, narrated with Kokoro TTS.
+
+<video src="https://github.com/darshons/Openstax-Undergrads/raw/main/demo_manim_video/knee_explainer_1080p.mp4" controls muted width="100%"></video>
+
+[Download the clip](../../../demo_manim_video/knee_explainer_1080p.mp4) if it does
+not play inline. Source: [`examples/knee_explainer.py`](../../../examples/knee_explainer.py).
+
+One caveat, stated plainly because it matters for what you should expect. The
+geometry in that clip is **hand authored**, not generated. Every bone is a smooth
+closed path through hand-placed anchors, which is why the condyles, tibial plateau
+and intercondylar notch read as anatomy. The same scenario run through the full
+automatic pipeline produced a recognizable but much cruder diagram, boxes and arcs
+roughly in the right places, which you can see at
+`output/manim_runs/oa_knee_demo/scenes/scene_1/scene_1.mp4`.
+
+That gap is the honest state of things. The pipeline is reliable at flowcharts,
+labeled relationships, graphs, and process diagrams, which is most of what a
+scenario needs. It is weak at anatomically faithful figures, where an LLM writing
+Manim tends to reach for primitives. `geometry_author.py` is unfinished work
+aimed at closing that gap by iterating on a still frame until the shape is right
+before any animation is written.
+
+<!-- VIDEO: to add more, edit this file on GitHub and drag an mp4 into the editor.
      GitHub uploads it and leaves a https://github.com/user-attachments/... link
-     that plays inline. -->
+     that always plays inline. -->
 
 ## Diagrams, not people
 
@@ -336,7 +359,7 @@ final mp4.
 | `llm_client.py` | Claude Code CLI client, the keyless alternative |
 | `assets_index.py` | List a run's artifacts with role labels for the UI |
 | `logging_utils.py` | `RunStatus`, `status.json`, `generation_log.jsonl` |
-| `geometry_author.py` | Iterative still-frame geometry authoring. Uncommitted work in progress. |
+| `geometry_author.py` | Iterative still-frame geometry authoring, aimed at anatomically faithful figures. Unfinished, not wired in. |
 
 Prompts live in `prompts/` as plain text files, one per call site. Editing
 pipeline behavior usually means editing a prompt there, not Python.

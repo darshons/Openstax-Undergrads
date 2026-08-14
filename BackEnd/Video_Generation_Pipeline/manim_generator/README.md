@@ -13,10 +13,11 @@ the same script JSON.
 
 A knee anatomy explainer, 1080p60, 89 seconds, narrated with Kokoro TTS.
 
-<video src="https://github.com/darshons/Openstax-Undergrads/raw/main/demo_manim_video/knee_explainer_1080p.mp4" controls muted width="100%"></video>
+[![Knee anatomy explainer](../../../demo_manim_video/knee_explainer_poster.png)](https://github.com/darshons/Openstax-Undergrads/blob/main/demo_manim_video/knee_explainer_1080p.mp4)
 
-[Download the clip](../../../demo_manim_video/knee_explainer_1080p.mp4) if it does
-not play inline. Source: [`examples/knee_explainer.py`](../../../examples/knee_explainer.py).
+Click the frame to play it. Source:
+[`examples/knee_explainer.py`](../../../examples/knee_explainer.py), video at
+[`demo_manim_video/knee_explainer_1080p.mp4`](../../../demo_manim_video/knee_explainer_1080p.mp4).
 
 One caveat, stated plainly because it matters for what you should expect. The
 geometry in that clip is **hand authored**, not generated. Every bone is a smooth
@@ -33,9 +34,11 @@ Manim tends to reach for primitives. `geometry_author.py` is unfinished work
 aimed at closing that gap by iterating on a still frame until the shape is right
 before any animation is written.
 
-<!-- VIDEO: to add more, edit this file on GitHub and drag an mp4 into the editor.
-     GitHub uploads it and leaves a https://github.com/user-attachments/... link
-     that always plays inline. -->
+<!-- To embed a video that plays inline in the page rather than linking out,
+     edit this file on GitHub and drag the mp4 into the editor. GitHub uploads it
+     and leaves a https://github.com/user-attachments/... link, which is the only
+     form that autoplays inline. A committed file linked by path cannot do that,
+     because GitHub serves repo files as application/octet-stream. -->
 
 ## Diagrams, not people
 

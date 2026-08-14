@@ -35,7 +35,9 @@ def _existing_character_image(output_dir: Path, character: dict) -> Path | None:
     return None
 
 
-def ensure_reference_images(scenario: dict, output_dir: Path, request_id: str = "lesson") -> dict:
+def ensure_reference_images(
+    scenario: dict, output_dir: Path, request_id: str = "lesson"
+) -> dict:
     """Returns {character_id: path, ..., "background": path}. Generates only
     what's missing from output_dir - safe to call every run."""
     from Image_Generation_Pipeline import generate_background, generate_characters
@@ -55,10 +57,14 @@ def ensure_reference_images(scenario: dict, output_dir: Path, request_id: str = 
     for character in missing:
         cid = character["character_id"]
         print(f"  Generating reference image for {character['name']} ({cid})...")
-        image_mapping, _, _ = generate_characters(scenario, request_id, retry_image_id=cid)
+        image_mapping, _, _ = generate_characters(
+            scenario, request_id, retry_image_id=cid
+        )
         src = image_mapping.get(cid)
         if not src:
-            raise RuntimeError(f"ensure_reference_images: generation returned nothing for {cid}")
+            raise RuntimeError(
+                f"ensure_reference_images: generation returned nothing for {cid}"
+            )
         dest = output_dir / f"{cid}.png"
         shutil.copy(src, dest)
         result[cid] = str(dest)
@@ -70,7 +76,9 @@ def ensure_reference_images(scenario: dict, output_dir: Path, request_id: str = 
         print("  Generating background reference image...")
         bg_src, _, _ = generate_background(scenario, request_id)
         if not bg_src:
-            raise RuntimeError("ensure_reference_images: background generation returned nothing")
+            raise RuntimeError(
+                "ensure_reference_images: background generation returned nothing"
+            )
         shutil.copy(bg_src, background_path)
         result["background"] = str(background_path)
 

@@ -70,10 +70,18 @@ def main():
     print(f"\n{'─'*60}")
     print(f"VIDEO JUDGE — scene {args.scene_id}, clip {args.clip_id}")
     print(f"{'─'*60}")
-    print(f"Status         : {result['status'].upper()} (confidence={result['confidence']})")
-    print(f"Visual         : {'ISSUE — ' + result['visual_notes'] if result['visual_issues_found'] else 'ok'}")
-    print(f"Dialogue       : {'ISSUE — ' + result['dialogue_notes'] if result['dialogue_issues_found'] else 'ok'}")
-    print(f"Script align.  : {'ISSUE — ' + result['script_alignment_notes'] if result['script_alignment_issues_found'] else 'ok'}")
+    print(
+        f"Status         : {result['status'].upper()} (confidence={result['confidence']})"
+    )
+    print(
+        f"Visual         : {'ISSUE — ' + result['visual_notes'] if result['visual_issues_found'] else 'ok'}"
+    )
+    print(
+        f"Dialogue       : {'ISSUE — ' + result['dialogue_notes'] if result['dialogue_issues_found'] else 'ok'}"
+    )
+    print(
+        f"Script align.  : {'ISSUE — ' + result['script_alignment_notes'] if result['script_alignment_issues_found'] else 'ok'}"
+    )
     print(f"Estimated cost : ${report['estimated_cost_usd']}")
     print(f"\nEval report: {report['video_path']}")
     print(f"Report saved under output/eval_reports/{Path(args.video).stem}_eval.json")

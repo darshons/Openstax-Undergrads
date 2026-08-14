@@ -117,7 +117,11 @@ def render_scene(
     )
     _write_manim_cfg(code_dir, background)
 
-    plan = plan_override if plan_override is not None else plan_scene(spec, scene, asset_api, client)
+    plan = (
+        plan_override
+        if plan_override is not None
+        else plan_scene(spec, scene, asset_api, client)
+    )
     occupancy = extract_occupancy_table(plan)
     with open(os.path.join(scene_dir, "plan.txt"), "w", encoding="utf-8") as f:
         f.write(plan)
@@ -153,20 +157,32 @@ def render_scene(
         with open(code_path.replace(".py", "_error.log"), "w", encoding="utf-8") as f:
             f.write(stderr)
         status.log_event(
-            event="render_failed", scene_id=scene.scene_id,
-            round=round_i + 1, error_tail=error.splitlines()[-1] if error else "",
+            event="render_failed",
+            scene_id=scene.scene_id,
+            round=round_i + 1,
+            error_tail=error.splitlines()[-1] if error else "",
         )
         code_path = write_version(code)
         code, ok, stderr = scope_refine_repair(
-            scene.scene_id, code, stderr, plan, code_path,
-            codegen, renderer, media_dir, scene_name, log=print,
+            scene.scene_id,
+            code,
+            stderr,
+            plan,
+            code_path,
+            codegen,
+            renderer,
+            media_dir,
+            scene_name,
+            log=print,
         )
 
     if not ok:
         return None, None
 
     video_path = renderer.find_scene_video(media_dir, code_path)
-    status.log_event(event="scene_rendered", scene_id=scene.scene_id, versions=scene_version)
+    status.log_event(
+        event="scene_rendered", scene_id=scene.scene_id, versions=scene_version
+    )
 
     # ---- forced grid critic (>=1 pass; TEA's critic never fired on
     # first-try-clean scenes, so layout defects shipped unexamined) ----
@@ -174,15 +190,25 @@ def render_scene(
         snap = renderer.snapshot(
             video_path, os.path.join(scene_dir, f"snapshot_v{critic_round}.png")
         )
-        grid_img = overlay_grid(snap, os.path.join(scene_dir, f"grid_v{critic_round}.png"),
-                                return_type="image")
-        new_code, response = codegen.visual_self_reflection_grid(code, grid_img, occupancy)
+        grid_img = overlay_grid(
+            snap,
+            os.path.join(scene_dir, f"grid_v{critic_round}.png"),
+            return_type="image",
+        )
+        new_code, response = codegen.visual_self_reflection_grid(
+            code, grid_img, occupancy
+        )
         if "<LGTM>" in new_code or any(m in response for m in banned):
-            status.log_event(event="grid_critic_pass", scene_id=scene.scene_id,
-                             round=critic_round + 1, verdict="clean")
+            status.log_event(
+                event="grid_critic_pass",
+                scene_id=scene.scene_id,
+                round=critic_round + 1,
+                verdict="clean",
+            )
             break
-        status.log_event(event="grid_critic_fix", scene_id=scene.scene_id,
-                         round=critic_round + 1)
+        status.log_event(
+            event="grid_critic_fix", scene_id=scene.scene_id, round=critic_round + 1
+        )
         code = new_code
         code_path = write_version(code)
         ok, stderr = renderer.render(code_path, media_dir, scene_name=scene_name)
@@ -205,7 +231,7 @@ def _next_scene_version(code_dir: str, scene_id: int) -> int:
         for name in os.listdir(code_dir):
             if name.startswith(prefix) and name.endswith(".py"):
                 try:
-                    best = max(best, int(name[len(prefix):-len(".py")]))
+                    best = max(best, int(name[len(prefix) : -len(".py")]))
                 except ValueError:
                     continue
     return best + 1
@@ -272,11 +298,22 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
         status.set_state(f"scene_{i}_of_{total}")
         try:
             final_path, duration = render_scene(
-                spec, scene, out_dir, assets_path, asset_api, background,
-                codegen, renderer, client, banned, status,
+                spec,
+                scene,
+                out_dir,
+                assets_path,
+                asset_api,
+                background,
+                codegen,
+                renderer,
+                client,
+                banned,
+                status,
             )
             if final_path is None:
-                status.scene_failed(scene.scene_id, "render failed after ScopeRefine repairs")
+                status.scene_failed(
+                    scene.scene_id, "render failed after ScopeRefine repairs"
+                )
                 status.log_event(event="scene_failed", scene_id=scene.scene_id)
                 continue
 
@@ -304,7 +341,9 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
         missing = [sid for sid in golden_path if sid not in scene_files]
         status.log_event(event="golden_path_skipped", missing_scenes=missing)
 
-    manifest = build_manifest(spec, request_id, scene_files, scene_durations, golden_video)
+    manifest = build_manifest(
+        spec, request_id, scene_files, scene_durations, golden_video
+    )
     _write_manifest(out_dir, manifest)
     status.finish(manifest)
     return manifest
@@ -317,7 +356,9 @@ def _run(script, request_id, out_dir, quality, model, stitch_golden, status) -> 
 RUN_CONTEXT_NAME = "run_context.json"
 
 
-def _write_run_context(out_dir: str, script: dict, request_id: str, quality: str, model: str):
+def _write_run_context(
+    out_dir: str, script: dict, request_id: str, quality: str, model: str
+):
     """Snapshot what a regen needs: the script (source of truth for the spec)
     plus the render settings, so a re-render matches the original run."""
     context = {
@@ -387,7 +428,9 @@ def regenerate_scene(
     client = make_client(model)
     codegen = CodeGenerator(client)
     renderer = VideoRenderer(quality=quality)
-    banned = [l.strip() for l in load_prompt("banned_reasonings").splitlines() if l.strip()]
+    banned = [
+        l.strip() for l in load_prompt("banned_reasonings").splitlines() if l.strip()
+    ]
 
     asset_api = extract_asset_api(assets_path)
     background = extract_background_color(assets_path)
@@ -399,7 +442,8 @@ def regenerate_scene(
     status = RunStatus(out_dir, resume=True)
     status.set_state(f"regenerating_scene_{scene_id}")
     status.log_event(
-        event="scene_regen_started", scene_id=scene_id,
+        event="scene_regen_started",
+        scene_id=scene_id,
         edited_plan=plan_override is not None,
         edited_code=code_override is not None,
         edited_script=script_override is not None,
@@ -407,14 +451,25 @@ def regenerate_scene(
 
     try:
         final_path, duration = render_scene(
-            spec, scene, out_dir, assets_path, asset_api, background,
-            codegen, renderer, client, banned, status,
-            plan_override=plan_override, code_override=code_override,
+            spec,
+            scene,
+            out_dir,
+            assets_path,
+            asset_api,
+            background,
+            codegen,
+            renderer,
+            client,
+            banned,
+            status,
+            plan_override=plan_override,
+            code_override=code_override,
         )
     except Exception as e:
         status.scene_failed(scene_id, traceback.format_exc(limit=3))
-        status.log_event(event="scene_regen_error", scene_id=scene_id,
-                         error=traceback.format_exc())
+        status.log_event(
+            event="scene_regen_error", scene_id=scene_id, error=traceback.format_exc()
+        )
         status.set_state("done")
         raise RuntimeError(f"Scene {scene_id} regeneration failed: {e}") from e
 
@@ -442,7 +497,9 @@ def regenerate_scene(
         missing = [sid for sid in golden_path if sid not in scene_files]
         status.log_event(event="golden_path_skipped", missing_scenes=missing)
 
-    manifest = build_manifest(spec, request_id, scene_files, scene_durations, golden_video)
+    manifest = build_manifest(
+        spec, request_id, scene_files, scene_durations, golden_video
+    )
     _write_manifest(out_dir, manifest)
     status.finish(manifest)
     return manifest

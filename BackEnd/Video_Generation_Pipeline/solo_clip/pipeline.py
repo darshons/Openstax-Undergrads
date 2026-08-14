@@ -44,14 +44,28 @@ from pathlib import Path
 
 from video_generator.clip_verification import eval_failure_reason
 from video_generator.prompt_builder import build_veo_prompt
-from video_generator.veo_api import ClipEvalFailedError, download_video, generate_first_clip
+from video_generator.veo_api import (
+    ClipEvalFailedError,
+    download_video,
+    generate_first_clip,
+)
 
 # clip_verification (imported above) already inserts Transcript_Eval_Pipeline
 # onto sys.path, making transcript_eval importable here too.
 from transcript_eval.video_judge import evaluate_clip
 
-from .character_rig import generate_character_rig, load_cached_rig, rig_cache_path, save_rig_cache, setting_summary
-from .interaction_guard import close_up_camera, interaction_isolation_instruction, references_interaction
+from .character_rig import (
+    generate_character_rig,
+    load_cached_rig,
+    rig_cache_path,
+    save_rig_cache,
+    setting_summary,
+)
+from .interaction_guard import (
+    close_up_camera,
+    interaction_isolation_instruction,
+    references_interaction,
+)
 from .stitching import stitch
 
 FIRST_CLIP_SECONDS = 8
@@ -61,7 +75,9 @@ FIRST_CLIP_SECONDS = 8
 # line a second time instead of reacting silently. Raised to 7 so every line
 # that short gets the no-invent guard below.
 SHORT_LINE_WORD_LIMIT = 7
-SEED_FRAME_TIMESTAMP_FRACTION = 0.2  # early in the clip - more likely a neutral, not mid-word, moment
+SEED_FRAME_TIMESTAMP_FRACTION = (
+    0.2  # early in the clip - more likely a neutral, not mid-word, moment
+)
 
 NO_INVENT_INSTRUCTION = (
     "Do not invent, add, or extend any spoken dialogue beyond the single line "
@@ -128,7 +144,12 @@ def _spoken_text(line_text: str) -> str:
 
 
 def _build_line_prompt(
-    scene: dict, characters: list, visual_style: str, rig: dict, line: dict, setting_text: str
+    scene: dict,
+    characters: list,
+    visual_style: str,
+    rig: dict,
+    line: dict,
+    setting_text: str,
 ) -> tuple:
     """Returns (prompt, speaker_id, interaction_flagged)."""
     char_lookup = {c["character_id"]: c for c in characters}
@@ -167,7 +188,9 @@ def _build_line_prompt(
     # Only the speaker's own appearance is described - the other characters'
     # full physical descriptions have no reason to be in a prompt for a shot
     # they're not supposed to appear in at all.
-    prompt = build_veo_prompt(line_scene, [speaker], visual_style, is_continuation=False)
+    prompt = build_veo_prompt(
+        line_scene, [speaker], visual_style, is_continuation=False
+    )
     if other_names:
         prompt = f"{prompt}\n\n{_other_character_reinforcement(speaker['name'], other_names)}"
     if interaction_flagged and other_names:
@@ -267,13 +290,18 @@ def _generate_and_verify_solo_clip(
 
         ts = time.strftime("%Y%m%d_%H%M%S")
         failed_dir.mkdir(parents=True, exist_ok=True)
-        kept_path = failed_dir / f"{video_path.stem}_attempt{attempt + 1}_{ts}{video_path.suffix}"
+        kept_path = (
+            failed_dir
+            / f"{video_path.stem}_attempt{attempt + 1}_{ts}{video_path.suffix}"
+        )
         os.replace(video_path, kept_path)
 
         print(f"  Clip {clip_id} failed eval: {eval_failure_reason(report)}")
         print(f"  Failed attempt saved: {kept_path}")
         if attempt < attempts - 1:
-            print(f"  Regenerating clip {clip_id} (attempt {attempt + 2}/{attempts})...")
+            print(
+                f"  Regenerating clip {clip_id} (attempt {attempt + 2}/{attempts})..."
+            )
 
     raise ClipEvalFailedError(f"clip {clip_id}: {eval_failure_reason(report)}")
 
@@ -307,12 +335,17 @@ def run_scene_pipeline_solo_clip(
     failed_dir = output_dir / "failed_clips"
 
     for i, line in enumerate(lines, start=1):
-        prompt, speaker_id, _ = _build_line_prompt(scene, characters, visual_style, rig, line, setting_text)
+        prompt, speaker_id, _ = _build_line_prompt(
+            scene, characters, visual_style, rig, line, setting_text
+        )
 
         seed_bytes = seed_bytes_by_character.get(speaker_id)
         reference_images = None
         if seed_bytes is None:
-            reference_images = [character_image_file_mapping[speaker_id], background_image_path]
+            reference_images = [
+                character_image_file_mapping[speaker_id],
+                background_image_path,
+            ]
 
         video_path = raw_dir / f"{i:02d}_{speaker_id}.mp4"
         _generate_and_verify_solo_clip(
@@ -337,7 +370,9 @@ def run_scene_pipeline_solo_clip(
         # sometimes tacks on (e.g. a filler "Oh." before/after the real
         # line) apart from the actual line, instead of blindly trimming to
         # the full first-detected-speech-to-last-detected-speech span.
-        video_path.with_suffix(".txt").write_text(_spoken_text(line["line"]), encoding="utf-8")
+        video_path.with_suffix(".txt").write_text(
+            _spoken_text(line["line"]), encoding="utf-8"
+        )
 
         if seed_bytes is None:
             seed_bytes_by_character[speaker_id] = _extract_seed_frame(video_path)
@@ -417,9 +452,19 @@ def run_scenario_pipeline_solo_clip(
                 verify_clips=verify_clips,
                 eval_retries=eval_retries,
             )
-            result = {"scene_id": scene_id, "success": True, "output_file": output_file, "error": None}
+            result = {
+                "scene_id": scene_id,
+                "success": True,
+                "output_file": output_file,
+                "error": None,
+            }
         except Exception as e:
-            result = {"scene_id": scene_id, "success": False, "output_file": None, "error": str(e)}
+            result = {
+                "scene_id": scene_id,
+                "success": False,
+                "output_file": None,
+                "error": str(e),
+            }
 
         results.append(result)
         if on_scene_complete:

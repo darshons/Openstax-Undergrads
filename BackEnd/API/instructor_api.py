@@ -1,15 +1,17 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 
-from Script_Generation_Pipeline import crawl
 from Script_Generation_Pipeline import (
     generate_script_with_decision_points_anthropic,
     delete_uploaded_files_anthropic,
     generate_script_with_decision_points_gemini,
     delete_uploaded_files_gemini,
     generate_script_with_decision_points_local,
+    crawl,
 )
+
 from Script_Generation_Pipeline.render_mode import normalize_render_modes
+
 from Image_Generation_Pipeline import (
     generate_background,
     retry_with_feedback,
@@ -19,22 +21,12 @@ from API.instructor_api_helpers import (
     generate_uuid,
     delete_local_files,
     generate_character_images_impl,
-    generate_opening_frame_images_impl,
     setup_supabase_client,
     video_status_path,
-    write_video_status,
-    make_on_scene_complete_callback,
     run_video_generation,
-    SCENARIO_BACKENDS,
-)
-from Script_Generation_Pipeline import setup_gemini_client
-
-from Video_Generation_Pipeline.video_generator.clip_planner import (
-    plan_scenario_clips,
-    ClipPlanningError,
-)
-from Video_Generation_Pipeline.solo_clip.pipeline import (
-    run_scenario_pipeline_solo_clip,
+    file_path_guard,
+    get_image_roots,
+    get_video_roots,
 )
 
 from Video_Generation_Pipeline.manim_generator.pipeline import run_scenario_pipeline
@@ -52,10 +44,7 @@ import tempfile
 import json
 import os
 import json
-import traceback
 from storage3.exceptions import StorageApiError
-
-logger = logging.getLogger("uvicorn.error")
 
 
 # This Class defines the structure of the request body for generating the initial script based on the user's query and the relevant textbook content
@@ -65,46 +54,20 @@ class SceneInformation(BaseModel):
     chapter_num: int | None = None
     page_num: str | None = None
     user_query: str
-    # "anthropic" | "gemini" | "local". Empty/None resolves to "anthropic" when
-    # ANTHROPIC_API_KEY is set, otherwise "local" (Claude Code CLI).
     model_choice: str | None = None
-    # "scenario" | "manim" pin every scene to one renderer. "auto" (the default)
-    # lets the script generator pick per scene -- see normalize_render_modes.
-    video_type: str = "auto"
-
-
-def resolve_model_choice(model_choice: str | None) -> str:
-    """Pick the script-generation provider, falling back to the local Claude
-    Code CLI provider when no Anthropic API key is available."""
-    has_anthropic_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
-
-    if not model_choice:
-        return "anthropic" if has_anthropic_key else "local"
-
-    if model_choice == "anthropic" and not has_anthropic_key:
-        logger.warning(
-            "model_choice='anthropic' requested but ANTHROPIC_API_KEY is not set; "
-            "falling back to the 'local' provider (Claude Code CLI)."
-        )
-        return "local"
-
-    return model_choice
+    video_type: str
 
 
 # This Class defines the structure of the request body for generating images
 class VisualGenerationRequest(BaseModel):
     script: dict[str, Any]
-    background_image_path: str | None = None
-    # This field is optional and will be used when generating opening frames
-    character_image_file_mapping: dict[str, str] | None = None
-    # This field is optional and will be used when generating opening frames
+    background_image_path: str | None = (
+        None  # This field is optional and will be used when generating opening frames
+    )
+    character_image_file_mapping: dict[str, str] | None = (
+        None  # This field is optional and will be used when generating opening frames
+    )
     request_id: str
-    # Which character-video backend renders the scenario scenes: "local"
-    # (Wan 2.2 on this machine's GPU, free) or "veo" (Google Veo, billed,
-    # needs GEMINI_API_KEY).
-    backend: str = "local"
-    # Optional LoRA filename in ComfyUI models/loras, local backend only.
-    character_lora: str | None = None
 
 
 # This Class defines the structure of the request body for retrying image generation
@@ -131,6 +94,7 @@ class UploadProjectInfo(BaseModel):
 instructor_router = APIRouter()
 
 
+# TODO: Review
 # This endpoint will be called by the frontend to generate the initial script based on the user's query and the relevant textbook content (currently with decision points included)
 @instructor_router.post("/initial_script")
 def generate_initial_script(
@@ -148,7 +112,6 @@ def generate_initial_script(
         # The crawler raises ValueError for unknown book/unit/chapter/page and the
         # message lists what is actually available — surface it to the caller
         # instead of letting it become an opaque 500.
-        logger.warning("Textbook crawl failed: %s", e)
         raise HTTPException(status_code=404, detail=str(e))
 
     # Merge all pages into one Markdown file
@@ -179,7 +142,7 @@ def generate_initial_script(
     # script generation functionality call
     initial_script = None
 
-    model_choice = resolve_model_choice(scene_information.model_choice)
+    model_choice = scene_information.model_choice
 
     if model_choice == "anthropic":
         initial_script, file_ids = generate_script_with_decision_points_anthropic(
@@ -298,101 +261,20 @@ def generate_character_images(
     }
 
 
-# This endpoint will be called by the frontend to generate the opening frames based on the script, reference background image, and reference character images
-@instructor_router.post("/generate_opening_frames")
-def generate_opening_frame_images(
-    request: VisualGenerationRequest,
-    background_tasks: BackgroundTasks,
-) -> dict:
-    if (
-        request.background_image_path is None
-        or request.character_image_file_mapping is None
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
-        )
-
-    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        generate_opening_frame_images_impl(
-            request.script,
-            request.background_image_path,
-            request.character_image_file_mapping,
-            request.request_id,
-        )
-    )
-
-    background_tasks.add_task(delete_local_files, scene_json_file_paths)
-
-    background_tasks.add_task(delete_uploaded_files_gemini, uploaded_file_names)
-
-    if (
-        opening_scene_frame_file_mapping is None
-        or len(opening_scene_frame_file_mapping) == 0
-    ):
-        raise HTTPException(
-            status_code=500,
-            detail="Opening frame generation failed. No images were returned.",
-        )
-
-    return {
-        "message": "Opening frame generation completed",
-        "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
-    }
-
-
-def _image_roots() -> list[Path]:
-    tmp = Path(tempfile.gettempdir())
-    return [tmp / "Background_Image_Output",
-            tmp / "Character_Image_Output",
-            tmp / "Frame_Image_Output"]
-
-
-def _video_roots() -> list[Path]:
-    return [Path(MANIM_OUTPUT_ROOT),
-            Path(_REPO_ROOT) / "Video_Generation_Pipeline" / "output"]
-
-
-def _resolve_media(raw_path: str, roots: list[Path]) -> Path:
-    """Map a client-supplied path to a real file inside one of `roots`.
-
-    Two things are going on. The frontend builds these URLs as
-    `/api/image/<absolute server path>`, which strips the leading slash --
-    so the path arrives relative and FileResponse would resolve it against
-    the server's CWD and 500. Restore the slash before resolving.
-
-    And resolving alone is not enough: FileResponse on an unchecked path
-    serves any file the backend can read (backend.env included), so the
-    resolved path must be confined to a known output directory.
-    """
-    candidate = Path(raw_path if raw_path.startswith("/") else "/" + raw_path)
-    try:
-        candidate = candidate.resolve(strict=True)
-    except (OSError, RuntimeError):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    for root in roots:
-        try:
-            candidate.relative_to(root.resolve())
-        except (ValueError, OSError):
-            continue
-        if candidate.is_file():
-            return candidate
-        raise HTTPException(status_code=404, detail="File not found")
-
-    raise HTTPException(status_code=403, detail="Path is outside the served media directories")
-
-
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
 @instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
-    return FileResponse(_resolve_media(image_path, _image_roots()), media_type="image/png")
+    return FileResponse(
+        file_path_guard(image_path, get_image_roots()), media_type="image/png"
+    )
 
 
 # This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
 @instructor_router.get("/video/{video_path:path}")
 def get_video(video_path: str):
-    return FileResponse(video_path, media_type="video/mp4")
+    return FileResponse(
+        file_path_guard(video_path, get_video_roots()), media_type="video/mp4"
+    )
 
 
 # This endpoint will be called by the frontend to retry background image generation based on user feedback or to simply regenerate the background image if no feedback is provided
@@ -513,91 +395,6 @@ def retry_generate_character_image(
         }
 
 
-# This endpoint will be called by the frontend to retry opening frame generation based on user feedback or to simply regenerate the opening frames if no feedback is provided
-@instructor_router.post("/retry_generate_opening_frames")
-def retry_generate_opening_frames(
-    image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
-) -> dict:
-    if image_retry_request.user_feedback is None:
-
-        if (
-            image_retry_request.image_request.background_image_path is None
-            or image_retry_request.image_request.character_image_file_mapping is None
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
-            )
-
-        (
-            opening_scene_frame_file_mapping,
-            uploaded_file_names,
-            scene_json_file_paths,
-        ) = generate_opening_frame_images_impl(
-            image_retry_request.image_request.script,
-            image_retry_request.image_request.background_image_path,
-            image_retry_request.image_request.character_image_file_mapping,
-            image_retry_request.image_request.request_id,
-            retry_image_id=image_retry_request.retry_image_id,
-        )
-
-        local_file_paths_to_delete = scene_json_file_paths
-
-        background_tasks.add_task(delete_local_files, local_file_paths_to_delete)
-
-        uploaded_file_names_to_delete = uploaded_file_names
-
-        background_tasks.add_task(
-            delete_uploaded_files_gemini,
-            uploaded_file_names_to_delete,
-        )
-
-        if (
-            opening_scene_frame_file_mapping is None
-            or len(opening_scene_frame_file_mapping) == 0
-        ):
-            raise HTTPException(
-                status_code=500,
-                detail="Opening frame generation failed. No image was returned.",
-            )
-
-        return {
-            "message": "Opening frame generation retry completed",
-            "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
-        }
-    else:
-        dir_path = Path(tempfile.gettempdir()) / "Frame_Image_Output"
-        original_image_path = (
-            dir_path
-            / f"{image_retry_request.image_request.request_id}_{image_retry_request.retry_image_id}_opening_frame.png"
-        )
-
-        if not original_image_path.exists():
-            raise HTTPException(
-                status_code=404,
-                detail="Original opening frame reference image not found.",
-            )
-
-        updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
-            str(original_image_path), image_retry_request.user_feedback
-        )
-
-        background_tasks.add_task(
-            delete_uploaded_files_gemini, uploaded_file_names_to_delete
-        )
-
-        if updated_image_path is None:
-            raise HTTPException(
-                status_code=500,
-                detail="Opening frame generation failed. No image was returned.",
-            )
-
-        return {
-            "message": "Opening frame generation retry completed",
-            "opening_frame_image_file_path": updated_image_path,
-        }
-
-
 # This endpoint will be called by the frontend to upload the project information (script and generated videos) to the Supabase database
 @instructor_router.post("/upload_project_info")
 def upload_project_info(project_info: UploadProjectInfo):
@@ -644,59 +441,6 @@ def upload_project_info(project_info: UploadProjectInfo):
             )
 
 
-# This endpoint will be called by the frontend to kick off scenario video generation once assets are approved
-@instructor_router.post("/generate_videos")
-def generate_videos(
-    request: VisualGenerationRequest, background_tasks: BackgroundTasks
-) -> dict:
-    """Kick off Veo scenario video generation for an approved scenario script.
-    Returns immediately; poll /video_status/{request_id} for progress."""
-
-    if (
-        request.background_image_path is None
-        or request.character_image_file_mapping is None
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Video generation requires both background_image_path and character_image_file_mapping",
-        )
-
-    if request.backend not in SCENARIO_BACKENDS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown backend '{request.backend}'. "
-            f"Valid options: {', '.join(SCENARIO_BACKENDS)}.",
-        )
-
-    # Fail here rather than inside the background task, where the caller would
-    # only learn about it by polling /video_status and reading a traceback.
-    if request.backend == "veo" and not os.environ.get("GEMINI_API_KEY"):
-        raise HTTPException(
-            status_code=400,
-            detail="backend='veo' requires GEMINI_API_KEY. Set it, or use "
-            "backend='local' to render on this machine's GPU instead.",
-        )
-
-    reference_images = [
-        request.background_image_path,
-        *request.character_image_file_mapping.values(),
-    ]
-
-    output_dir = Path(tempfile.gettempdir()) / "Video_Run_Status" / request.request_id
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    background_tasks.add_task(
-        run_video_generation,
-        request.script,
-        request.request_id,
-        reference_images,
-        request.backend,
-        request.character_lora,
-    )
-
-    return {"status": "started", "backend": request.backend}
-
-
 # This endpoint will be called by the frontend to poll scenario video generation progress
 @instructor_router.get("/video_status/{request_id}")
 def video_status(request_id: str) -> dict:
@@ -712,16 +456,35 @@ def video_status(request_id: str) -> dict:
         return json.load(f)
 
 
-# This endpoint will be called by the frontend to retrieve the generated video to display them in the frontend
-@instructor_router.get("/video/{video_path:path}")
-def get_video(video_path: str):
-    return FileResponse(_resolve_media(video_path, _video_roots()), media_type="video/mp4")
+# This endpoint will be called by the frontend to kick off scenario video generation once assets are approved
+@instructor_router.post("/generate_videos")
+def generate_videos(
+    request: VisualGenerationRequest, background_tasks: BackgroundTasks
+) -> dict:
+    """Kick off solo-clip-technique video generation for an approved scenario
+    script. Returns immediately; poll /video_status/{request_id} for progress."""
+    if (
+        request.background_image_path is None
+        or request.character_image_file_mapping is None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Video generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    background_tasks.add_task(
+        run_video_generation,
+        request.script,
+        request.request_id,
+        request.background_image_path,
+        request.character_image_file_mapping,
+    )
+    return {"status": "started"}
 
 
 # ---------------------------------------------------------------------------
 # Manim branching-video generation ("Manim · Graphics" video type)
 # ---------------------------------------------------------------------------
-
 # Anchor the output root at the repo root so it is the same directory whether
 # the pipeline is launched by the API (cwd=BackEnd/) or the CLI (cwd=repo root).
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -764,93 +527,3 @@ def manim_video_status(request_id: str):
         return {"state": "queued", "completed_scenes": {}, "failed_scenes": {}}
     with open(status_path, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-# v2: solo-clip generation technique - one isolated clip per speaking
-# character per line (never two characters in the same shot), instead of
-# the v1 pipeline's per-scene extension-chaining. Added as a fully separate
-# endpoint/background job rather than replacing /generate_videos, so v1
-# behavior is completely unaffected - see solo_clip/pipeline.py for the
-# technique itself and its known v1-parity gaps. Currently Veo-only
-# (no local/Wan backend counterpart), unlike v1's backend="local"|"veo" choice.
-SOLO_CLIP_OUTPUT_ROOT = os.environ.get(
-    "SOLO_CLIP_OUTPUT_ROOT",
-    os.path.join(_REPO_ROOT, "Video_Generation_Pipeline", "output", "video_runs"),
-)
-
-
-def _run_video_generation_v2(
-    script: dict, request_id: str, background_image_path: str, character_image_file_mapping: dict
-) -> None:
-    """Background job, v2. Mirrors run_video_generation's status.json
-    contract exactly (same states, same completed_scenes/failed_scenes
-    shape) so /video_status works unchanged for either pipeline - only the
-    render step (run_scenario_pipeline_solo_clip instead of
-    run_scenario_pipeline) differs."""
-    status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
-    write_video_status(request_id, status)
-
-    try:
-        client = setup_gemini_client()
-
-        try:
-            planned_scenario = plan_scenario_clips(script, client=client)
-        except ClipPlanningError as e:
-            status["state"] = "failed"
-            status["error"] = f"clip planning failed: {e}"
-            write_video_status(request_id, status)
-            return
-
-        status["state"] = "rendering"
-        write_video_status(request_id, status)
-
-        on_scene_complete = make_on_scene_complete_callback(status, request_id)
-
-        run_scenario_pipeline_solo_clip(
-            client=client,
-            scenario=planned_scenario,
-            character_image_file_mapping=character_image_file_mapping,
-            background_image_path=background_image_path,
-            output_dir=os.path.join(SOLO_CLIP_OUTPUT_ROOT, request_id),
-            model="veo-3.1-fast-generate-preview",
-            on_scene_complete=on_scene_complete,
-        )
-
-        status["state"] = (
-            "done" if not status["failed_scenes"] else "completed_with_errors"
-        )
-        write_video_status(request_id, status)
-    except Exception as e:
-        status["state"] = "failed"
-        status["error"] = str(e)
-        write_video_status(request_id, status)
-        print(
-            f"[generate_videos_v2] request {request_id} failed:\n{traceback.format_exc()}"
-        )
-
-
-# This endpoint is the solo-clip-technique counterpart to /generate_videos - same request shape, same status contract, different rendering pipeline.
-@instructor_router.post("/generate_videos_v2")
-def generate_videos_v2(
-    request: VisualGenerationRequest, background_tasks: BackgroundTasks
-) -> dict:
-    """Kick off solo-clip-technique video generation for an approved scenario
-    script. Returns immediately; poll /video_status/{request_id} for progress
-    (same endpoint /generate_videos uses)."""
-    if (
-        request.background_image_path is None
-        or request.character_image_file_mapping is None
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Video generation requires both background_image_path and character_image_file_mapping",
-        )
-
-    background_tasks.add_task(
-        _run_video_generation_v2,
-        request.script,
-        request.request_id,
-        request.background_image_path,
-        request.character_image_file_mapping,
-    )
-    return {"status": "started", "request_id": request.request_id}

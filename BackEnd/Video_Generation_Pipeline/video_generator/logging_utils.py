@@ -57,7 +57,12 @@ def log_scene_attempt(
     entries = load_log()
     if clips:
         total_cost = round(
-            sum(c["estimated_cost_usd"] for c in clips if c["estimated_cost_usd"] is not None), 4
+            sum(
+                c["estimated_cost_usd"]
+                for c in clips
+                if c["estimated_cost_usd"] is not None
+            ),
+            4,
         )
     else:
         total_cost = fallback_cost_usd

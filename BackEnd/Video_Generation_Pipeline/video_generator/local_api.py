@@ -102,6 +102,7 @@ class WorkflowValidationError(ValueError):
 # Workflow construction
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def build_workflow(
     prompt: str,
     mode: str = "t2v",
@@ -133,21 +134,41 @@ def build_workflow(
         "2": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": m["unet_low"]}},
         "3": {
             "class_type": "LoraLoaderModelOnly",
-            "inputs": {"model": ["1", 0], "lora_name": m["lora_high"], "strength_model": 1.0},
+            "inputs": {
+                "model": ["1", 0],
+                "lora_name": m["lora_high"],
+                "strength_model": 1.0,
+            },
         },
         "4": {
             "class_type": "LoraLoaderModelOnly",
-            "inputs": {"model": ["2", 0], "lora_name": m["lora_low"], "strength_model": 1.0},
+            "inputs": {
+                "model": ["2", 0],
+                "lora_name": m["lora_low"],
+                "strength_model": 1.0,
+            },
         },
-        "5": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["3", 0], "shift": DEFAULT_SHIFT}},
-        "6": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["4", 0], "shift": DEFAULT_SHIFT}},
+        "5": {
+            "class_type": "ModelSamplingSD3",
+            "inputs": {"model": ["3", 0], "shift": DEFAULT_SHIFT},
+        },
+        "6": {
+            "class_type": "ModelSamplingSD3",
+            "inputs": {"model": ["4", 0], "shift": DEFAULT_SHIFT},
+        },
         "7": {
             "class_type": "CLIPLoader",
             "inputs": {"clip_name": CLIP_MODEL, "type": "wan", "device": "default"},
         },
         "8": {"class_type": "VAELoader", "inputs": {"vae_name": VAE_MODEL}},
-        "9": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["7", 0], "text": prompt}},
-        "10": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["7", 0], "text": negative_prompt}},
+        "9": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"clip": ["7", 0], "text": prompt},
+        },
+        "10": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"clip": ["7", 0], "text": negative_prompt},
+        },
         "12": {
             "class_type": "KSamplerAdvanced",
             "inputs": {
@@ -179,8 +200,14 @@ def build_workflow(
                 "return_with_leftover_noise": "disable",
             },
         },
-        "14": {"class_type": "VAEDecode", "inputs": {"samples": ["13", 0], "vae": ["8", 0]}},
-        "15": {"class_type": "CreateVideo", "inputs": {"images": ["14", 0], "fps": DEFAULT_FPS}},
+        "14": {
+            "class_type": "VAEDecode",
+            "inputs": {"samples": ["13", 0], "vae": ["8", 0]},
+        },
+        "15": {
+            "class_type": "CreateVideo",
+            "inputs": {"images": ["14", 0], "fps": DEFAULT_FPS},
+        },
         "16": {
             "class_type": "SaveVideo",
             "inputs": {
@@ -215,11 +242,18 @@ def build_workflow(
         # text encoders into both samplers.
         wf["11"] = {
             "class_type": "EmptyHunyuanLatentVideo",
-            "inputs": {"width": width, "height": height, "length": length, "batch_size": 1},
+            "inputs": {
+                "width": width,
+                "height": height,
+                "length": length,
+                "batch_size": 1,
+            },
         }
         cond_pos, cond_neg, latent = ["9", 0], ["10", 0], ["11", 0]
 
-    wf["12"]["inputs"].update({"positive": cond_pos, "negative": cond_neg, "latent_image": latent})
+    wf["12"]["inputs"].update(
+        {"positive": cond_pos, "negative": cond_neg, "latent_image": latent}
+    )
     wf["13"]["inputs"].update({"positive": cond_pos, "negative": cond_neg})
 
     if character_lora:
@@ -246,6 +280,7 @@ def build_payload(workflow: dict) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 # Workflow validation (used by --dry-run and the unit tests)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _model_file_exists(input_key: str, filename: str) -> bool:
     return any(
@@ -276,12 +311,8 @@ def validate_workflow(workflow: dict, check_input_image: bool = False) -> list:
                     )
             elif key in _MODEL_SEARCH_DIRS:
                 if not _model_file_exists(key, val):
-                    dirs = ", ".join(
-                        f"models/{d}" for d in _MODEL_SEARCH_DIRS[key]
-                    )
-                    problems.append(
-                        f"node {nid}: {key}='{val}' not found in {dirs}"
-                    )
+                    dirs = ", ".join(f"models/{d}" for d in _MODEL_SEARCH_DIRS[key])
+                    problems.append(f"node {nid}: {key}='{val}' not found in {dirs}")
             elif key == "image" and check_input_image:
                 if not (COMFY_INPUT_DIR / val).exists():
                     problems.append(
@@ -298,7 +329,9 @@ def check_server_node_types(workflow: dict) -> list:
         with urllib.request.urlopen(f"{COMFY_API}/object_info", timeout=10) as r:
             object_info = json.loads(r.read())
     except (urllib.error.URLError, OSError, ValueError) as e:
-        return [f"note: could not reach ComfyUI at {COMFY_API} ({e}) — skipped class_type check"]
+        return [
+            f"note: could not reach ComfyUI at {COMFY_API} ({e}) — skipped class_type check"
+        ]
     return [
         f"node {nid}: class_type '{node['class_type']}' unknown to server"
         for nid, node in workflow.items()
@@ -310,6 +343,7 @@ def check_server_node_types(workflow: dict) -> list:
 # Submission / polling
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def submit_workflow(workflow: dict) -> str:
     """POST the workflow to /prompt; return the prompt_id."""
     req = urllib.request.Request(
@@ -319,16 +353,22 @@ def submit_workflow(workflow: dict) -> str:
     )
     resp = json.loads(urllib.request.urlopen(req).read())
     if resp.get("node_errors"):
-        raise LocalGenerationError(f"ComfyUI node errors: {str(resp['node_errors'])[:800]}")
+        raise LocalGenerationError(
+            f"ComfyUI node errors: {str(resp['node_errors'])[:800]}"
+        )
     return resp["prompt_id"]
 
 
-def wait_for_completion(prompt_id: str, timeout: int = GENERATION_TIMEOUT_SECONDS) -> dict:
+def wait_for_completion(
+    prompt_id: str, timeout: int = GENERATION_TIMEOUT_SECONDS
+) -> dict:
     """Poll /history/<id> until the job completes; return the history entry."""
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            with urllib.request.urlopen(f"{COMFY_API}/history/{prompt_id}", timeout=30) as r:
+            with urllib.request.urlopen(
+                f"{COMFY_API}/history/{prompt_id}", timeout=30
+            ) as r:
                 hist = json.loads(r.read())
         except (urllib.error.URLError, OSError):
             time.sleep(5)
@@ -342,7 +382,9 @@ def wait_for_completion(prompt_id: str, timeout: int = GENERATION_TIMEOUT_SECOND
             for msg in status.get("messages", []):
                 if msg[0] == "execution_error":
                     err = msg[1].get("exception_message", "")[:600]
-            raise LocalGenerationError(f"ComfyUI job failed: {status.get('status_str')} {err}")
+            raise LocalGenerationError(
+                f"ComfyUI job failed: {status.get('status_str')} {err}"
+            )
         time.sleep(POLL_INTERVAL_SECONDS)
     raise LocalGenerationError(f"ComfyUI job {prompt_id} timed out after {timeout}s")
 
@@ -355,9 +397,15 @@ def output_video_paths(history_entry: dict) -> list:
             if not isinstance(group, list):
                 continue
             for item in group:
-                if isinstance(item, dict) and str(item.get("filename", "")).endswith(".mp4"):
+                if isinstance(item, dict) and str(item.get("filename", "")).endswith(
+                    ".mp4"
+                ):
                     paths.append(
-                        str(COMFY_OUTPUT_DIR / item.get("subfolder", "") / item["filename"])
+                        str(
+                            COMFY_OUTPUT_DIR
+                            / item.get("subfolder", "")
+                            / item["filename"]
+                        )
                     )
     return paths
 
@@ -373,14 +421,20 @@ def generate_clip(
     """Build, validate, submit, and wait for one clip. Returns the mp4 path
     inside /home/darshon/comfyui/output/."""
     wf = build_workflow(
-        prompt, mode=mode, start_image=start_image, seed=seed,
-        filename_prefix=filename_prefix, **build_kwargs,
+        prompt,
+        mode=mode,
+        start_image=start_image,
+        seed=seed,
+        filename_prefix=filename_prefix,
+        **build_kwargs,
     )
     problems = validate_workflow(wf, check_input_image=(mode == "i2v"))
     if problems:
         raise WorkflowValidationError("; ".join(problems))
     prompt_id = submit_workflow(wf)
-    print(f"  Submitted to ComfyUI (prompt_id={prompt_id}), polling ", end="", flush=True)
+    print(
+        f"  Submitted to ComfyUI (prompt_id={prompt_id}), polling ", end="", flush=True
+    )
     entry = wait_for_completion(prompt_id)
     print("done.")
     videos = output_video_paths(entry)
@@ -392,6 +446,7 @@ def generate_clip(
 # ─────────────────────────────────────────────────────────────────────────────
 # Scene / scenario orchestration
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def stage_input_image(image_path: str) -> str:
     """Copy an image into ComfyUI's input/ dir; return the staged filename."""
@@ -409,9 +464,21 @@ def extract_last_frame(video_path: str, staged_name: str) -> str:
     (used to chain i2v clips, like the Veo extension behavior)."""
     dest = COMFY_INPUT_DIR / staged_name
     subprocess.run(
-        ["ffmpeg", "-y", "-sseof", "-0.5", "-i", video_path,
-         "-update", "1", "-frames:v", "1", str(dest)],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            "-sseof",
+            "-0.5",
+            "-i",
+            video_path,
+            "-update",
+            "1",
+            "-frames:v",
+            "1",
+            str(dest),
+        ],
+        check=True,
+        capture_output=True,
     )
     return staged_name
 
@@ -421,17 +488,34 @@ def concat_clips(clip_paths: list, out_path: str) -> str:
     list_file = Path(out_path).with_suffix(".txt")
     list_file.write_text("".join(f"file '{p}'\n" for p in clip_paths))
     subprocess.run(
-        ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(list_file),
-         "-c", "copy", out_path],
-        check=True, capture_output=True,
+        [
+            "ffmpeg",
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(list_file),
+            "-c",
+            "copy",
+            out_path,
+        ],
+        check=True,
+        capture_output=True,
     )
     list_file.unlink(missing_ok=True)
     return out_path
 
 
-def dry_run_scene(scene_id: int, clip_prompts: list, mode: str = "t2v",
-                  start_image: str = None, seed: int = DEFAULT_SEED,
-                  character_lora: str = None) -> list:
+def dry_run_scene(
+    scene_id: int,
+    clip_prompts: list,
+    mode: str = "t2v",
+    start_image: str = None,
+    seed: int = DEFAULT_SEED,
+    character_lora: str = None,
+) -> list:
     """Build and print the exact /prompt payload for every clip of a scene
     WITHOUT submitting anything. Returns the list of payload dicts."""
     payloads = []
@@ -441,17 +525,25 @@ def dry_run_scene(scene_id: int, clip_prompts: list, mode: str = "t2v",
         if mode == "i2v":
             # clip 1 starts from the anchor; later clips would chain from the
             # previous clip's last frame (file created at render time).
-            staged = (Path(start_image).name if i == 1 and start_image
-                      else f"scene{scene_id}_clip{i}_start.png")
+            staged = (
+                Path(start_image).name
+                if i == 1 and start_image
+                else f"scene{scene_id}_clip{i}_start.png"
+            )
         wf = build_workflow(
-            prompt, mode=mode, start_image=staged, seed=seed,
+            prompt,
+            mode=mode,
+            start_image=staged,
+            seed=seed,
             filename_prefix=f"wan22/scene{scene_id}_clip{i}",
             character_lora=character_lora,
         )
         problems = validate_workflow(wf) + check_server_node_types(wf)
         payload = build_payload(wf)
         payloads.append(payload)
-        print(f"\n{'='*60}\nSCENE {scene_id} CLIP {i} — POST {COMFY_API}/prompt\n{'='*60}")
+        print(
+            f"\n{'='*60}\nSCENE {scene_id} CLIP {i} — POST {COMFY_API}/prompt\n{'='*60}"
+        )
         print(json.dumps(payload, indent=2))
         if problems:
             all_problems.extend(f"[clip {i}] {p}" for p in problems)
@@ -461,8 +553,10 @@ def dry_run_scene(scene_id: int, clip_prompts: list, mode: str = "t2v",
         for p in all_problems:
             print(f"  ✗ {p}")
     else:
-        print("✓ All payloads valid: node references consistent, model files "
-              "present on disk, class types known to the server.")
+        print(
+            "✓ All payloads valid: node references consistent, model files "
+            "present on disk, class types known to the server."
+        )
     return payloads
 
 
@@ -496,9 +590,15 @@ def run_scenario_pipeline_local(
         clip_log_entries = []
         try:
             clip_prompts = build_clip_prompts(scene, characters, visual_style)
-            print(f"\n{'─'*60}\nSCENE {scene_id} — {len(clip_prompts)} clips (local Wan2.2 {mode})\n{'─'*60}")
+            print(
+                f"\n{'─'*60}\nSCENE {scene_id} — {len(clip_prompts)} clips (local Wan2.2 {mode})\n{'─'*60}"
+            )
 
-            staged = stage_input_image(start_image) if (mode == "i2v" and start_image) else None
+            staged = (
+                stage_input_image(start_image)
+                if (mode == "i2v" and start_image)
+                else None
+            )
             clip_paths = []
             for i, prompt in enumerate(clip_prompts, start=1):
                 print(f"\n Generating clip {i}/{len(clip_prompts)}...")
@@ -512,20 +612,26 @@ def run_scenario_pipeline_local(
                     character_lora=character_lora,
                 )
                 clip_paths.append(clip_path)
-                clip_log_entries.append({
-                    "clip_id": i,
-                    "attempt_number": 1,
-                    "eval_passed": None,
-                    "video_duration_seconds": round(DEFAULT_LENGTH / DEFAULT_FPS, 2),
-                    "estimated_cost_usd": 0.0,  # local GPU
-                    "generation_time": round(time.time() - t_clip, 1),
-                    "eval_report_path": None,
-                    "error": None,
-                    "prompt": prompt,
-                })
+                clip_log_entries.append(
+                    {
+                        "clip_id": i,
+                        "attempt_number": 1,
+                        "eval_passed": None,
+                        "video_duration_seconds": round(
+                            DEFAULT_LENGTH / DEFAULT_FPS, 2
+                        ),
+                        "estimated_cost_usd": 0.0,  # local GPU
+                        "generation_time": round(time.time() - t_clip, 1),
+                        "eval_report_path": None,
+                        "error": None,
+                        "prompt": prompt,
+                    }
+                )
                 if mode == "i2v":
                     # chain: next clip starts from this clip's last frame
-                    staged = extract_last_frame(clip_path, f"scene{scene_id}_clip{i+1}_start.png")
+                    staged = extract_last_frame(
+                        clip_path, f"scene{scene_id}_clip{i+1}_start.png"
+                    )
 
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             OUTPUT_DIR.mkdir(exist_ok=True)
@@ -547,12 +653,22 @@ def run_scenario_pipeline_local(
                 clips=clip_log_entries,
                 fallback_cost_usd=0.0,
                 final_output_file=final_path,
-                final_video_duration_seconds=round(len(clip_paths) * DEFAULT_LENGTH / DEFAULT_FPS, 1),
-                final_file_size_mb=round(os.path.getsize(final_path) / (1024 * 1024), 2),
+                final_video_duration_seconds=round(
+                    len(clip_paths) * DEFAULT_LENGTH / DEFAULT_FPS, 1
+                ),
+                final_file_size_mb=round(
+                    os.path.getsize(final_path) / (1024 * 1024), 2
+                ),
             )
-            print(f"\nScene {scene_id} complete in {wall:.0f}s\nFinal video: {final_path}")
-            result = {"scene_id": scene_id, "success": True,
-                      "output_file": final_path, "error": None}
+            print(
+                f"\nScene {scene_id} complete in {wall:.0f}s\nFinal video: {final_path}"
+            )
+            result = {
+                "scene_id": scene_id,
+                "success": True,
+                "output_file": final_path,
+                "error": None,
+            }
             results.append(result)
             if on_scene_complete:
                 on_scene_complete(result)
@@ -568,8 +684,12 @@ def run_scenario_pipeline_local(
                 clips=clip_log_entries,
                 error=str(e),
             )
-            result = {"scene_id": scene_id, "success": False,
-                      "output_file": None, "error": str(e)}
+            result = {
+                "scene_id": scene_id,
+                "success": False,
+                "output_file": None,
+                "error": str(e),
+            }
             results.append(result)
             if on_scene_complete:
                 on_scene_complete(result)

@@ -6,13 +6,15 @@ import traceback
 import tempfile
 from supabase import create_client, Client
 from pathlib import Path
+import logging
 from collections.abc import Callable
+from fastapi import HTTPException
+
 
 from Script_Generation_Pipeline import setup_gemini_client
 
 from Image_Generation_Pipeline import (
     generate_characters,
-    generate_opening_frames,
 )
 
 from Video_Generation_Pipeline.video_generator.clip_planner import (
@@ -20,8 +22,19 @@ from Video_Generation_Pipeline.video_generator.clip_planner import (
     ClipPlanningError,
 )
 
-from Video_Generation_Pipeline.video_generator.pipeline import (
-    run_scenario_pipeline as run_veo_scenario_pipeline,
+from Video_Generation_Pipeline.solo_clip.pipeline import (
+    run_scenario_pipeline_solo_clip,
+)
+
+from Video_Generation_Pipeline.video_generator.clip_planner import (
+    plan_scenario_clips,
+    ClipPlanningError,
+)
+
+# Darshon: Transition this to a temporary directory so that it works with Vercel deployments (merge ongoing PR)
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MANIM_OUTPUT_ROOT = os.environ.get(
+    "MANIM_OUTPUT_ROOT", os.path.join(_REPO_ROOT, "output", "manim_runs")
 )
 
 
@@ -69,25 +82,54 @@ def generate_character_images_impl(
     )
 
 
-# This function is a helper function that encapsulates the logic for generating opening frames. It is called by the /generate_opening_frames endpoint and can also be used for retrying opening frame generation.
-def generate_opening_frame_images_impl(
-    script: dict[str, Any],
-    background_image_path: str,
-    character_image_file_mapping: dict[str, str],
-    request_id: str,
-    retry_image_id: str | None = None,
-) -> tuple[dict[str, str], list[str | None], list[str]]:
-    opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths = (
-        generate_opening_frames(
-            script,
-            background_image_path,
-            character_image_file_mapping,
-            request_id,
-            retry_image_id=retry_image_id,
-        )
-    )
+def get_image_roots() -> list[Path]:
+    tmp = Path(tempfile.gettempdir())
+    return [
+        tmp / "Background_Image_Output",
+        tmp / "Character_Image_Output",
+    ]
 
-    return opening_scene_frame_file_mapping, uploaded_file_names, scene_json_file_paths
+
+def get_video_roots() -> list[Path]:
+    tmp = Path(tempfile.gettempdir())
+    return [
+        Path(
+            MANIM_OUTPUT_ROOT
+        ),  # Darshon: Transition this to a temporary directory so that it works with Vercel deployments (merge ongoing PR)
+        tmp / "Video_Generation_Pipeline",
+    ]
+
+
+def file_path_guard(raw_path: str, roots: list[Path]) -> Path:
+    """Map a client-supplied path to a real file inside one of `roots`.
+
+    Two things are going on. The frontend builds these URLs as
+    `/api/image/<absolute server path>`, which strips the leading slash --
+    so the path arrives relative -> restore the slash before resolving.
+
+    And resolving alone is not enough: FileResponse on an unchecked path
+    serves any file the backend can read, so the
+    resolved path must be confined to a known output directory.
+    """
+    candidate = Path(raw_path if raw_path.startswith("/") else "/" + raw_path)
+
+    try:
+        candidate = candidate.resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    for root in roots:
+        try:
+            candidate.relative_to(root.resolve())
+        except (ValueError, OSError):
+            continue
+        if candidate.is_file():
+            return candidate
+
+    raise HTTPException(
+        status_code=403,
+        detail="Path is outside the served media directories or is not a file",
+    )
 
 
 # This function is a helper function that returns the path to the status.json file for a given request_id. It is used to track the progress of video generation tasks.
@@ -105,8 +147,11 @@ def write_video_status(request_id: str, status: dict) -> None:
     never observe a truncated/partial write mid-json.dump (reproduced during
     real testing: a poll landing mid-write raised JSONDecodeError)."""
 
-    path = video_status_path(request_id)
-    dir_path = Path(tempfile.gettempdir()) / "Video_Run_Status" / request_id
+    file_path = video_status_path(request_id)
+
+    dir_path = Path(file_path).parent
+
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".json", delete=False, dir=dir_path
@@ -114,7 +159,7 @@ def write_video_status(request_id: str, status: dict) -> None:
         json.dump(status, tmp_file, indent=2)
         tmp_file.flush()
 
-    os.replace(tmp_file.name, path)
+    os.replace(tmp_file.name, file_path)
 
 
 # This function creates a callback function that is called when a scene is completed during video generation. It updates the status dictionary with the results of the scene and writes the updated status to the status.json file.
@@ -136,15 +181,11 @@ def make_on_scene_complete_callback(
 
 
 # This function runs the video generation process in the background. It plans clips for every scene, renders each scene through Veo, and writes the status to a status.json file after every stage/scene transition. If any unexpected failure occurs, it leaves the status.json in a terminal "failed" state rather than letting the background thread die silently.
-SCENARIO_BACKENDS = ("local", "veo")
-
-
 def run_video_generation(
     script: dict,
     request_id: str,
-    reference_images: list[str],
-    backend: str = "local",
-    character_lora: str | None = None,
+    background_image_path: str,
+    character_image_file_mapping: dict,
 ) -> None:
     """Background job: plan clips for every scene, then render each scene
     through the chosen character-video backend. Writes status.json after every
@@ -152,15 +193,13 @@ def run_video_generation(
     blocking on the whole run. Any unexpected failure still leaves status.json
     in a terminal "failed" state rather than letting the background thread die
     silently.
-
-    backend picks where the rendering happens, which is a cost decision rather
-    than a content one: "local" runs Wan 2.2 on this machine's GPU for free,
-    "veo" calls Google Veo and needs GEMINI_API_KEY. Clip planning still uses
-    Gemini in both cases.
     """
-
     status = {"state": "planning_clips", "completed_scenes": {}, "failed_scenes": {}}
     write_video_status(request_id, status)
+
+    output_dir = Path(tempfile.gettempdir()) / "Video_Generation_Pipeline" / request_id
+
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         client = setup_gemini_client()
@@ -173,29 +212,15 @@ def run_video_generation(
 
         on_scene_complete = make_on_scene_complete_callback(status, request_id)
 
-        if backend == "veo":
-            run_veo_scenario_pipeline(
-                client=client,
-                scenario=planned_scenario,
-                reference_images=reference_images or None,
-                on_scene_complete=on_scene_complete,
-            )
-        else:
-            from Video_Generation_Pipeline.video_generator.local_api import (
-                run_scenario_pipeline_local,
-            )
-
-            # Reference images become the i2v start frame: the opening frame
-            # already carries the approved character and background, so
-            # chaining from it keeps the local render on-model.
-            start_image = reference_images[0] if reference_images else None
-            run_scenario_pipeline_local(
-                scenario=planned_scenario,
-                mode="i2v" if start_image else "t2v",
-                start_image=start_image,
-                character_lora=character_lora,
-                on_scene_complete=on_scene_complete,
-            )
+        run_scenario_pipeline_solo_clip(
+            client=client,
+            scenario=planned_scenario,
+            character_image_file_mapping=character_image_file_mapping,
+            background_image_path=background_image_path,
+            output_dir=output_dir,
+            model="veo-3.1-fast-generate-preview",
+            on_scene_complete=on_scene_complete,
+        )
 
         status["state"] = (
             "done" if not status["failed_scenes"] else "completed_with_errors"
@@ -212,5 +237,5 @@ def run_video_generation(
         status["error"] = str(e)
         write_video_status(request_id, status)
         print(
-            f"[generate_videos] request {request_id} failed:\n{traceback.format_exc()}"
+            f"[generate_videos_v2] request {request_id} failed:\n{traceback.format_exc()}"
         )

@@ -6,12 +6,32 @@
 # otherwise. Detected via keyword match so the extra guard only fires on the
 # lines that actually carry that risk, not on every line.
 INTERACTION_KEYWORDS = [
-    "nod", "shake your head", "shake his head", "shake her head", "shook",
-    "show me", "show him", "show her", "point", "pointing", "pointed",
-    "crossed your arms", "crossed his arms", "crossed her arms",
-    "crossed arms", "your arms", "gesture", "wave", "look at me",
-    "looking at", "touch", "thumbs up", "thumbs-up", "raise your hand",
-    "raised his hand", "raised her hand",
+    "nod",
+    "shake your head",
+    "shake his head",
+    "shake her head",
+    "shook",
+    "show me",
+    "show him",
+    "show her",
+    "point",
+    "pointing",
+    "pointed",
+    "crossed your arms",
+    "crossed his arms",
+    "crossed her arms",
+    "crossed arms",
+    "your arms",
+    "gesture",
+    "wave",
+    "look at me",
+    "looking at",
+    "touch",
+    "thumbs up",
+    "thumbs-up",
+    "raise your hand",
+    "raised his hand",
+    "raised her hand",
 ]
 
 

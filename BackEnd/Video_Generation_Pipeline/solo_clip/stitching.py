@@ -92,7 +92,9 @@ def _declicked(video):
     if video.audio is None:
         return video
     fade_duration = min(DECLICK_FADE_SECONDS, video.duration / 2)
-    video.audio = video.audio.with_effects([AudioFadeIn(fade_duration), AudioFadeOut(fade_duration)])
+    video.audio = video.audio.with_effects(
+        [AudioFadeIn(fade_duration), AudioFadeOut(fade_duration)]
+    )
     return video
 
 
@@ -104,13 +106,17 @@ def build_trimmed_subclips(clip_paths: list):
         video = VideoFileClip(str(path))
         span = _speaking_span(path)
         if span is None:
-            print(f"  {path.name}: no speech detected, using full clip ({video.duration:.1f}s)")
+            print(
+                f"  {path.name}: no speech detected, using full clip ({video.duration:.1f}s)"
+            )
             subclips.append(_declicked(video))
             continue
 
         start = max(0.0, span[0] - LEAD_PADDING_SECONDS)
         end = min(video.duration, span[1] + TAIL_PADDING_SECONDS)
-        print(f"  {path.name}: trimmed {video.duration:.1f}s -> [{start:.1f}s, {end:.1f}s] ({end - start:.1f}s)")
+        print(
+            f"  {path.name}: trimmed {video.duration:.1f}s -> [{start:.1f}s, {end:.1f}s] ({end - start:.1f}s)"
+        )
         subclips.append(_declicked(video.subclipped(start, end)))
 
     return subclips

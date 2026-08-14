@@ -54,6 +54,7 @@ def run_one(client, scenario, scenes):
 def main():
     load_env()
     import os
+
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("ERROR: No Gemini API key. Set GEMINI_API_KEY.")
@@ -71,18 +72,23 @@ def main():
     experiment_dir = EXPERIMENTS_ROOT / f"{EXPERIMENT_NAME}_{timestamp}"
 
     from google import genai
+
     client = genai.Client(api_key=api_key)
 
     configure_paths(experiment_dir)
 
     all_results = []
     for n in range(1, NUM_EXPERIMENTS + 1):
-        print(f"\n{'#'*60}\nEXPERIMENT {EXPERIMENT_NAME} — run {n}/{NUM_EXPERIMENTS}\n{'#'*60}")
+        print(
+            f"\n{'#'*60}\nEXPERIMENT {EXPERIMENT_NAME} — run {n}/{NUM_EXPERIMENTS}\n{'#'*60}"
+        )
         results = run_one(client, scenario, scenes)
         all_results.append(results)
 
     log_entries = logging_utils.load_log()
-    total_cost = sum(e["total_cost_usd"] for e in log_entries if e.get("total_cost_usd") is not None)
+    total_cost = sum(
+        e["total_cost_usd"] for e in log_entries if e.get("total_cost_usd") is not None
+    )
     total_retries = sum(e.get("retry_count", 0) for e in log_entries)
 
     print(f"\n{'─'*60}")

@@ -16,10 +16,28 @@ RENDER_MODES = ("scenario", "manim")
 # said. The character renderer cannot produce legible text, so any of these
 # is enough to route the scene to Manim.
 _GRAPHIC_CUES = (
-    "equation", "formula", "diagram", "graph", "chart", "table",
-    "molecule", "structure", "calculate", "calculation", "ratio", "percent",
-    "timeline", "step-by-step", "labelled", "labeled", "axis", "axes",
-    "plot", "curve", "vector", "coordinate",
+    "equation",
+    "formula",
+    "diagram",
+    "graph",
+    "chart",
+    "table",
+    "molecule",
+    "structure",
+    "calculate",
+    "calculation",
+    "ratio",
+    "percent",
+    "timeline",
+    "step-by-step",
+    "labelled",
+    "labeled",
+    "axis",
+    "axes",
+    "plot",
+    "curve",
+    "vector",
+    "coordinate",
 )
 
 
@@ -48,6 +66,8 @@ def normalize_render_modes(script: dict, video_type: str | None) -> dict:
             scene["render_mode"] = forced
             continue
         mode = str(scene.get("render_mode", "")).strip().lower()
-        scene["render_mode"] = mode if mode in RENDER_MODES else infer_render_mode(scene)
+        scene["render_mode"] = (
+            mode if mode in RENDER_MODES else infer_render_mode(scene)
+        )
 
     return script

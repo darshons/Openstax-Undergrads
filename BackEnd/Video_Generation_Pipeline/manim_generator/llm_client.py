@@ -51,7 +51,9 @@ class ClaudeCliClient:
     def __init__(self, model: str | None = None):
         # Gemini model ids leak through pipeline defaults; map anything that
         # isn't a claude alias/id to the configured CLI model.
-        if not model or not (model.startswith("claude") or model in ("sonnet", "opus", "haiku")):
+        if not model or not (
+            model.startswith("claude") or model in ("sonnet", "opus", "haiku")
+        ):
             model = CLAUDE_CLI_MODEL
         self.model = model
         self._cli = _find_claude_cli()
@@ -93,7 +95,9 @@ class ClaudeCliClient:
                 except subprocess.TimeoutExpired as e:
                     last_err = e
                 if attempt < MAX_ATTEMPTS:
-                    print(f"[claude-cli:{label}] {last_err}; retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s")
+                    print(
+                        f"[claude-cli:{label}] {last_err}; retry {attempt}/{MAX_ATTEMPTS} in {delay:.0f}s"
+                    )
                     time.sleep(delay)
                     delay *= 2
             raise last_err

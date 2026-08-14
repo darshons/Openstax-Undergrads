@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 BASE_TASK_PROMPT = """\
 You are an expert instructional designer and screenplay writer creating an interactive branching scenario based on one or more provided textbook chapters.
 
@@ -56,7 +55,9 @@ OUTPUT_FORMAT_INSTRUCTION = (
     "structure in the provided JSON file, with no additional text before or after"
 )
 
-_RULES_PATH = Path(__file__).resolve().parent / "Prompt_Rules" / "script-generation-rules-llm.md"
+_RULES_PATH = (
+    Path(__file__).resolve().parent / "Prompt_Rules" / "script-generation-rules-llm.md"
+)
 
 
 def build_system_prompt() -> str:

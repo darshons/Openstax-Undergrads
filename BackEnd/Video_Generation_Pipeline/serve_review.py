@@ -58,7 +58,9 @@ class _BoundedReader:
     def read(self, size=-1):
         if self._remaining <= 0:
             return b""
-        chunk = self._f.read(self._remaining if size < 0 else min(size, self._remaining))
+        chunk = self._f.read(
+            self._remaining if size < 0 else min(size, self._remaining)
+        )
         self._remaining -= len(chunk)
         return chunk
 

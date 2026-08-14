@@ -31,7 +31,9 @@ def set_model(model_key: str):
     MODEL_KEY by value at import time for logging/cost lookups."""
     global MODEL, MODEL_KEY
     if model_key not in VEO_MODELS:
-        raise ValueError(f"Unknown Veo model {model_key!r}; choose from {sorted(VEO_MODELS)}")
+        raise ValueError(
+            f"Unknown Veo model {model_key!r}; choose from {sorted(VEO_MODELS)}"
+        )
     MODEL = VEO_MODELS[model_key]
     MODEL_KEY = model_key
 
@@ -189,7 +191,9 @@ def poll_until_done(client, operation):
                 f"Veo generation failed (transient): {_format_operation_error(operation.error)}"
             )
         print(" failed.")
-        raise RuntimeError(f"Veo generation failed: {_format_operation_error(operation.error)}")
+        raise RuntimeError(
+            f"Veo generation failed: {_format_operation_error(operation.error)}"
+        )
     if not getattr(operation, "response", None) or not getattr(
         operation.response, "generated_videos", None
     ):
@@ -227,7 +231,8 @@ def generate_with_retry(generate_fn, label):
             video_obj = generate_fn()
             recovered_error = (
                 f"{last_err} (retried, succeeded on attempt {attempt}/{MAX_GENERATION_RETRIES})"
-                if last_err else None
+                if last_err
+                else None
             )
             return video_obj, attempt, recovered_error
         except _VeoRetryableError as e:
@@ -245,8 +250,13 @@ def generate_with_retry(generate_fn, label):
 
 
 def generate_first_clip(
-    client, prompt, clip_index=1, reference_images=None, duration_seconds=8,
-    model=None, seed_image_bytes=None,
+    client,
+    prompt,
+    clip_index=1,
+    reference_images=None,
+    duration_seconds=8,
+    model=None,
+    seed_image_bytes=None,
 ):
     """
     Generates the opening clip for a scene.
@@ -305,7 +315,9 @@ def generate_first_clip(
         )
         duration_seconds = 8
 
-    print(f"\n Generating clip {clip_index} (first clip, {duration_seconds}s, model={model})...")
+    print(
+        f"\n Generating clip {clip_index} (first clip, {duration_seconds}s, model={model})..."
+    )
 
     def _attempt():
         operation = client.models.generate_videos(

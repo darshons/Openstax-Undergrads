@@ -83,12 +83,16 @@ def setting_summary(scenario: dict) -> str:
         if furniture:
             parts.append(
                 "Furniture: "
-                + "; ".join(f"{f.get('name')} ({f.get('description', '')})" for f in furniture)
+                + "; ".join(
+                    f"{f.get('name')} ({f.get('description', '')})" for f in furniture
+                )
             )
         if equipment:
             parts.append(
                 "Equipment: "
-                + "; ".join(f"{e.get('name')} ({e.get('description', '')})" for e in equipment)
+                + "; ".join(
+                    f"{e.get('name')} ({e.get('description', '')})" for e in equipment
+                )
             )
         return "\n".join(parts)
 
@@ -109,14 +113,18 @@ def _initial_positions_summary(scenario: dict) -> str:
     positions = scenes[0].get("initial_character_positions")
     if not positions:
         return ""
-    return "\n".join(f"{p.get('character_id')}: {p.get('position', '')}" for p in positions)
+    return "\n".join(
+        f"{p.get('character_id')}: {p.get('position', '')}" for p in positions
+    )
 
 
 def _character_summary(characters: list) -> str:
     lines = []
     for c in characters:
         a = c.get("appearance", {})
-        lines.append(f"{c['character_id']} ({c.get('name')}, {c.get('role')}): {a.get('build', '')}")
+        lines.append(
+            f"{c['character_id']} ({c.get('name')}, {c.get('role')}): {a.get('build', '')}"
+        )
     return "\n".join(lines)
 
 

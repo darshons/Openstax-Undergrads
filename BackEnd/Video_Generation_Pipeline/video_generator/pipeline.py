@@ -22,7 +22,16 @@ from .veo_api import (
 )
 
 
-def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, new_duration, attempt_wall_time, recovered_error):
+def _build_clip_entry(
+    clip_id,
+    attempt_number,
+    prompt,
+    report,
+    prev_duration,
+    new_duration,
+    attempt_wall_time,
+    recovered_error,
+):
     """One clips[] entry per clip-generation attempt made under --verify-clips
     (pass or fail), appended into the scene-attempt's in-memory list rather
     than written immediately — the caller rolls every attempt's cost/duration
@@ -39,7 +48,9 @@ def _build_clip_entry(clip_id, attempt_number, prompt, report, prev_duration, ne
     eval failed; otherwise falls back to recovered_error — a transient Veo
     error that got retried past on the way to this successful generation,
     which would otherwise only ever show up in console output."""
-    clip_dur = round(new_duration - prev_duration, 2) if new_duration is not None else None
+    clip_dur = (
+        round(new_duration - prev_duration, 2) if new_duration is not None else None
+    )
     passed = report["passed"]
     return {
         "clip_id": clip_id,
@@ -102,31 +113,37 @@ def _generate_and_verify(
     try:
         video_obj, attempts, recovered_error = generate_fn()
     except Exception as e:
-        clip_log_entries.append({
-            "clip_id": clip_id,
-            "attempt_number": scene_attempt,
-            "eval_passed": None,
-            "video_duration_seconds": None,
-            "estimated_cost_usd": None,
-            "generation_time": round(time.time() - attempt_start, 1),
-            "eval_report_path": None,
-            "error": str(e),
-            "prompt": prompt,
-        })
+        clip_log_entries.append(
+            {
+                "clip_id": clip_id,
+                "attempt_number": scene_attempt,
+                "eval_passed": None,
+                "video_duration_seconds": None,
+                "estimated_cost_usd": None,
+                "generation_time": round(time.time() - attempt_start, 1),
+                "eval_report_path": None,
+                "error": str(e),
+                "prompt": prompt,
+            }
+        )
         raise
 
     if not verify_clips:
-        clip_log_entries.append({
-            "clip_id": clip_id,
-            "attempt_number": scene_attempt,
-            "eval_passed": None,
-            "video_duration_seconds": clip_duration_hint,
-            "estimated_cost_usd": estimate_cost(MODEL_KEY, RESOLUTION, clip_duration_hint),
-            "generation_time": round(time.time() - attempt_start, 1),
-            "eval_report_path": None,
-            "error": recovered_error,
-            "prompt": prompt,
-        })
+        clip_log_entries.append(
+            {
+                "clip_id": clip_id,
+                "attempt_number": scene_attempt,
+                "eval_passed": None,
+                "video_duration_seconds": clip_duration_hint,
+                "estimated_cost_usd": estimate_cost(
+                    MODEL_KEY, RESOLUTION, clip_duration_hint
+                ),
+                "generation_time": round(time.time() - attempt_start, 1),
+                "eval_report_path": None,
+                "error": recovered_error,
+                "prompt": prompt,
+            }
+        )
         return video_obj, attempts, prev_duration
 
     report, new_duration, failed_clip_path = verify_clip(
@@ -157,8 +174,14 @@ def _generate_and_verify(
 
     clip_log_entries.append(
         _build_clip_entry(
-            clip_id, scene_attempt, prompt, report, prev_duration, new_duration,
-            time.time() - attempt_start, recovered_error,
+            clip_id,
+            scene_attempt,
+            prompt,
+            report,
+            prev_duration,
+            new_duration,
+            time.time() - attempt_start,
+            recovered_error,
         )
     )
 

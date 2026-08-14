@@ -23,7 +23,9 @@ def estimate_video_judge_cost(duration_seconds: float) -> float:
     return round(tokens / 1_000_000 * GEMINI_INPUT_COST_PER_1M_TOKENS, 4)
 
 
-def _build_prompt(dialogue: list, characters: list, setting: str, character_actions: str) -> str:
+def _build_prompt(
+    dialogue: list, characters: list, setting: str, character_actions: str
+) -> str:
     char_lines = "\n".join(
         f"- {c['character_id']} ({c['name']}): {c.get('appearance', {})}"
         for c in characters
@@ -85,7 +87,9 @@ def _upload_and_wait(client, video_path: str):
     PROCESSING before referencing it in generate_content."""
     video_file = client.files.upload(file=video_path)
     elapsed = 0
-    while video_file.state.name == "PROCESSING" and elapsed < FILE_UPLOAD_TIMEOUT_SECONDS:
+    while (
+        video_file.state.name == "PROCESSING" and elapsed < FILE_UPLOAD_TIMEOUT_SECONDS
+    ):
         time.sleep(FILE_UPLOAD_POLL_SECONDS)
         elapsed += FILE_UPLOAD_POLL_SECONDS
         video_file = client.files.get(name=video_file.name)
@@ -125,7 +129,9 @@ def judge_video(
                         file_uri=video_file.uri, mime_type=video_file.mime_type
                     ),
                     types.Part.from_text(
-                        text=_build_prompt(dialogue, characters, setting, character_actions)
+                        text=_build_prompt(
+                            dialogue, characters, setting, character_actions
+                        )
                     ),
                 ],
             )
@@ -156,10 +162,14 @@ def judge_video(
             "estimated_cost_usd": estimate_video_judge_cost(duration),
         }
 
-    status = "fail" if (
-        judgment.confidence == "high"
-        and (judgment.visual_issues_found or judgment.dialogue_issues_found)
-    ) else "pass"
+    status = (
+        "fail"
+        if (
+            judgment.confidence == "high"
+            and (judgment.visual_issues_found or judgment.dialogue_issues_found)
+        )
+        else "pass"
+    )
 
     return {
         "visual_issues_found": judgment.visual_issues_found,

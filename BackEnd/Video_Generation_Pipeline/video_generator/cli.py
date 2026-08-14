@@ -250,14 +250,18 @@ def main():
     # Gemini-related stays behind this branch.
     # ------------------------------------------------------------------
     else:
-        print(f"WARNING: --model {args.model} (Google Veo) is DEPRECATED — "
-              "the default local ComfyUI Wan2.2 backend replaces it.")
+        print(
+            f"WARNING: --model {args.model} (Google Veo) is DEPRECATED — "
+            "the default local ComfyUI Wan2.2 backend replaces it."
+        )
         if args.dry_run:
             print("ERROR: --dry-run is only supported with --model local.")
             return
         if not args.api_key:
-            print("ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY "
-                  "(only required for deprecated veo-* models).")
+            print(
+                "ERROR: No Gemini API key. Use --api-key or set GEMINI_API_KEY "
+                "(only required for deprecated veo-* models)."
+            )
             return
 
         from . import veo_api

@@ -76,8 +76,7 @@ def list_run_assets(run_dir: str) -> dict:
     asset_kit = [
         _entry(run_dir, os.path.join(kit_dir, name), role="asset_kit")
         for name in _listdir(kit_dir)
-        if os.path.isfile(os.path.join(kit_dir, name))
-        and name.endswith(SERVE_SUFFIXES)
+        if os.path.isfile(os.path.join(kit_dir, name)) and name.endswith(SERVE_SUFFIXES)
     ]
 
     scenes = []
@@ -88,8 +87,8 @@ def list_run_assets(run_dir: str) -> dict:
             continue
 
         scene_id = None
-        if scene_name.startswith("scene_") and scene_name[len("scene_"):].isdigit():
-            scene_id = int(scene_name[len("scene_"):])
+        if scene_name.startswith("scene_") and scene_name[len("scene_") :].isdigit():
+            scene_id = int(scene_name[len("scene_") :])
 
         video = None
         plan = None
@@ -119,15 +118,17 @@ def list_run_assets(run_dir: str) -> dict:
             elif name.endswith("_error.log"):
                 error_logs.append(_entry(run_dir, abs_path, role="scene_error"))
 
-        scenes.append({
-            "scene_id": scene_id,
-            "video": video,
-            "plan": plan,
-            "code_versions": code_versions,
-            "latest_code": code_versions[-1] if code_versions else None,
-            "error_logs": error_logs,
-            "artifacts": artifacts,
-        })
+        scenes.append(
+            {
+                "scene_id": scene_id,
+                "video": video,
+                "plan": plan,
+                "code_versions": code_versions,
+                "latest_code": code_versions[-1] if code_versions else None,
+                "error_logs": error_logs,
+                "artifacts": artifacts,
+            }
+        )
 
     scenes.sort(key=lambda s: (s["scene_id"] is None, s["scene_id"]))
     return {"run": run_level, "asset_kit": asset_kit, "scenes": scenes}
@@ -169,4 +170,6 @@ MEDIA_TYPES = {
 
 
 def media_type_for(path: str) -> str:
-    return MEDIA_TYPES.get(os.path.splitext(path)[1].lower(), "application/octet-stream")
+    return MEDIA_TYPES.get(
+        os.path.splitext(path)[1].lower(), "application/octet-stream"
+    )

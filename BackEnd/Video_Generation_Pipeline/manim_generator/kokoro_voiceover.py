@@ -59,17 +59,24 @@ def validate_voice(voice: str) -> str:
 class KokoroService(SpeechService):
     """Speech service backed by Kokoro ONNX, with per-call voice switching."""
 
-    def __init__(self, engine=None,
-                 model_path: str = DEFAULT_MODEL_PATH,
-                 voices_path: str = DEFAULT_VOICES_PATH,
-                 voice: str = DEFAULT_VOICE,
-                 speed: float = DEFAULT_SPEED,
-                 lang: str = DEFAULT_LANG,
-                 **kwargs):
+    def __init__(
+        self,
+        engine=None,
+        model_path: str = DEFAULT_MODEL_PATH,
+        voices_path: str = DEFAULT_VOICES_PATH,
+        voice: str = DEFAULT_VOICE,
+        speed: float = DEFAULT_SPEED,
+        lang: str = DEFAULT_LANG,
+        **kwargs,
+    ):
         # Silent fallback: when the Kokoro model files (or the package) are
         # missing, keep the VoiceoverScene contract intact by emitting silence
         # of the estimated speech duration instead of failing the render.
-        if Kokoro is not None and os.path.exists(model_path) and os.path.exists(voices_path):
+        if (
+            Kokoro is not None
+            and os.path.exists(model_path)
+            and os.path.exists(voices_path)
+        ):
             self.kokoro = Kokoro(model_path, voices_path)
         else:
             print(

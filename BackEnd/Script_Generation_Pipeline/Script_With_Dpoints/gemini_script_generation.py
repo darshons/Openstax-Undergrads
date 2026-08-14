@@ -65,7 +65,6 @@ def generate_script_with_decision_points_gemini(
     if not response or not response.text:
         return output_json, [uploaded_md_file.name, uploaded_json.name]
 
-
     output_json = json.loads(response.text)
 
     return output_json, [uploaded_md_file.name, uploaded_json.name]

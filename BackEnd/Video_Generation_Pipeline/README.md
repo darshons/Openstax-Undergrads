@@ -165,7 +165,9 @@ is built in code so the model choice, resolution, seed, and LoRA stack are all
 determined by function arguments.
 
 The node layout mirrors the reference `wan22_i2v_api.json` workflow that was
-validated by hand before any of this was automated:
+validated by hand before any of this was automated. Both reference workflows are
+committed at [`wan_reference/`](wan_reference/README.md), along with the archived
+run log and every clip prompt behind the July and August 2026 videos:
 
 | Node | Type | Role |
 |---|---|---|
@@ -255,10 +257,14 @@ showing visible drift, which is the main reason scenes are kept short.
 ## Output and logging
 
 ```
-output/
+output/                                  gitignored, local only
   scene{N}_final_local_{timestamp}.mp4   stitched scene video
   generation_log.json                    every scene run, every clip
   demo/                                  demo videos kept for reference
+wan_reference/                           committed
+  wan22_{t2v,i2v}_api.json               the hand-built reference workflows
+  generation_log_20260805.json           archived log for the July/August runs
+  prompts_index.md                       the same prompts, readable
 ~/comfyui/output/wan22/
   scene{N}_clip{K}_*.mp4                 individual clips before stitching
 ```
@@ -394,6 +400,7 @@ order without invalidating the branch graph.
 | `cli.py` | Argument parsing, entry point, caption burning. |
 | `pipeline.py` | Veo orchestration. Deprecated. |
 | `../solo_clip/` | Sibling one-clip-per-speaker Veo technique. Independent, see its own README. |
+| `../wan_reference/` | Reference ComfyUI workflows and the archived run log with every clip prompt. |
 | `veo_api.py` | Veo API calls, polling, retry, download. Deprecated. |
 | `clip_verification.py` | Bridges to `Transcript_Eval_Pipeline` for `--verify-clips`. Veo only. |
 

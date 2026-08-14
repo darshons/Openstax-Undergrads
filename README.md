@@ -176,8 +176,8 @@ Routes are mounted at `/instructor_api` and `/student_api`. Full schemas at
 | POST | `/instructor_api/initial_script` | Crawl a section, generate a branching script |
 | POST | `/instructor_api/generate_background_image` | Scene background |
 | POST | `/instructor_api/generate_character_images` | Character portraits |
-| POST | `/instructor_api/generate_opening_frames` | Per scene opening frame, becomes the i2v seed |
-| POST | `/instructor_api/retry_generate_*` | Regenerate an image from written feedback |
+| POST | `/instructor_api/retry_generate_background_image` | Regenerate a background from written feedback |
+| POST | `/instructor_api/retry_generate_character_image` | Regenerate a character from written feedback |
 | POST | `/instructor_api/generate_videos` | Start character video generation |
 | GET | `/instructor_api/video_status/{request_id}` | Poll it |
 | POST | `/instructor_api/generate_manim_videos` | Start Manim generation |
@@ -186,6 +186,13 @@ Routes are mounted at `/instructor_api` and `/student_api`. Full schemas at
 | GET | `/instructor_api/image/{path}` | Serve an image |
 | POST | `/instructor_api/upload_project_info` | Publish a finished scenario |
 | GET | `/student_api/assets/{project_id}` | Everything a player needs for a scenario |
+
+One caveat as of the latest commit on main. `Part 1/? of updating/correcting API
+files` removed `generate_opening_frames` and `retry_generate_opening_frames` from
+the backend, but `frontend/src/lib/api.ts` still calls both. Until the rest of
+that refactor lands, the opening-frame step in the UI will 404. The opening frame
+is what seeds image-to-video generation, so this is worth resolving before the
+next full run.
 
 Both generation endpoints return immediately and write progress to a status file
 on disk. Both status endpoints are plain file reads. Nothing is held in process

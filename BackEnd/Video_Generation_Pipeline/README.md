@@ -24,7 +24,8 @@ Nothing here depends on it.
 ## What it produces
 
 Input is a scenario JSON with scenes, characters, and per-scene clips. Output is
-one mp4 per scene, plus a JSON log of every clip that was generated.
+one silent mp4 per scene, plus a JSON log of every clip that was generated. Wan
+2.2 generates picture only, so nothing this pipeline produces has an audio track.
 
 Each scene is rendered as a series of 5 second clips which are then concatenated
 with ffmpeg. Clips exist because each generation job produces 81 frames, which is
@@ -372,6 +373,11 @@ Every scene needs a `clips` array. Each clip becomes one generation job.
 `visual_style` is prepended to every prompt and is the single most effective lever
 for keeping a scenario looking coherent, so it is worth spending time on.
 
+The `audio` block is still written into each prompt, because the schema was
+designed for Veo, which generates sound. Wan ignores it and the output is silent.
+Leave the field in place for schema compatibility, but do not expect it to do
+anything on the local path.
+
 `decision_points` drive branching in the player. This pipeline renders every scene
 independently and ignores routing, which means scenes can be regenerated in any
 order without invalidating the branch graph.
@@ -421,15 +427,12 @@ cleanly.
 Scenes over 20 seconds are better split into separate scenes than generated as
 one long chain.
 
-**No audio.** Wan 2.2 generates silent video. The demo used Kokoro TTS on the
-Manim side; the character video side has no voice track yet. Adding one means
-generating TTS from the dialogue already in the scenario JSON and muxing it, which
-is a contained piece of work.
-
-**Lip sync.** There is none. The visual style guidance deliberately asks for mouth
-movement that suggests speech rather than matching phonemes, because the model
-cannot do the latter. If OpenStax wants real lip sync, that is a separate model,
-not a parameter change here.
+**Video only, no audio.** Wan 2.2 outputs silent video and that is all this
+pipeline produces. There is no voice track, no narration, and no lip sync. The
+dialogue in the scenario JSON is used to drive what the characters appear to be
+doing, not to generate speech. The visual style guidance asks for mouth movement
+that suggests speech rather than matching phonemes, because the model cannot do
+the latter.
 
 **Single machine.** `COMFY_ROOT` and `COMFY_API` are environment variables, so
 pointing at a remote ComfyUI works, but there is no queue, no retry across hosts,

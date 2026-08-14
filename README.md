@@ -267,11 +267,9 @@ git checkout -b recovered archive/video-experimenting
 
 Listed plainly so nobody rediscovers them the hard way.
 
-- Wan 2.2 generates silent video. There is no voice track on the character
-  pipeline yet. The dialogue is already in the scenario JSON, so this is a
-  contained piece of work: generate TTS and mux it.
-- No lip sync, and the model cannot do it. The visual style guidance asks for
-  mouth movement that suggests speech rather than matching phonemes.
+- The Wan pipeline outputs video only. No voice track, no narration, no lip sync.
+  Dialogue in the scenario JSON drives what characters appear to be doing, not
+  speech. Only the Manim pipeline has narration, via Kokoro TTS.
 - Character consistency past about 4 chained clips drifts, because each clip seeds
   from the previous clip's last frame and errors compound. Short scenes work
   around it.

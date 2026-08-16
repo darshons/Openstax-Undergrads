@@ -51,18 +51,28 @@ worth reading.
 The videos these produced are under `../output/` and are not committed, since the
 repo ignores `output/`. They are on the machine that rendered them.
 
+## The start frames
+
+`start_frames/` holds the image every i2v run started from, one per scene for the
+2026-08-05 batch plus the single shared background the 2026-08-04 batch used.
+Filenames match the `reference_images` entries in the log, so a run can be traced
+to its input by basename. See `start_frames/README.md` for the run-to-image map.
+
 ## Reproducing a clip
 
 The prompts in the archive are the finished strings that went to `CLIPTextEncode`,
 so nothing needs to be rebuilt to reuse one. Paste it into node 9 of the matching
-workflow, set the seed to 30003, and generate.
+workflow, set the seed to 30003, and generate. For an i2v prompt, put the run's start
+frame from `start_frames/` into ComfyUI's `input/` and name it in node 17.
 
-To go through the pipeline instead, the scenario that produced most of these runs
-is `../scenario.json`:
+To go through the pipeline instead, the scenario behind most of these runs is
+`../solo_clip/anthony_scenario.json`, the 16-scene Elena's Knee lesson that the
+2026-08-05 batch rendered. `../scenario.json` is the 3-scene Maya and Carl one,
+used only by the single t2v run on 2026-07-30:
 
 ```bash
 cd BackEnd/Video_Generation_Pipeline
-python -m video_generator.cli --scenario scenario.json --scene-id 1 --dry-run
+python -m video_generator.cli --scenario solo_clip/anthony_scenario.json --scene-id 1 --dry-run
 ```
 
 `--dry-run` prints the exact payload it would submit, which can be diffed against

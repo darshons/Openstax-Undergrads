@@ -499,6 +499,8 @@ def concat_clips(clip_paths: list, out_path: str) -> str:
             str(list_file),
             "-c",
             "copy",
+            "-movflags",
+            "+faststart",
             out_path,
         ],
         check=True,

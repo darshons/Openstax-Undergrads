@@ -42,9 +42,9 @@ import os
 import time
 from pathlib import Path
 
-from video_generator.clip_verification import eval_failure_reason
-from video_generator.prompt_builder import build_veo_prompt
-from video_generator.veo_api import (
+from Video_Generation_Pipeline.video_generator.clip_verification import eval_failure_reason
+from Video_Generation_Pipeline.video_generator.prompt_builder import build_veo_prompt
+from Video_Generation_Pipeline.video_generator.veo_api import (
     ClipEvalFailedError,
     download_video,
     generate_first_clip,

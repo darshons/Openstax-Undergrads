@@ -2,8 +2,8 @@ import argparse
 import os
 from pathlib import Path
 
-from video_generator.cli import load_env
-from video_generator.scenario_loader import load_scenario
+from Video_Generation_Pipeline.video_generator.cli import load_env
+from Video_Generation_Pipeline.video_generator.scenario_loader import load_scenario
 
 from .pipeline import run_scenario_pipeline_solo_clip
 from .reference_images import ensure_reference_images

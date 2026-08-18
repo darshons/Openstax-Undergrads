@@ -14,6 +14,7 @@ from Script_Generation_Pipeline.render_mode import normalize_render_modes
 
 from Image_Generation_Pipeline import (
     generate_background,
+    generate_opening_frames,
     retry_with_feedback,
 )
 
@@ -270,6 +271,44 @@ def generate_character_images(
     }
 
 
+# This endpoint will be called by the frontend to composite opening-frame images per scene from the background + character references
+@instructor_router.post("/generate_opening_frames")
+def generate_opening_frames_endpoint(
+    request: VisualGenerationRequest,
+    background_tasks: BackgroundTasks,
+) -> dict:
+    if not request.background_image_path or not request.character_image_file_mapping:
+        raise HTTPException(
+            status_code=400,
+            detail="Opening frame generation requires both background_image_path and character_image_file_mapping",
+        )
+
+    (
+        opening_scene_frame_file_mapping,
+        frame_uploaded_file_names,
+        frame_json_file_paths,
+    ) = generate_opening_frames(
+        request.script,
+        request.background_image_path,
+        request.character_image_file_mapping,
+        request.request_id,
+    )
+
+    background_tasks.add_task(delete_local_files, frame_json_file_paths)
+    background_tasks.add_task(delete_uploaded_files_gemini, frame_uploaded_file_names)
+
+    if opening_scene_frame_file_mapping is None or len(opening_scene_frame_file_mapping) == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Opening frame generation failed. No images were returned.",
+        )
+
+    return {
+        "message": "Opening frame generation completed",
+        "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
+    }
+
+
 # This endpoint will be called by the frontend to retrieve the generated images to display them in the frontend
 @instructor_router.get("/image/{image_path:path}")
 def get_image(image_path: str):
@@ -401,6 +440,86 @@ def retry_generate_character_image(
         return {
             "message": "Character image generation retry completed",
             "character_image_file_path": updated_image_path,
+        }
+
+
+# This endpoint will be called by the frontend to retry opening-frame generation for one scene based on user feedback, or to simply regenerate it if no feedback is provided
+@instructor_router.post("/retry_generate_opening_frames")
+def retry_generate_opening_frames(
+    image_retry_request: ImageRetryRequest, background_tasks: BackgroundTasks
+) -> dict:
+    if (
+        not image_retry_request.image_request.background_image_path
+        or not image_retry_request.image_request.character_image_file_mapping
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Opening frame retry requires both background_image_path and character_image_file_mapping",
+        )
+
+    if image_retry_request.user_feedback is None:
+        (
+            opening_scene_frame_file_mapping,
+            frame_uploaded_file_names,
+            frame_json_file_paths,
+        ) = generate_opening_frames(
+            image_retry_request.image_request.script,
+            image_retry_request.image_request.background_image_path,
+            image_retry_request.image_request.character_image_file_mapping,
+            image_retry_request.image_request.request_id,
+            retry_image_id=image_retry_request.retry_image_id,
+        )
+
+        background_tasks.add_task(delete_local_files, frame_json_file_paths)
+        background_tasks.add_task(
+            delete_uploaded_files_gemini, frame_uploaded_file_names
+        )
+
+        if (
+            opening_scene_frame_file_mapping is None
+            or len(opening_scene_frame_file_mapping) == 0
+        ):
+            raise HTTPException(
+                status_code=500,
+                detail="Opening frame generation failed. No images were returned.",
+            )
+
+        return {
+            "message": "Opening frame generation retry completed",
+            "opening_scene_frame_file_mapping": opening_scene_frame_file_mapping,
+        }
+
+    else:
+        dir_path = Path(tempfile.gettempdir()) / "Frame_Image_Output"
+        original_image_path = (
+            dir_path
+            / f"{image_retry_request.image_request.request_id}_{image_retry_request.retry_image_id}_opening_frame.png"
+        )
+
+        if not original_image_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Original opening frame image not found.",
+            )
+
+        updated_image_path, uploaded_file_names_to_delete = retry_with_feedback(
+            str(original_image_path),
+            image_retry_request.user_feedback,
+        )
+
+        background_tasks.add_task(
+            delete_uploaded_files_gemini, uploaded_file_names_to_delete
+        )
+
+        if updated_image_path is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Opening frame generation failed. No image was returned.",
+            )
+
+        return {
+            "message": "Opening frame generation retry completed",
+            "opening_frame_image_file_path": updated_image_path,
         }
 
 

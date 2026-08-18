@@ -87,6 +87,7 @@ def get_image_roots() -> list[Path]:
     return [
         tmp / "Background_Image_Output",
         tmp / "Character_Image_Output",
+        tmp / "Frame_Image_Output",
     ]
 
 

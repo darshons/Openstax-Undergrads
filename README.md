@@ -74,10 +74,19 @@ demo_manim_video/                  pre-rendered demo output
 
 ### Backend
 
+Requires Python 3.12 - `backend_requirement.txt` pins `pillow==10.4.0`, which
+has no prebuilt wheel for 3.13+ and fails to build from source without local
+jpeg headers.
+
+The server imports the Manim pipeline at module load time, so both
+requirements files are needed just to start it, not only for Manim
+generation:
+
 ```bash
 cd BackEnd
-python3 -m venv venv && source venv/bin/activate
+python3.12 -m venv venv && source venv/bin/activate
 pip install -r backend_requirement.txt
+pip install -r Video_Generation_Pipeline/manim_generator/requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -103,13 +112,9 @@ backend picks `anthropic` when `ANTHROPIC_API_KEY` is set and falls back to
 `local` otherwise, so the app runs with no keys configured at all if you only
 want script generation.
 
-For Manim video generation, install the extra pipeline requirements into the
-same venv and point the env at the Kokoro TTS model files (see
-`BackEnd/Video_Generation_Pipeline/manim_generator/README.md`):
-
-```bash
-pip install -r Video_Generation_Pipeline/manim_generator/requirements.txt
-```
+For actual Manim narration (not silent placeholder audio), point the env at
+the Kokoro TTS model files - see
+`BackEnd/Video_Generation_Pipeline/manim_generator/README.md`.
 
 ### Frontend
 

@@ -469,3 +469,12 @@ Resolution, aspect ratio, and reference images are constants at the top of
 The reason the project moved off Veo is cost. The local backend produces
 comparable quality for this use case at zero marginal cost, and the demo scenario
 above cost $0.00 to render where Veo would have run into the hundreds.
+
+Two small dev scripts at the repo root of `Video_Generation_Pipeline/` are
+Veo-era iteration tools, still functional against the current code:
+`test_prompt.py` prints the prompts `build_clip_prompts` would send for every
+scene of `scenario.json` without calling Veo (free); `run_experiment.py`
+repeats a scenario through the pipeline N times with every varying knob
+(model, reference images, `--verify-clips`) collected in one place at the
+top of the file, writing each repeat's videos/eval reports/log under its own
+timestamped folder in `output/experiments/`.

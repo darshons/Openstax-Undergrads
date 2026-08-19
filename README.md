@@ -36,6 +36,44 @@ money, and **it is currently the only live-action renderer the API actually
 calls** — see [Known gaps](#known-gaps). See
 [`solo_clip/README.md`](BackEnd/Video_Generation_Pipeline/solo_clip/README.md).
 
+<!-- VIDEO: drop a demo recording here.
+     On GitHub, edit this file in the browser and drag an mp4 into the editor.
+     GitHub uploads it and leaves a https://github.com/user-attachments/... link
+     that plays inline. Good candidates: a full scenario walkthrough, one Wan
+     character scene, one Manim diagram scene. -->
+
+## Where the project got to
+
+An editor can go from a textbook section to a watchable branching scenario
+without leaving the browser.
+
+Every number below is reproducible from files in this repo, so they can be
+rechecked rather than taken on trust.
+
+| | | Source |
+|---|---|---|
+| OpenStax books in the catalog | 21 | `frontend/src/data/catalog.ts` |
+| Sections addressable | 468 | same |
+| Wan scene runs logged | 46, of which 30 succeeded | `wan_reference/generation_log_20260805.json` |
+| Wan clips generated | 84 | same |
+| Time per 5 second clip | 255s min, 332s median, 437s max | same |
+| Finished Wan video produced | 424 seconds | same |
+| GPU cost for all of it | $0.00 | same, `total_cost_usd` is 0 on every entry |
+| Offline video tests | 28, passing | `python -m unittest discover -s tests` |
+
+The 16 failed Wan runs were all one bug, a call passing a `default_setting`
+argument that `build_clip_prompts` did not accept. It is fixed. None of the
+failures were the model producing unusable video, and their prompts are kept in
+the archive alongside the successful ones.
+
+The Manim side has no equivalent log, so its timing is an estimate rather than a
+measurement: a full 8 scene scenario runs roughly 30 to 60 minutes, dominated by
+LLM calls and serial renders.
+
+The honest limitation is speed. No renderer here is interactive, which is why
+they all run as background jobs that write progress to a status file and why the
+UI polls rather than blocks.
+
 ## Layout
 
 ```
@@ -57,8 +95,8 @@ BackEnd/
     Preprocessing/html_crawler.py  OpenStax HTML to Markdown
     Script_With_Dpoints/           anthropic, gemini, and local script generators
     Prompt_Rules/                  the rules fed to the LLM
-    _JSON_Templates/                output schemas the LLM must follow
-    _Script_Outputs/                example generated scripts
+    _JSON_Templates/               output schemas the LLM must follow
+    _Script_Outputs/               example generated scripts
   Image_Generation_Pipeline/       backgrounds, characters, opening frames, retry-with-feedback
   Video_Generation_Pipeline/
     manim_generator/               Manim diagram pipeline
@@ -234,18 +272,43 @@ of the wrong-speaker artifact described above.
 
 ## Branches
 
-`main` is the canonical branch — everything in this README describes it. The
-demo-specific branch (`anthony-demo`: a hardcoded example scenario, ~30MB of
-pre-baked demo video/image binaries, and a "type anthony to join" shortcut in
-the join screen) has had its real, reusable fixes (StudentPlayer UX,
-GeneratePanel cleanup, a couple of real bugs) merged into `main`; the
-demo-only hardcoding and binaries were deliberately left out and still live
-only on `anthony-demo` if ever needed again. Two other branches had open pull
-requests (`fix/manim-temp-output-root` / #14, `theorem-explain-openstax` /
-#4); both are closed — #14's real content (Manim temp-dir output default,
-intermediate-asset endpoints) is already merged into `main`, and #4 (a
-third, unintegrated video pipeline vendored from an external repo) was
-closed as out of scope.
+`main` is the canonical branch and everything in this README describes it.
+
+The demo branch `anthony-demo` (a hardcoded example scenario, pre-baked demo
+binaries, and a "type anthony to join" shortcut) has had its real reusable fixes
+merged into `main`: the StudentPlayer UX work, the GeneratePanel cleanup, and a
+couple of genuine bugs. The demo-only hardcoding and binaries were deliberately
+left out. **The branch itself has since been deleted from the remote.** Its
+commits are preserved by the `archive/anthony-demo` tag, so if the demo build is
+ever needed again:
+
+```bash
+git checkout -b anthony-demo archive/anthony-demo
+```
+
+The two former pull requests are closed. #14's real content (Manim temp-dir
+output default, intermediate-asset endpoints) is merged into `main`; #4 (a third,
+unintegrated video pipeline vendored from an external repo) was closed as out of
+scope. Both branches still exist on the remote.
+
+Other branches currently on the remote, none of them merged:
+
+| Branch | Ahead of main | What it is |
+|---|---|---|
+| `wan-start-frames` | 1 | The i2v start frames for the archived Wan runs |
+| `solo-clip-single-character-frames` | 4 | Solo-clip work |
+| `backup/solo-clip-single-character-frames-pre-rebase` | 31 | Pre-rebase backup of the above |
+| `temp-retry` | 7 | Scratch |
+| `student-ui` | 13 | Superseded student UI work |
+| `demo` | 26 | Older demo branch |
+| `director-tricks-test` | 26 | Scratch |
+| `fix/manim-temp-output-root` | 2 | Former PR #14 |
+| `theorem-explain-openstax` | 1 | Former PR #4 |
+
+An earlier cleanup deleted 25 stale branches and tagged every unmerged one
+`archive/<branch-name>` first, so nothing from that pass was lost. `git tag -l
+'archive/*'` lists them. The branches above accumulated after that cleanup and
+have not been triaged.
 
 ## Known gaps
 

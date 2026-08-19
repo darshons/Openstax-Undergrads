@@ -277,40 +277,50 @@ carry real dollar figures, so the two are directly comparable.
 
 ## How the API uses this
 
-The FastAPI backend wraps the pipeline in `BackEnd/API/instructor_api_helpers.py`.
+It does not, currently. This is the most important thing to know before building
+on this pipeline.
 
+`run_video_generation()` in `BackEnd/API/instructor_api_helpers.py` used to
+dispatch on a `backend` string between this local Wan path and Veo. It no longer
+does. It now calls `run_scenario_pipeline_solo_clip()` unconditionally with
+`model="veo-3.1-fast-generate-preview"`, and takes no `backend` or
+`character_lora` argument at all. Nothing in the API reaches
+`run_scenario_pipeline_local()`.
+
+The renderer picker in the Studio UI is therefore misleading rather than merely
+inert: a user who selects Wan expecting free local rendering triggers paid Veo
+generation instead. The request body's `backend` field is not declared on the
+Pydantic model, so FastAPI drops it silently and nothing surfaces the mismatch.
+
+Reaching this pipeline today means using the CLI. Everything above in this README
+describes the CLI path and is current.
+
+Wiring it back means declaring `backend` on the request model and restoring the
+branch in `run_video_generation()` between `solo_clip` and
+`run_scenario_pipeline_local()`, which still has the signature it always had:
+
+```python
+run_scenario_pipeline_local(
+    scenario=planned_scenario,
+    mode="i2v" if start_image else "t2v",
+    start_image=start_image,
+    character_lora=character_lora,
+    on_scene_complete=on_scene_complete,
+)
 ```
-POST /instructor_api/generate_videos   {script, request_id, background_image_path,
-                                        character_image_file_mapping, backend,
-                                        character_lora}
-    -> {"status": "started", "backend": "local"}
 
-GET  /instructor_api/video_status/{request_id}
-    -> {state, completed_scenes, failed_scenes, error?}
-       state: planning_clips | rendering | done | completed_with_errors | failed
+`on_scene_complete` is called as each scene lands, which is what lets a UI fill
+in scene cards during a long run instead of showing a spinner.
 
-GET  /instructor_api/video/{video_path}
-    -> the mp4
-```
+Two things that still hold whenever it is reconnected:
 
-`run_video_generation()` does two things in order. First it calls
-`clip_planner.plan_scenario_clips()`, which uses Gemini to break each scene's
-dialogue into clip sized chunks while validating that every original line is
-reused verbatim and in order. Then it dispatches to the chosen backend.
-
-Two things worth knowing if you are integrating:
-
-- **Clip planning still calls Gemini even on the local backend.** The rendering
-  is free, the planning is not. `GEMINI_API_KEY` is required for the API path
-  regardless of `backend`. The CLI path skips planning entirely and uses the
-  clips already present in the scenario JSON, so the CLI is genuinely keyless.
-- **Status is a file, not memory.** The background job writes `status.json`
-  after every scene, and the status endpoint is a plain file read. Restarting the
-  API does not lose progress on a run already in flight, and nothing is held in
-  process state.
-
-`on_scene_complete` is called as each scene lands, which is what lets the
-frontend populate scene cards during a 90 minute run instead of showing a spinner.
+- **Clip planning calls Gemini even on the local path.** The rendering is free,
+  the planning is not, so `GEMINI_API_KEY` is required for any API-driven run
+  regardless of renderer. The CLI skips planning and uses the clips already in
+  the scenario JSON, so the CLI is genuinely keyless.
+- **Status is a file, not memory.** The background job writes `status.json` after
+  every scene and the status endpoint is a plain file read, so restarting the API
+  does not lose a run in flight.
 
 ## Scenario JSON
 
